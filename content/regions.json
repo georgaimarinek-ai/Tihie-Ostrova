@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "note": "Distances in metres from the home island (0,0); north is -z. fog.density feeds Environment fog (see docs/04_TECH_SPEC.md §5); fog.locked is the density of a region that is not yet opened. Palette values come from the atmosphere sketch (reference/sketch).",
+  "home": { "id": "home", "name": { "ru": "Родной остров", "en": "Home island" }, "pos": [0, 0], "radius": 110, "peak": 9, "seed": 11 },
+  "regions": [
+    {
+      "id": "r1", "name": { "ru": "Тихая губа", "en": "Quiet Bay" },
+      "ring_m": [0, 700], "opened_by": "start", "boat_required": "karbas",
+      "fog": { "density": 0.018, "locked": 0.06 },
+      "chapter": { "id": "white_night", "name": { "ru": "Белая ночь", "en": "White night" }, "fog": "#aeb8bb", "zenith": "#7c8e9b", "sun": "#ffd6b0", "sun_energy": 1.1, "sun_elevation": 0.1, "sea_deep": "#253c44", "sea_shallow": "#5b7a80", "night": 0, "aurora": 0 },
+      "resources": ["branch", "stone", "flint", "fiber", "moss", "birch_bark", "resin", "wood", "raw_fish", "cloudberry", "lingonberry", "mushroom"],
+      "creatures": ["hare", "fox", "seal", "gull", "wolf", "mglyak", "domovoy", "bannik", "leshy"],
+      "cold": false, "storm_max": 1, "islets": 9
+    },
+    {
+      "id": "r2", "name": { "ru": "Летний берег", "en": "Summer Shore" },
+      "ring_m": [700, 1500], "opened_by": "b03", "boat_required": "karbas",
+      "fog": { "density": 0.0105, "locked": 0.06 },
+      "chapter": { "id": "warm_evening", "name": { "ru": "Тёплый вечер", "en": "Warm evening" }, "fog": "#e0c3ad", "zenith": "#6f8fae", "sun": "#ffc48a", "sun_energy": 1.55, "sun_elevation": 0.14, "sea_deep": "#28465a", "sea_shallow": "#86a3ab", "night": 0, "aurora": 0 },
+      "resources": ["wood", "stone", "fiber", "moss", "resin", "birch_bark", "raw_fish", "bog_ore", "clay", "flax", "barley", "cloudberry", "mushroom"],
+      "creatures": ["hare", "fox", "reindeer", "gull", "bear", "mglyak", "kikimora", "leshy", "vodyanoy", "chud", "likho"],
+      "cold": false, "storm_max": 1, "islets": 12
+    },
+    {
+      "id": "r3", "name": { "ru": "Терский берег", "en": "Ter Coast" },
+      "ring_m": [1500, 2500], "opened_by": "b06", "boat_required": "shnyaka",
+      "fog": { "density": 0.014, "locked": 0.07 },
+      "chapter": { "id": "storm_autumn", "name": { "ru": "Штормовая осень", "en": "Stormy autumn" }, "fog": "#8e9a98", "zenith": "#4c5a61", "sun": "#c8d0d0", "sun_energy": 0.8, "sun_elevation": 0.18, "sea_deep": "#1c3036", "sea_shallow": "#4f6b6b", "night": 0.2, "aurora": 0 },
+      "resources": ["wood", "stone", "resin", "birch_bark", "raw_fish", "pearl", "mica", "larch", "lingonberry"],
+      "creatures": ["seal", "gull", "wolf", "bear", "morok", "fog_wolf", "vodyanoy", "sirin", "chud"],
+      "cold": false, "storm_max": 2, "islets": 14
+    },
+    {
+      "id": "r4", "name": { "ru": "Студёное море", "en": "Frozen Sea" },
+      "ring_m": [2500, 3500], "opened_by": "b09", "boat_required": "koch",
+      "fog": { "density": 0.0052, "locked": 0.08 },
+      "chapter": { "id": "polar_night", "name": { "ru": "Полярная ночь", "en": "Polar night" }, "fog": "#1c2a42", "zenith": "#060a16", "sun": "#8aa2d8", "sun_energy": 0.45, "sun_elevation": 0.35, "sea_deep": "#0a1624", "sea_shallow": "#21395a", "night": 1, "aurora": 1 },
+      "resources": ["stone", "raw_fish", "spolokh", "mica"],
+      "creatures": ["fox", "reindeer", "polar_bear", "ice_mglyak", "fog_wolf", "sirin", "ryba_kit", "karachun"],
+      "cold": true, "storm_max": 3, "islets": 10
+    }
+  ]
+}

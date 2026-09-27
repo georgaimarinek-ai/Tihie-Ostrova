@@ -1,0 +1,59 @@
+Progression model — minutes per beacon (see docs/03_BALANCE.md §2)
+beacon                   gather  craft travel  trial  quiet   tale   saga  built
+b01 Чаячья луда              16      8      7      4     42     45     42  workbench, hearth, izba
+b02 Берёзовый наволок         3      1      8      8     26     29     22  
+b03 Камень-Сторож             5      1      9      8     29     32     36  
+b04 Ржавое болото            14      5     10     10     45     48     40  tar_pit
+b05 Глиняный ручей           16      5     11     10     48     51     43  
+b06 Льняной остров           35     17     18      8     85     88     95  forge, kiln, bloomery
+b07 Варничный мыс            49     23     18      8    104    107    102  boatyard, loom, shnyaka, trypot
+b08 Жемчужная речка          14      4     12     10     47     50     42  
+b09 Три Креста               19      5     14     10     54     57     65  
+b10 Ледяные ворота           55     26     44      8    139    142    137  koch
+b11 Сполохов остров          22      5     29     10     72     75     68  
+b12 Светоч                   34      8     31     20     99    102    107  
+total, hours                                           13.1   13.7   13.3
+evenings of 90 min (quiet): 8.8
+b01 Чаячья луда (quiet)
+  gather    16.1 min
+  craft      8.0 min
+  travel     7.5 min
+  trial      4.0 min
+  upkeep     6.0 min
+  total     41.6 min
+  raw: birch_bark 4, branch 4, fiber 7, flint 2, moss 12, resin 6, stone 16, wood 94
+  built: workbench, hearth, izba
+  regions: r1
+b04 Ржавое болото (quiet)
+  gather    14.1 min
+  craft      4.7 min
+  travel     9.8 min
+  trial     10.0 min
+  upkeep     6.0 min
+  total     44.7 min
+  raw: birch_bark 64, moss 6, resin 16, stone 10, wood 32
+  built: tar_pit
+  regions: r1
+  background crafting (kilns, bloomery, salt works): 6 min
+b07 Варничный мыс (quiet)
+  gather    49.3 min
+  craft     23.5 min
+  travel    17.7 min
+  trial      8.0 min
+  upkeep     6.0 min
+  total    104.4 min
+  raw: birch_bark 128, bog_ore 30, branch 4, fiber 94, flax 32, raw_fish 36, stone 8, wood 150
+  built: boatyard, loom, shnyaka, trypot
+  regions: r1, r2
+  background crafting (kilns, bloomery, salt works): 40 min
+b10 Ледяные ворота (quiet)
+  gather    55.2 min
+  craft     26.0 min
+  travel    43.8 min
+  trial      8.0 min
+  upkeep     6.0 min
+  total    139.1 min
+  raw: birch_bark 128, bog_ore 36, fiber 64, flax 48, larch 60, raw_fish 54, spolokh 2, wood 80
+  built: koch
+  regions: r1, r2, r3, r4
+  background crafting (kilns, bloomery, salt works): 49 min

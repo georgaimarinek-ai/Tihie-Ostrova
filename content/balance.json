@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "note": "Global tuning and the assumptions of tools/progression_sim.py. Change a number here, rerun the sim, update docs/03_BALANCE.md.",
+  "player": {
+    "hp": 100,
+    "stamina": 100,
+    "stamina_regen_per_s": 12,
+    "sprint_cost_per_s": 10,
+    "swim_cost_per_s": 6,
+    "carry_slots": 24,
+    "food_slots": 3
+  },
+  "day": {
+    "length_min": 30,
+    "night_share": {
+      "r1": 0.0,
+      "r2": 0.15,
+      "r3": 0.3,
+      "r4": 0.6
+    }
+  },
+  "rested": {
+    "base_min": 8,
+    "per_comfort_min": 1,
+    "max_comfort": 17,
+    "stamina_regen_bonus": 0.5
+  },
+  "respawn": {
+    "resource_nodes_days": 3,
+    "berries_days": 2
+  },
+  "fog": {
+    "clear_factor": 0.22,
+    "clear_edge": 0.3,
+    "lock_push_s": 6
+  },
+  "sim": {
+    "gather_distance_m": {
+      "r1": 150,
+      "r2": 1000,
+      "r3": 1900,
+      "r4": 2900
+    },
+    "landing_overhead_min": 3,
+    "beacon_overhead_min": 3,
+    "home_upkeep_min": 6,
+    "quiet_trial_factor": 1.0,
+    "tale_extra_min": 3,
+    "saga_fight_min": {
+      "siverko": 12,
+      "bolotnitsa": 15,
+      "hozyain_guby": 18,
+      "mga": 25
+    },
+    "saga_defense_prep_min": 3,
+    "tool_upgrades": [
+      "iron_axe",
+      "iron_pick"
+    ],
+    "starter_home": {
+      "log_foundation": 4,
+      "log_wall": 8,
+      "gable_roof": 4,
+      "door": 1,
+      "bed": 1,
+      "hearth": 1
+    },
+    "background_craft_min_s": 30,
+    "background_active_share": 0.25
+  },
+  "targets": {
+    "beacon_minutes_by_region": {
+      "r1": [
+        25,
+        75
+      ],
+      "r2": [
+        40,
+        130
+      ],
+      "r3": [
+        45,
+        150
+      ],
+      "r4": [
+        60,
+        160
+      ]
+    },
+    "total_hours_quiet": [
+      12,
+      22
+    ],
+    "evening_session_min": 90,
+    "note": "Targets are for an efficient player who knows the recipes (the model). First-time players take about 1.6-2.5x longer; check in playtests (docs/07_PLAYTEST.md)."
+  }
+}

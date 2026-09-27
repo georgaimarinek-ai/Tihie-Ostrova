@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "note": "Building pieces. station:true makes the piece a crafting station (recipes.json). comfort adds to the Rested buff (see docs/03_BALANCE.md). fog_radius: the piece clears fog around itself while lit (m). snap: socket family for the building grid (docs/04_TECH_SPEC.md).",
+  "pieces": [
+    { "id": "workbench", "name": { "ru": "Верстак", "en": "Workbench" }, "category": "station", "cost": { "wood": 10 }, "unlock": "start", "station": true, "snap": "free" },
+    { "id": "hearth", "name": { "ru": "Каменный очаг", "en": "Stone hearth" }, "category": "station", "cost": { "stone": 6, "wood": 2 }, "unlock": "start", "station": true, "comfort": 1, "fog_radius": 10, "snap": "floor" },
+
+    { "id": "log_foundation", "name": { "ru": "Окладной венец", "en": "Sill log" }, "category": "structure", "cost": { "wood": 4, "stone": 2 }, "unlock": "start", "snap": "foundation" },
+    { "id": "log_wall", "name": { "ru": "Сруб, 2 м", "en": "Log wall, 2 m" }, "category": "structure", "cost": { "wood": 4, "moss": 1 }, "unlock": "start", "snap": "wall" },
+    { "id": "log_wall_half", "name": { "ru": "Сруб, 1 м", "en": "Log wall, 1 m" }, "category": "structure", "cost": { "wood": 2, "moss": 1 }, "unlock": "start", "snap": "wall" },
+    { "id": "plank_floor", "name": { "ru": "Пол из плах", "en": "Plank floor" }, "category": "structure", "cost": { "wood": 2 }, "unlock": "start", "snap": "floor" },
+    { "id": "gable_roof", "name": { "ru": "Тёсовая кровля", "en": "Board roof" }, "category": "structure", "cost": { "wood": 3, "birch_bark": 1 }, "unlock": "start", "snap": "roof" },
+    { "id": "roof_ridge", "name": { "ru": "Охлупень", "en": "Ridge log" }, "category": "structure", "cost": { "wood": 4 }, "unlock": "start", "comfort": 1, "snap": "roof" },
+    { "id": "door", "name": { "ru": "Дверь", "en": "Door" }, "category": "structure", "cost": { "wood": 4, "rope": 1 }, "unlock": "start", "snap": "wall" },
+    { "id": "window_hatch", "name": { "ru": "Волоковое окно", "en": "Sliding window hatch" }, "category": "structure", "cost": { "wood": 2 }, "unlock": "start", "snap": "wall" },
+    { "id": "pier", "name": { "ru": "Причал, 2 м", "en": "Pier, 2 m" }, "category": "structure", "cost": { "wood": 4 }, "unlock": "start", "snap": "pier" },
+
+    { "id": "bench", "name": { "ru": "Лавка", "en": "Bench" }, "category": "furniture", "cost": { "wood": 3 }, "unlock": "start", "comfort": 1, "snap": "floor" },
+    { "id": "table", "name": { "ru": "Стол", "en": "Table" }, "category": "furniture", "cost": { "wood": 4 }, "unlock": "start", "comfort": 1, "snap": "floor" },
+    { "id": "bed", "name": { "ru": "Полати", "en": "Sleeping loft" }, "category": "furniture", "cost": { "wood": 6, "moss": 4 }, "unlock": "start", "comfort": 1, "spawn": true, "snap": "floor" },
+    { "id": "chest", "name": { "ru": "Сундук", "en": "Chest" }, "category": "furniture", "cost": { "wood": 6, "rope": 1 }, "unlock": "start", "storage": 16, "snap": "floor" },
+    { "id": "drying_rack", "name": { "ru": "Вешала для рыбы", "en": "Fish drying rack" }, "category": "furniture", "cost": { "wood": 4, "rope": 2 }, "unlock": "start", "comfort": 1, "snap": "free" },
+
+    { "id": "tar_pit", "name": { "ru": "Дегтярная яма", "en": "Tar pit" }, "category": "station", "cost": { "stone": 10, "moss": 6 }, "unlock": "b01", "station": true, "snap": "free" },
+    { "id": "pomor_cross", "name": { "ru": "Поморский крест", "en": "Pomor cross" }, "category": "marker", "cost": { "wood": 6 }, "unlock": "b02", "marker": true, "snap": "free" },
+    { "id": "bathhouse_stove", "name": { "ru": "Каменка для бани", "en": "Sauna stove" }, "category": "station", "cost": { "stone": 16, "wood": 4 }, "unlock": "b02", "comfort": 2, "buff": "steam", "snap": "floor" },
+    { "id": "carved_horse", "name": { "ru": "Резной конёк", "en": "Carved ridge horse" }, "category": "decor", "cost": { "wood": 4 }, "unlock": "b03", "comfort": 1, "snap": "roof" },
+
+    { "id": "kiln", "name": { "ru": "Обжиговая яма", "en": "Kiln pit" }, "category": "station", "cost": { "stone": 12, "moss": 6 }, "unlock": "b04", "station": true, "snap": "free" },
+    { "id": "bloomery", "name": { "ru": "Сыродутный горн", "en": "Bloomery" }, "category": "station", "cost": { "stone": 10, "clay": 10 }, "unlock": "b04", "station": true, "snap": "free" },
+    { "id": "forge", "name": { "ru": "Кузня", "en": "Forge" }, "category": "station", "cost": { "brick": 10, "iron": 4, "wood": 6 }, "unlock": "b05", "station": true, "snap": "free" },
+    { "id": "stove", "name": { "ru": "Русская печь", "en": "Russian stove" }, "category": "station", "cost": { "brick": 24, "clay": 10, "stone": 10 }, "unlock": "b05", "station": true, "comfort": 3, "fog_radius": 16, "snap": "floor" },
+    { "id": "loom", "name": { "ru": "Ткацкий стан", "en": "Loom" }, "category": "station", "cost": { "wood": 12, "rope": 4 }, "unlock": "b06", "station": true, "comfort": 1, "snap": "floor" },
+    { "id": "quern", "name": { "ru": "Ручные жернова", "en": "Hand quern" }, "category": "station", "cost": { "stone": 12 }, "unlock": "b05", "station": true, "snap": "floor" },
+    { "id": "garden_bed", "name": { "ru": "Грядка", "en": "Garden bed" }, "category": "farm", "cost": { "wood": 2 }, "unlock": "b05", "grows": "barley", "snap": "free" },
+    { "id": "boatyard", "name": { "ru": "Верфь", "en": "Boatyard" }, "category": "station", "cost": { "wood": 30, "rope": 8, "tar": 6 }, "unlock": "b06", "station": true, "snap": "pier" },
+    { "id": "trypot", "name": { "ru": "Салотопный котёл", "en": "Rendering pot" }, "category": "station", "cost": { "iron": 4, "stone": 8 }, "unlock": "b06", "station": true, "snap": "free" },
+    { "id": "salt_pan", "name": { "ru": "Варница", "en": "Salt works" }, "category": "station", "cost": { "iron": 6, "brick": 10, "wood": 10 }, "unlock": "b07", "station": true, "snap": "free" },
+    { "id": "oil_lamp", "name": { "ru": "Жирник", "en": "Oil lamp" }, "category": "light", "cost": { "iron": 1, "fish_oil": 1 }, "unlock": "b06", "comfort": 1, "fog_radius": 12, "snap": "wall" },
+    { "id": "sheep_pen", "name": { "ru": "Овчарня", "en": "Sheep pen" }, "category": "farm", "cost": { "wood": 20, "rope": 6 }, "unlock": "b08", "produces": { "wool": 1, "every_min": 10 }, "snap": "free" },
+    { "id": "mica_window", "name": { "ru": "Слюдяное окно", "en": "Mica window" }, "category": "structure", "cost": { "mica": 2, "wood": 2 }, "unlock": "b09", "comfort": 1, "snap": "wall" }
+  ]
+}

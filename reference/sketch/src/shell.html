@@ -1,0 +1,129 @@
+<title>Туманные острова</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Ruslan+Display&display=swap">
+<style>
+  /* Single dark look on purpose: the page is a full-screen night-sea scene. */
+  :root {
+    color-scheme: dark;
+    --fog: #e4e9e8;        /* text, fog-white */
+    --slate: #9fb0b8;      /* secondary text */
+    --bone: #d9cbb0;       /* sail cloth */
+    --ember: #ff9a40;      /* beacon fire, the one accent */
+    --ember-ink: #2a1606;  /* text on ember */
+    --pomor: #a3372c;      /* red stripe of the sail */
+    --sea: #0e1a20;        /* panel ground */
+    --panel: rgba(12, 22, 28, 0.55);
+    --line: rgba(228, 233, 232, 0.2);
+    --display: "Ruslan Display", "Georgia", "Times New Roman", serif;
+    --ui: "Alegreya Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+  body { background: var(--sea); color: var(--fog); font: 400 16px/1.45 var(--ui); -webkit-font-smoothing: antialiased; }
+  #app { position: fixed; inset: 0; background: #aeb8bb; }
+  #app canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  kbd { font: 700 12px/1 var(--ui); padding: 3px 6px; border-radius: 3px; border: 1px solid rgba(42, 22, 6, 0.45); margin-left: 6px; vertical-align: 1px; }
+
+  /* ---------- intro ---------- */
+  #intro {
+    position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 14px;
+    padding: calc(24px + var(--safe-t)) clamp(16px, 5vw, 64px) calc(clamp(24px, 7vh, 72px) + var(--safe-b));
+    background: linear-gradient(to top, rgba(8, 14, 18, 0.86) 0%, rgba(8, 14, 18, 0.55) 38%, rgba(8, 14, 18, 0) 72%);
+    transition: opacity 1.4s ease, visibility 0s linear 1.4s;
+  }
+  #intro.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+  #sub { margin: 0; font: 500 13px/1.2 var(--ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--bone); }
+  #title { margin: 0; font: 400 clamp(40px, 8.5vw, 104px)/0.95 var(--display); letter-spacing: 0.01em; text-wrap: balance; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35); }
+  #lede { margin: 0; max-width: 34em; font-size: clamp(16px, 1.6vw, 19px); color: #cfd9dc; text-wrap: pretty; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 6px; }
+  .cta { border: 0; border-radius: 999px; padding: 14px 30px; background: var(--ember); color: var(--ember-ink); font-weight: 700; font-size: 18px; letter-spacing: 0.02em; box-shadow: 0 0 0 0 rgba(255, 154, 64, 0.5), 0 8px 30px rgba(255, 140, 50, 0.3); transition: transform 0.15s ease, box-shadow 0.3s ease; }
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 0 0 6px rgba(255, 154, 64, 0.16), 0 10px 34px rgba(255, 140, 50, 0.4); }
+  #phones { font-size: 14px; color: var(--slate); }
+  #ctrl { margin: 0; font-size: 14px; color: var(--slate); max-width: 40em; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.2s ease 0.6s; }
+  #hud.on { opacity: 1; }
+  .top { position: absolute; top: calc(14px + var(--safe-t)); left: 16px; right: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  #compass { width: min(380px, 70vw); display: none; }
+  .strip { position: relative; height: 22px; border-bottom: 1px solid var(--line);
+    background: repeating-linear-gradient(90deg, rgba(228, 233, 232, 0.4) 0 1px, transparent 1px 10%) bottom / 100% 8px no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .strip::after { content: ""; position: absolute; left: 50%; bottom: -1px; width: 1px; height: 18px; background: var(--fog); opacity: 0.8; }
+  #mark { position: absolute; top: 2px; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; background: var(--ember); transform: rotate(45deg); box-shadow: 0 0 12px 3px rgba(255, 154, 64, 0.6); transition: left 0.15s linear; }
+  #dist { margin-top: 5px; text-align: center; font: 500 13px/1 var(--ui); letter-spacing: 0.08em; color: var(--fog); font-variant-numeric: tabular-nums; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
+  #goal { position: absolute; left: 16px; bottom: calc(16px + var(--safe-b)); max-width: min(380px, calc(100% - 220px)); margin: 0; padding: 9px 14px; border-radius: 4px; background: var(--panel); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font-size: 15px; line-height: 1.4; text-wrap: pretty; }
+  .opts { position: absolute; right: 16px; bottom: calc(16px + var(--safe-b)); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: auto; }
+  .opts button { border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; background: var(--panel); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font-size: 13px; color: var(--fog); }
+  #actBtn { position: absolute; left: 50%; bottom: calc(clamp(28px, 9vh, 80px) + var(--safe-b)); transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; white-space: nowrap; }
+  #actBtn.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 10px rgba(255, 154, 64, 0.12), 0 10px 40px rgba(255, 140, 50, 0.5); } }
+  #joy { position: fixed; width: 100px; height: 100px; display: none; border-radius: 50%; border: 1.5px solid rgba(228, 233, 232, 0.45); background: rgba(12, 22, 28, 0.2); pointer-events: none; }
+  #knob { position: absolute; left: 28px; top: 28px; width: 44px; height: 44px; border-radius: 50%; background: rgba(228, 233, 232, 0.6); }
+
+  /* ---------- end card ---------- */
+  #end { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; visibility: hidden; transition: opacity 1.6s ease, visibility 0s linear 1.6s; }
+  #end.on { opacity: 1; visibility: visible; transition: opacity 1.6s ease; }
+  .card { width: min(460px, 100%); padding: 26px 26px 24px; border-radius: 6px; background: rgba(6, 12, 24, 0.7); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgba(150, 190, 255, 0.18); display: flex; flex-direction: column; gap: 12px; }
+  #endT { margin: 0; font: 400 clamp(24px, 4vw, 30px)/1.1 var(--display); text-wrap: balance; }
+  #endP { margin: 0; color: #c7d2dc; }
+  #modesT { margin: 6px 0 0; font: 500 12px/1 var(--ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone); }
+  #modes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #c7d2dc; }
+  #modes li { padding-left: 14px; position: relative; }
+  #modes li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 6px; height: 6px; background: var(--pomor); transform: rotate(45deg); }
+  #modes b { color: var(--fog); font-weight: 700; }
+  .card .cta { align-self: flex-start; margin-top: 6px; font-size: 16px; padding: 11px 24px; }
+
+  @media (max-width: 700px) {
+    #goal { left: 16px; right: 16px; bottom: auto; top: calc(62px + var(--safe-t)); max-width: none; text-align: center; font-size: 14px; }
+    #actBtn { bottom: calc(112px + var(--safe-b)); }
+    .opts button { font-size: 12px; padding: 5px 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01s !important; animation: none !important; }
+  }
+</style>
+<!--HEAD-END-->
+<div id="app"></div>
+
+<section id="intro" aria-labelledby="title">
+  <p id="sub">Играбельный набросок · Поморский Север</p>
+  <h1 id="title">Туманные острова</h1>
+  <p id="lede">Белая ночь над Белым морем. Карбас у причала, в избе горит печь, а дальше — туман до самого горизонта. Доплыви до острова, сойди на берег, добудь огонь и зажги маяк: туман отступит.</p>
+  <div class="row">
+    <button id="startBtn" class="cta" type="button">Отчалить</button>
+    <span id="phones">Лучше в наушниках</span>
+  </div>
+  <p id="ctrl">W/S — вперёд и назад · A/D — поворот · мышь с зажатой кнопкой — осмотреться · Shift — бег · E — действие</p>
+</section>
+
+<div id="hud" aria-live="polite">
+  <div class="top">
+    <div id="compass" aria-hidden="true">
+      <div class="strip"><div id="mark"></div></div>
+      <div id="dist"></div>
+    </div>
+  </div>
+  <p id="goal"></p>
+  <button id="actBtn" class="cta" type="button">Сойти на берег</button>
+  <div class="opts">
+    <button id="snd" type="button">Звук: вкл</button>
+    <button id="qual" type="button">Графика: высокая</button>
+  </div>
+</div>
+<div id="joy" aria-hidden="true"><div id="knob"></div></div>
+
+<section id="end" role="dialog" aria-labelledby="endT">
+  <div class="card">
+    <h2 id="endT">Так будет ощущаться игра</h2>
+    <p id="endP"></p>
+    <p id="modesT">Опасность выбирает игрок</p>
+    <ul id="modes"></ul>
+    <button id="contBtn" class="cta" type="button">Гулять дальше</button>
+  </div>
+</section>
+<!--BUNDLE-->

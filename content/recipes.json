@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "note": "station = buildable id with station:true, or \"hand\". unlock = \"start\" or the beacon id whose lighting unlocks it. time_s = crafting time in seconds.",
+  "recipes": [
+    { "id": "stone_axe", "station": "hand", "inputs": { "stone": 2, "branch": 3, "fiber": 2 }, "output": { "stone_axe": 1 }, "time_s": 5, "unlock": "start" },
+    { "id": "knife", "station": "hand", "inputs": { "flint": 2, "branch": 1, "fiber": 1 }, "output": { "knife": 1 }, "time_s": 5, "unlock": "start" },
+    { "id": "torch", "station": "hand", "inputs": { "branch": 1, "resin": 1 }, "output": { "torch": 1 }, "time_s": 2, "unlock": "start" },
+
+    { "id": "wooden_shovel", "station": "workbench", "inputs": { "wood": 6 }, "output": { "wooden_shovel": 1 }, "time_s": 6, "unlock": "start" },
+    { "id": "fishing_rod", "station": "workbench", "inputs": { "branch": 4, "fiber": 6 }, "output": { "fishing_rod": 1 }, "time_s": 6, "unlock": "start" },
+    { "id": "rope", "station": "workbench", "inputs": { "fiber": 4 }, "output": { "rope": 1 }, "time_s": 4, "unlock": "start" },
+    { "id": "smolye", "station": "workbench", "inputs": { "wood": 4, "resin": 2 }, "output": { "smolye": 1 }, "time_s": 8, "unlock": "start" },
+    { "id": "spear", "station": "workbench", "inputs": { "wood": 3, "flint": 2, "rope": 1 }, "output": { "spear": 1 }, "time_s": 8, "unlock": "start" },
+    { "id": "bow", "station": "workbench", "inputs": { "wood": 3, "rope": 2, "birch_bark": 2 }, "output": { "bow": 1 }, "time_s": 8, "unlock": "start" },
+    { "id": "arrows", "station": "workbench", "inputs": { "branch": 2, "flint": 1 }, "output": { "arrows": 10 }, "time_s": 4, "unlock": "start" },
+    { "id": "shield", "station": "workbench", "inputs": { "wood": 6, "rope": 2 }, "output": { "shield": 1 }, "time_s": 8, "unlock": "start" },
+    { "id": "tar_faggot", "station": "workbench", "inputs": { "smolye": 2, "tar": 2 }, "output": { "tar_faggot": 1 }, "time_s": 10, "unlock": "b03" },
+    { "id": "oil_cask", "station": "workbench", "inputs": { "fish_oil": 6, "wood": 4 }, "output": { "oil_cask": 1 }, "time_s": 12, "unlock": "b06" },
+    { "id": "larch_plank", "station": "workbench", "inputs": { "larch": 2 }, "output": { "larch_plank": 1 }, "time_s": 6, "unlock": "b09" },
+    { "id": "pearl_necklace", "station": "workbench", "inputs": { "pearl": 5, "rope": 1 }, "output": { "pearl_necklace": 1 }, "time_s": 20, "unlock": "b08" },
+
+    { "id": "cooked_fish", "station": "hearth", "inputs": { "raw_fish": 1 }, "output": { "cooked_fish": 1 }, "time_s": 20, "unlock": "start" },
+    { "id": "ukha", "station": "hearth", "inputs": { "raw_fish": 2, "mushroom": 1 }, "output": { "ukha": 1 }, "time_s": 30, "unlock": "start" },
+
+    { "id": "tar", "station": "tar_pit", "inputs": { "birch_bark": 8 }, "output": { "tar": 1 }, "time_s": 60, "unlock": "b01" },
+
+    { "id": "charcoal", "station": "kiln", "inputs": { "wood": 4 }, "output": { "charcoal": 2 }, "time_s": 60, "unlock": "b04" },
+    { "id": "brick", "station": "kiln", "inputs": { "clay": 3, "wood": 1 }, "output": { "brick": 2 }, "time_s": 60, "unlock": "b05" },
+    { "id": "iron", "station": "bloomery", "inputs": { "bog_ore": 3, "charcoal": 2 }, "output": { "iron": 1 }, "time_s": 90, "unlock": "b04" },
+
+    { "id": "iron_axe", "station": "forge", "inputs": { "iron": 3, "wood": 2 }, "output": { "iron_axe": 1 }, "time_s": 20, "unlock": "b05" },
+    { "id": "iron_pick", "station": "forge", "inputs": { "iron": 4, "wood": 2 }, "output": { "iron_pick": 1 }, "time_s": 20, "unlock": "b05" },
+    { "id": "iron_spear", "station": "forge", "inputs": { "iron": 3, "wood": 2 }, "output": { "iron_spear": 1 }, "time_s": 20, "unlock": "b05" },
+    { "id": "iron_lantern", "station": "forge", "inputs": { "iron": 2, "linen": 1 }, "output": { "iron_lantern": 1 }, "time_s": 20, "unlock": "b06" },
+    { "id": "harpoon", "station": "forge", "inputs": { "iron": 4, "larch_plank": 1, "rope": 2 }, "output": { "harpoon": 1 }, "time_s": 25, "unlock": "b07" },
+    { "id": "spolokh_spear", "station": "forge", "inputs": { "iron": 4, "spolokh": 2, "larch_plank": 1 }, "output": { "spolokh_spear": 1 }, "time_s": 30, "unlock": "b10" },
+    { "id": "spolokh_lantern", "station": "forge", "inputs": { "iron": 2, "spolokh": 3, "mica": 1 }, "output": { "spolokh_lantern": 1 }, "time_s": 30, "unlock": "b11" },
+
+    { "id": "linen", "station": "loom", "inputs": { "flax": 4 }, "output": { "linen": 1 }, "time_s": 30, "unlock": "b06" },
+    { "id": "wool_coat", "station": "loom", "inputs": { "wool": 6, "linen": 2 }, "output": { "wool_coat": 1 }, "time_s": 40, "unlock": "b08" },
+    { "id": "flour", "station": "quern", "inputs": { "barley": 3 }, "output": { "flour": 1 }, "time_s": 15, "unlock": "b05" },
+
+    { "id": "rybnik", "station": "stove", "inputs": { "flour": 2, "raw_fish": 2 }, "output": { "rybnik": 1 }, "time_s": 60, "unlock": "b05" },
+    { "id": "kalitki", "station": "stove", "inputs": { "flour": 2, "cloudberry": 3 }, "output": { "kalitki": 1 }, "time_s": 45, "unlock": "b05" },
+
+    { "id": "fish_oil", "station": "trypot", "inputs": { "raw_fish": 3 }, "output": { "fish_oil": 1 }, "time_s": 45, "unlock": "b06" },
+    { "id": "salt", "station": "salt_pan", "inputs": { "wood": 3 }, "output": { "salt": 2 }, "time_s": 90, "unlock": "b07" },
+    { "id": "salted_cod", "station": "salt_pan", "inputs": { "raw_fish": 2, "salt": 1 }, "output": { "salted_cod": 2 }, "time_s": 30, "unlock": "b07" }
+  ]
+}

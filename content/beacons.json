@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "note": "12 beacons, 3 per region. pos in metres (north = -z). fuel = items burnt when lighting. trial = what lights the beacon in Quiet and Tale worlds; saga = guardian fight or fire defence in Saga worlds. clear_radius = fog cleared around the beacon (m). opens = region that opens when this beacon is lit.",
+  "trial_types": {
+    "carry": { "ru": "Донести огонь на вершину", "en": "Carry the fire to the top", "minutes": 4 },
+    "climb": { "ru": "Подняться по уступам к огнищу", "en": "Climb the ledges to the brazier", "minutes": 8 },
+    "bells": { "ru": "Ударить в колокола в том порядке, в каком они звучат из тумана", "en": "Ring the bells in the order they sound from the fog", "minutes": 8 },
+    "lanterns": { "ru": "Зажечь три путевых фонаря на тропе через туман", "en": "Light three path lanterns through the fog", "minutes": 10 },
+    "mirror": { "ru": "Повернуть медные отражатели и свести луч на огнище", "en": "Turn the copper reflectors to aim the beam at the brazier", "minutes": 10 },
+    "finale": { "ru": "Все испытания подряд под сполохами", "en": "All trials in a row under the aurora", "minutes": 20 }
+  },
+  "beacons": [
+    { "id": "b01", "name": { "ru": "Чаячья луда", "en": "Gull Skerry" }, "region": "r1", "pos": [-60, -240], "island_radius": 70, "peak": 11, "seed": 23, "fuel": { "smolye": 3 }, "trial": "carry", "saga": { "type": "defense", "seconds": 60 }, "clear_radius": 320, "opens": null },
+    { "id": "b02", "name": { "ru": "Берёзовый наволок", "en": "Birch Headland" }, "region": "r1", "pos": [260, -330], "island_radius": 90, "peak": 13, "seed": 29, "fuel": { "smolye": 4 }, "trial": "climb", "saga": { "type": "defense", "seconds": 90 }, "clear_radius": 340, "opens": null },
+    { "id": "b03", "name": { "ru": "Камень-Сторож", "en": "Watchstone" }, "region": "r1", "pos": [-380, -530], "island_radius": 110, "peak": 18, "seed": 37, "fuel": { "smolye": 6 }, "trial": "bells", "saga": { "type": "guardian", "id": "siverko" }, "clear_radius": 380, "opens": "r2" },
+
+    { "id": "b04", "name": { "ru": "Ржавое болото", "en": "Rust Bog" }, "region": "r2", "pos": [520, -720], "island_radius": 130, "peak": 9, "seed": 41, "fuel": { "tar_faggot": 4 }, "trial": "lanterns", "saga": { "type": "defense", "seconds": 120 }, "clear_radius": 420, "opens": null },
+    { "id": "b05", "name": { "ru": "Глиняный ручей", "en": "Clay Brook" }, "region": "r2", "pos": [-760, -860], "island_radius": 120, "peak": 14, "seed": 43, "fuel": { "tar_faggot": 5 }, "trial": "mirror", "saga": { "type": "defense", "seconds": 120 }, "clear_radius": 420, "opens": null },
+    { "id": "b06", "name": { "ru": "Льняной остров", "en": "Flax Isle" }, "region": "r2", "pos": [180, -1390], "island_radius": 150, "peak": 16, "seed": 47, "fuel": { "tar_faggot": 6 }, "trial": "climb", "saga": { "type": "guardian", "id": "bolotnitsa" }, "clear_radius": 460, "opens": "r3" },
+
+    { "id": "b07", "name": { "ru": "Варничный мыс", "en": "Saltworks Cape" }, "region": "r3", "pos": [-1100, -1310], "island_radius": 140, "peak": 15, "seed": 53, "fuel": { "oil_cask": 2 }, "trial": "bells", "saga": { "type": "defense", "seconds": 150 }, "clear_radius": 500, "opens": null },
+    { "id": "b08", "name": { "ru": "Жемчужная речка", "en": "Pearl River" }, "region": "r3", "pos": [900, -1780], "island_radius": 160, "peak": 17, "seed": 59, "fuel": { "oil_cask": 3 }, "trial": "lanterns", "saga": { "type": "defense", "seconds": 150 }, "clear_radius": 520, "opens": null },
+    { "id": "b09", "name": { "ru": "Три Креста", "en": "Three Crosses" }, "region": "r3", "pos": [-420, -2310], "island_radius": 170, "peak": 22, "seed": 61, "fuel": { "oil_cask": 4 }, "trial": "mirror", "saga": { "type": "guardian", "id": "hozyain_guby" }, "clear_radius": 560, "opens": "r4" },
+
+    { "id": "b10", "name": { "ru": "Ледяные ворота", "en": "Ice Gate" }, "region": "r4", "pos": [1400, -2310], "island_radius": 120, "peak": 20, "seed": 67, "fuel": { "oil_cask": 3, "spolokh": 2 }, "trial": "climb", "saga": { "type": "defense", "seconds": 180 }, "clear_radius": 600, "opens": null },
+    { "id": "b11", "name": { "ru": "Сполохов остров", "en": "Aurora Isle" }, "region": "r4", "pos": [-1500, -2600], "island_radius": 140, "peak": 18, "seed": 71, "fuel": { "oil_cask": 4, "spolokh": 4 }, "trial": "lanterns", "saga": { "type": "defense", "seconds": 180 }, "clear_radius": 620, "opens": null },
+    { "id": "b12", "name": { "ru": "Светоч", "en": "The Lodestar" }, "region": "r4", "pos": [100, -3400], "island_radius": 200, "peak": 30, "seed": 73, "fuel": { "oil_cask": 6, "spolokh": 8 }, "trial": "finale", "saga": { "type": "guardian", "id": "mga" }, "clear_radius": 900, "opens": null }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "note": "speed in m/s at full sail with a side wind; storm = highest storm level the hull survives without capsizing (0..3); ice = can push through ice floes.",
+  "boats": [
+    { "id": "karbas", "name": { "ru": "Карбас", "en": "Karbas" }, "crew": 2, "cargo_slots": 12, "speed": 9, "row_speed": 3, "storm": 1, "ice": false, "unlock": "start", "station": null, "cost": {} },
+    { "id": "shnyaka", "name": { "ru": "Шняка", "en": "Shnyaka" }, "crew": 4, "cargo_slots": 24, "speed": 11, "row_speed": 3.5, "storm": 2, "ice": false, "unlock": "b06", "station": "boatyard", "cost": { "wood": 60, "tar": 10, "linen": 8, "rope": 10, "iron": 6 } },
+    { "id": "koch", "name": { "ru": "Коч", "en": "Koch" }, "crew": 4, "cargo_slots": 36, "speed": 10, "row_speed": 3, "storm": 3, "ice": true, "unlock": "b09", "station": "boatyard", "cost": { "larch_plank": 30, "wood": 20, "tar": 16, "linen": 12, "rope": 16, "iron": 12 } }
+  ]
+}

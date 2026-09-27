@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "note": "Items. Numbers: stack = max per slot; gather.rate = units per minute with the minimal tool; food.minutes = buff duration. Godot parses JSON numbers as float: cast with int() where needed.",
+  "tool_speed": { "hand": 1.0, "1": 1.0, "2": 1.75, "3": 2.25 },
+  "items": [
+    { "id": "branch", "name": { "ru": "Хворост", "en": "Sticks" }, "kind": "raw", "tier": 0, "stack": 50, "gather": { "rate": 20, "tool": "hand", "region": "r1" } },
+    { "id": "stone", "name": { "ru": "Камень", "en": "Stone" }, "kind": "raw", "tier": 0, "stack": 50, "gather": { "rate": 15, "tool": "hand", "region": "r1" } },
+    { "id": "flint", "name": { "ru": "Кремень", "en": "Flint" }, "kind": "raw", "tier": 0, "stack": 30, "gather": { "rate": 8, "tool": "hand", "region": "r1" } },
+    { "id": "fiber", "name": { "ru": "Крапивное волокно", "en": "Nettle fiber" }, "kind": "raw", "tier": 0, "stack": 50, "gather": { "rate": 12, "tool": "hand", "region": "r1" } },
+    { "id": "moss", "name": { "ru": "Мох", "en": "Moss" }, "kind": "raw", "tier": 0, "stack": 50, "gather": { "rate": 15, "tool": "hand", "region": "r1" } },
+    { "id": "birch_bark", "name": { "ru": "Береста", "en": "Birch bark" }, "kind": "raw", "tier": 1, "stack": 50, "gather": { "rate": 10, "tool": "knife", "region": "r1" } },
+    { "id": "resin", "name": { "ru": "Живица", "en": "Pine resin" }, "kind": "raw", "tier": 1, "stack": 30, "gather": { "rate": 6, "tool": "knife", "region": "r1" } },
+    { "id": "wood", "name": { "ru": "Древесина", "en": "Wood" }, "kind": "raw", "tier": 1, "stack": 50, "gather": { "rate": 8, "tool": "axe", "region": "r1" } },
+    { "id": "raw_fish", "name": { "ru": "Навага", "en": "Navaga (raw fish)" }, "kind": "raw", "tier": 1, "stack": 20, "gather": { "rate": 4, "tool": "rod", "region": "r1" } },
+    { "id": "cloudberry", "name": { "ru": "Морошка", "en": "Cloudberry" }, "kind": "food", "tier": 0, "stack": 30, "gather": { "rate": 10, "tool": "hand", "region": "r1" }, "food": { "hp": 10, "stamina": 20, "minutes": 10 } },
+    { "id": "lingonberry", "name": { "ru": "Брусника", "en": "Lingonberry" }, "kind": "food", "tier": 0, "stack": 30, "gather": { "rate": 12, "tool": "hand", "region": "r1" }, "food": { "hp": 8, "stamina": 12, "minutes": 8 } },
+    { "id": "mushroom", "name": { "ru": "Грибы", "en": "Mushrooms" }, "kind": "food", "tier": 0, "stack": 30, "gather": { "rate": 8, "tool": "hand", "region": "r1" }, "food": { "hp": 12, "stamina": 8, "minutes": 10 } },
+
+    { "id": "bog_ore", "name": { "ru": "Болотная руда", "en": "Bog ore" }, "kind": "raw", "tier": 2, "stack": 30, "gather": { "rate": 6, "tool": "shovel", "region": "r2" } },
+    { "id": "clay", "name": { "ru": "Глина", "en": "Clay" }, "kind": "raw", "tier": 2, "stack": 50, "gather": { "rate": 8, "tool": "shovel", "region": "r2" } },
+    { "id": "flax", "name": { "ru": "Лён", "en": "Flax" }, "kind": "raw", "tier": 2, "stack": 50, "gather": { "rate": 10, "tool": "hand", "region": "r2" } },
+    { "id": "barley", "name": { "ru": "Ячмень", "en": "Barley" }, "kind": "raw", "tier": 2, "stack": 50, "gather": { "rate": 10, "tool": "hand", "region": "r2" } },
+    { "id": "wool", "name": { "ru": "Шерсть", "en": "Wool" }, "kind": "raw", "tier": 3, "stack": 30, "source": "sheep_pen" },
+
+    { "id": "pearl", "name": { "ru": "Речной жемчуг", "en": "River pearl" }, "kind": "valuable", "tier": 3, "stack": 20, "gather": { "rate": 0.5, "tool": "hand", "region": "r3" } },
+    { "id": "mica", "name": { "ru": "Слюда", "en": "Mica" }, "kind": "raw", "tier": 3, "stack": 30, "gather": { "rate": 4, "tool": "pick", "region": "r3" } },
+    { "id": "larch", "name": { "ru": "Лиственница", "en": "Larch wood" }, "kind": "raw", "tier": 3, "stack": 50, "gather": { "rate": 6, "tool": "axe", "tool_tier": 2, "region": "r3" } },
+    { "id": "spolokh", "name": { "ru": "Сполох", "en": "Aurora shard" }, "kind": "raw", "tier": 4, "stack": 20, "gather": { "rate": 1.5, "tool": "hand", "region": "r4", "note": "only at night under the aurora" } },
+
+    { "id": "stone_axe", "name": { "ru": "Каменный топор", "en": "Stone axe" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "axe", "tier": 1 } },
+    { "id": "knife", "name": { "ru": "Кремнёвый нож", "en": "Flint knife" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "knife", "tier": 1 } },
+    { "id": "wooden_shovel", "name": { "ru": "Деревянная лопата", "en": "Wooden shovel" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "shovel", "tier": 1 } },
+    { "id": "fishing_rod", "name": { "ru": "Удочка", "en": "Fishing rod" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "rod", "tier": 1 } },
+    { "id": "iron_axe", "name": { "ru": "Железный топор", "en": "Iron axe" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "axe", "tier": 2 } },
+    { "id": "iron_pick", "name": { "ru": "Кайло", "en": "Iron pick" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "pick", "tier": 2 } },
+
+    { "id": "torch", "name": { "ru": "Факел", "en": "Torch" }, "kind": "light", "tier": 1, "stack": 10, "light": { "fog_radius": 8, "minutes": 5 } },
+    { "id": "iron_lantern", "name": { "ru": "Фонарь", "en": "Lantern" }, "kind": "light", "tier": 2, "stack": 1, "light": { "fog_radius": 14, "fuel": "fish_oil", "minutes_per_fuel": 20 } },
+    { "id": "spolokh_lantern", "name": { "ru": "Сполоховый фонарь", "en": "Aurora lantern" }, "kind": "light", "tier": 4, "stack": 1, "light": { "fog_radius": 22, "minutes": 0 } },
+
+    { "id": "rope", "name": { "ru": "Верёвка", "en": "Rope" }, "kind": "material", "tier": 1, "stack": 30 },
+    { "id": "tar", "name": { "ru": "Дёготь", "en": "Birch tar" }, "kind": "material", "tier": 1, "stack": 30 },
+    { "id": "charcoal", "name": { "ru": "Древесный уголь", "en": "Charcoal" }, "kind": "material", "tier": 2, "stack": 50 },
+    { "id": "iron", "name": { "ru": "Кричное железо", "en": "Bloom iron" }, "kind": "material", "tier": 2, "stack": 30 },
+    { "id": "brick", "name": { "ru": "Кирпич", "en": "Brick" }, "kind": "material", "tier": 2, "stack": 50 },
+    { "id": "linen", "name": { "ru": "Холст", "en": "Linen" }, "kind": "material", "tier": 2, "stack": 30 },
+    { "id": "flour", "name": { "ru": "Ячменная мука", "en": "Barley flour" }, "kind": "material", "tier": 2, "stack": 30 },
+    { "id": "salt", "name": { "ru": "Соль", "en": "Salt" }, "kind": "material", "tier": 3, "stack": 50 },
+    { "id": "fish_oil", "name": { "ru": "Ворвань", "en": "Fish oil" }, "kind": "material", "tier": 3, "stack": 30 },
+    { "id": "larch_plank", "name": { "ru": "Лиственничная доска", "en": "Larch plank" }, "kind": "material", "tier": 3, "stack": 30 },
+
+    { "id": "smolye", "name": { "ru": "Смольё", "en": "Pitch-pine kindling" }, "kind": "fuel", "tier": 1, "stack": 20, "beacon_fuel": 1 },
+    { "id": "tar_faggot", "name": { "ru": "Смоляная вязанка", "en": "Tarred faggot" }, "kind": "fuel", "tier": 2, "stack": 20, "beacon_fuel": 2 },
+    { "id": "oil_cask", "name": { "ru": "Бочонок ворвани", "en": "Cask of fish oil" }, "kind": "fuel", "tier": 3, "stack": 10, "beacon_fuel": 3 },
+
+    { "id": "cooked_fish", "name": { "ru": "Жареная навага", "en": "Fried navaga" }, "kind": "food", "tier": 1, "stack": 20, "food": { "hp": 25, "stamina": 15, "minutes": 15 } },
+    { "id": "ukha", "name": { "ru": "Уха", "en": "Fish soup (ukha)" }, "kind": "food", "tier": 1, "stack": 10, "food": { "hp": 20, "stamina": 35, "minutes": 20 } },
+    { "id": "rybnik", "name": { "ru": "Рыбник", "en": "Fish pie (rybnik)" }, "kind": "food", "tier": 2, "stack": 10, "food": { "hp": 45, "stamina": 30, "minutes": 30 } },
+    { "id": "salted_cod", "name": { "ru": "Солёная навага", "en": "Salted fish" }, "kind": "food", "tier": 3, "stack": 20, "food": { "hp": 35, "stamina": 25, "minutes": 45 } },
+    { "id": "kalitki", "name": { "ru": "Калитки с морошкой", "en": "Cloudberry kalitki" }, "kind": "food", "tier": 3, "stack": 10, "food": { "hp": 30, "stamina": 50, "minutes": 40 } },
+
+    { "id": "spear", "name": { "ru": "Рогатина", "en": "Boar spear" }, "kind": "weapon", "tier": 1, "stack": 1, "weapon": { "damage": 14, "stamina": 8, "reach": 2.4 } },
+    { "id": "bow", "name": { "ru": "Лук", "en": "Bow" }, "kind": "weapon", "tier": 1, "stack": 1, "weapon": { "damage": 12, "stamina": 6, "ammo": "arrows" } },
+    { "id": "arrows", "name": { "ru": "Стрелы", "en": "Arrows" }, "kind": "ammo", "tier": 1, "stack": 100 },
+    { "id": "shield", "name": { "ru": "Щит", "en": "Shield" }, "kind": "armor", "tier": 1, "stack": 1, "armor": { "block": 10 } },
+    { "id": "iron_spear", "name": { "ru": "Железная рогатина", "en": "Iron boar spear" }, "kind": "weapon", "tier": 2, "stack": 1, "weapon": { "damage": 26, "stamina": 9, "reach": 2.6 } },
+    { "id": "harpoon", "name": { "ru": "Гарпун", "en": "Harpoon" }, "kind": "weapon", "tier": 3, "stack": 1, "weapon": { "damage": 38, "stamina": 10, "reach": 2.8, "throw": true } },
+    { "id": "spolokh_spear", "name": { "ru": "Сполоховая рогатина", "en": "Aurora spear" }, "kind": "weapon", "tier": 4, "stack": 1, "weapon": { "damage": 55, "stamina": 10, "reach": 2.8, "vs_fog": 1.5 } },
+    { "id": "wool_coat", "name": { "ru": "Тёплый зипун", "en": "Wool coat" }, "kind": "armor", "tier": 3, "stack": 1, "armor": { "cold": 1 } },
+    { "id": "pearl_necklace", "name": { "ru": "Жемчужное ожерелье", "en": "Pearl necklace" }, "kind": "trinket", "tier": 3, "stack": 1, "trinket": { "rested_minutes": 10 } }
+  ]
+}

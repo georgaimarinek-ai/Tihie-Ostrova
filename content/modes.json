@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "note": "World modes. The player picks one when creating a world and may switch at any time from the pause menu (not during a guardian fight or a fire defence). Every rule can also be toggled individually in 'Fine tuning' (options). See docs/01_GDD.md §6.",
+  "default": "tale",
+  "modes": [
+    {
+      "id": "quiet", "name": { "ru": "Тихий", "en": "Quiet" },
+      "summary": { "ru": "Без врагов и без смерти. Море, туман, стройка.", "en": "No enemies and no death. Sea, fog and building." },
+      "rules": { "predators": false, "fog_creatures": false, "guardians": false, "storms": "cosmetic", "death": "none", "death_debuff_min": 0, "cold": "cosmetic", "beacon": "trial", "durability": false, "night_raids": false }
+    },
+    {
+      "id": "tale", "name": { "ru": "Сказание", "en": "Tale" },
+      "summary": { "ru": "Звери, шторма и холод. Смерть без потерь: просыпаешься дома со всеми вещами.", "en": "Animals, storms and cold. Death without loss: you wake up at home with all your things." },
+      "rules": { "predators": true, "fog_creatures": false, "guardians": false, "storms": "capsize", "death": "respawn_keep", "death_debuff_min": 3, "cold": "mild", "beacon": "trial", "durability": true, "night_raids": false }
+    },
+    {
+      "id": "saga", "name": { "ru": "Сага", "en": "Saga" },
+      "summary": { "ru": "Туманные твари, стражи маяков и бой как в Valheim. После смерти вещи ждут у кресток-знака.", "en": "Fog creatures, beacon guardians and Valheim-style combat. After death your things wait at a grave marker." },
+      "rules": { "predators": true, "fog_creatures": true, "guardians": true, "storms": "capsize", "death": "grave", "death_debuff_min": 10, "cold": "full", "beacon": "guardian_or_defense", "durability": true, "night_raids": true }
+    }
+  ],
+  "rule_values": {
+    "storms": { "cosmetic": "waves and rain only", "capsize": "a hull below the storm level capsizes; the boat floats and can be righted" },
+    "death": { "none": "no health loss in Quiet; falling or drowning returns you to the last pier with everything", "respawn_keep": "wake up in bed with all items, short Weary debuff", "grave": "items stay in a grave marker at the death spot; walk back to collect them" },
+    "cold": { "cosmetic": "breath and frost visuals only", "mild": "no stamina regen in the cold without a coat or fire", "full": "cold slowly drains health without a coat or fire" },
+    "beacon": { "trial": "a non-combat trial lights the beacon", "guardian_or_defense": "guardian beacons need the guardian beaten; others need the fire defended while it kindles" },
+    "night_raids": { "false": "nights are calm", "true": "on dense-fog nights mistlings probe the homestead edge; lamps and fences keep them out; they never damage walls or stations" }
+  }
+}
