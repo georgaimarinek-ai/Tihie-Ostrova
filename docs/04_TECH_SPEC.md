@@ -27,10 +27,15 @@ src/core/                чистая логика: RefCounted, без узло�
   waves.gd               волны (одна формула с water.gdshader)
   fog_field.gd           плотность тумана в точке, слоты просветов для шейдера
   save_codec.gd          сохранения + резервные копии
+  world_map.gd           все острова мира из контента: дом, маяки, островки, тропы, узлы ресурсов, ground_at
+  progress.gd weather.gd следующий маяк и слои музыки; ветер из зерна и часов мира
 src/autoload/            Content, Net, Game
-src/world/               узлы мира: FogDirector (дальше: Sea, Boat, Player, Island, Beacon, Build)
-src/shaders/             fog_clear.gdshaderinc, water, terrain, prop
-src/scenes/main.*        сцена этапа 0: срез атмосферы + дымовой тест
+src/world/               узлы мира: World, FogDirector, Sea, Boat, CameraRig, IslandStreamer/IslandView,
+                         BeaconView, HomeView, AudioDirector (+ Synth), ModelLibrary + Placeholders
+src/ui/                  Hud, CompassBar, WindDial, StatBars, UiTheme, Loc
+src/shaders/             fog_clear.gdshaderinc, water, terrain, prop, sky, flame, glow, smoke, ghost
+src/scenes/world.tscn    игра (главная сцена); main.tscn — срез этапа 0 и дымовой тест
+i18n/                    strings.tsv (ключ, ru, en) → ru.po, en.po (tools/gen_i18n.py)
 tests/                   run_tests.gd, lib/case.gd, test_*.gd
 tools/                   validate_content.py, progression_sim.py, gen_content_doc.py, verify.sh
 docs/                    документы (.gdignore: Godot их не импортирует)
@@ -64,6 +69,13 @@ reference/sketch/        браузерный набросок, эталон о�
 | `set_mode` | mode | не идёт бой | `mode_changed` |
 | `die` | — | генерирует хост. Правила смерти по режиму | `respawn` (+ `grave`) |
 | `loot_grave` | uid | игрок в 6 м | `grave_looted` |
+| `move` | pos, [boat_pos, boat_yaw] | координаты конечны и в пределах мира; лодку двигает тот, кто в ней | — (позиции идут синхронизатором) |
+| `board` | boat | лодка есть, игрок не в лодке, до лодки ≤ 16 м | `boarded` |
+| `disembark` | pos | игрок в лодке, точка ≤ 18 м от лодки, там суша (`WorldMap`) | `disembarked` |
+| `tick` | dt_min ≤ 1 | **только хост**: идут часы мира, смена дня | `day_changed` |
+| `debug` | give, trial, pos, clock_min | **только хост** и только при `allow_debug` (скриншоты, автоматизация) | `gathered`, `trial_done` |
+
+С картой (`WorldCommands.map`) `gather` дополнительно проверяет, что узел существует, даёт этот предмет и игрок рядом. Новый мир: `WorldCommands.init_world()` ставит карбас у причала дома и сажает в него игроков.
 
 Новые механики добавляются так же: команда, проверки, события, тест в `tests/test_commands.gd`.
 
@@ -86,15 +98,17 @@ reference/sketch/        браузерный набросок, эталон о�
 
 **Слой 1 — туман в материалах (всегда включён, все рендеры).**
 - `Environment.fog_enabled = false`. Каждый материал мира включает `src/shaders/fog_clear.gdshaderinc` и пишет `FOG = fog_for(world_pos, length(VERTEX))`.
-- Глобальные параметры шейдеров (`project.godot → [shader_globals]`): `fog_color`, `fog_density`, `fog_clear_0..3` (x, z, радиус, сила), `sea_storm`.
+- Глобальные параметры шейдеров (`project.godot → [shader_globals]`): `fog_color`, `fog_density`, `fog_clear_0..7` (x, z, радиус, сила), `sea_time`, `sea_storm`, `sun_dir`, `sun_glint`.
 - **`FogDirector`** (узел) каждый кадр:
   - берёт палитру региона под камерой, смешивая соседние главы на ±150 м;
   - в закрытом регионе ставит плотность `fog.locked`;
-  - заполняет 4 слота просветов: сначала свет игрока и очаг дома, потом ближайшие зажжённые маяки (`FogField.shader_slots`);
+  - заполняет 8 слотов просветов: сначала свет игрока, фонарь лодки и очаги (но не больше 6), потом ближайшие зажжённые маяки (`FogField.shader_slots`);
   - анимирует рост просвета нового маяка за 3,5 с;
   - красит небо (`ProceduralSkyMaterial`) и солнце.
 - Формулы в `FogField` (GDScript) и в шейдере совпадают. **Геймплей спрашивает `FogField.factor()`:** где спавнить тварей Саги, насколько громок ветер, пора ли разворачивать лодку у стены.
-- 4 слота выбраны из-за совместимости со слабыми ПК. Если понадобится больше, расширяй до 8 (как в наброске) и обнови тест `test_fog_field`.
+- Слотов 8, как в наброске (этап 1): факел, фонарь лодки, очаг, три путевых фонаря и маяки должны гореть одновременно.
+- Небо — свой шейдер `sky.gdshader`: горизонт ровно цвета тумана, поэтому полностью затуманенные острова растворяются без силуэтов.
+- Зеркальный свет в Compatibility туманом `FOG` не покрывается. Блики, которые должны тонуть в тумане, считаются в `EMISSION` (блик солнца на воде).
 - Остров с тёмным маяком: плотность ×2,3, когда игрок на нём пешком (`GDD §4.2`). Множитель задаёт `FogDirector` (этап 2).
 
 **Слой 2 — объёмный туман (только Forward+, «высокая» графика, этап 10).**
@@ -104,7 +118,7 @@ reference/sketch/        браузерный набросок, эталон о�
 
 ## 6. Море, волны и лодки
 
-- **Волны:** `Waves.PARAMS` (4 синусоиды) ⇔ блок `WAVES-BEGIN/END` в `water.gdshader`. Тест `test_shader_matches_gdscript` падает, если числа разошлись. Шторм усиливает волны ×(1 + 0,6·уровень).
+- **Волны:** `Waves.PARAMS` (4 синусоиды) ⇔ блок `WAVES-BEGIN/END` в `water.gdshader`. Тест `test_shader_matches_gdscript` падает, если числа разошлись. Шторм усиливает волны ×(1 + 0,6·уровень). Время волн общее: `Sea.time` идёт в физических кадрах и уходит в шейдер глобальным `sea_time`.
 - **Море** — `PlaneMesh` 900×900 м с 220 делениями, которая ездит за камерой по сетке 4 м (волны считаются в мировых координатах, поэтому стыков нет). Плоские грани даёт шейдер (`dFdx/dFdy`).
 - **Лодка (этап 1):**
   - `RigidBody3D` с 4 точками плавучести: сила = k·(Waves.height − y точки), плюс демпфирование;

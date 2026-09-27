@@ -131,6 +131,33 @@ def validate(data):
         if g and g["region"] in regions and iid not in regions[g["region"]]["resources"]:
             errors.append(f"item {iid}: first region {g['region']} does not list it in resources")
 
+    # resource nodes (regions.json -> nodes): every gatherable resource of a region must come from some node kind
+    nodes = data["regions"].get("nodes", {})
+    kinds = nodes.get("kinds", {})
+    node_items = set()
+    for kid, k in kinds.items():
+        for it in k["items"]:
+            if it not in items:
+                errors.append(f"node kind {kid}: unknown item '{it}'")
+            elif not items[it].get("gather"):
+                errors.append(f"node kind {kid}: item '{it}' is not gatherable")
+            node_items.add(it)
+    for gid, swaps in nodes.get("swap", {}).items():
+        if gid not in regions:
+            errors.append(f"nodes.swap: unknown region '{gid}'")
+        for src, (dst, share) in swaps.items():
+            if src not in kinds or dst not in kinds:
+                errors.append(f"nodes.swap {gid}: unknown kind '{src}' or '{dst}'")
+            if not 0 < share <= 1:
+                errors.append(f"nodes.swap {gid}.{src}: share must be in (0, 1]")
+    for kid in nodes.get("pickups", {}):
+        if kid not in kinds:
+            errors.append(f"nodes.pickups: unknown kind '{kid}'")
+    for gid, g in regions.items():
+        for r in g["resources"]:
+            if r in items and items[r].get("gather") and r != "raw_fish" and r not in node_items:
+                errors.append(f"region {gid}: resource '{r}' has no node kind that gives it")
+
     # beacons
     order = list(beacons)
     if order != sorted(order):

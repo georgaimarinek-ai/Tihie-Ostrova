@@ -25,9 +25,15 @@ func test_shader_slots_pick_nearest() -> void:
 		st.lit[bid] = 1
 	var lantern := Vector4(1, 2, 14, 0.9)
 	var slots := FogField.shader_slots(db, st, db.beacon_pos("b02"), [lantern])
-	eq(slots.size(), 4)
+	eq(slots.size(), FogField.SLOTS)
 	eq(slots[0], lantern, "extra lights first")
 	var b02 := db.beacon_pos("b02")
 	eq(Vector2(slots[1].x, slots[1].y), b02, "then the nearest beacon")
 	var empty := FogField.shader_slots(db, WorldState.new(db), Vector2.ZERO)
-	eq(empty[3], Vector4.ZERO, "unused slots are zero")
+	eq(empty[FogField.SLOTS - 1], Vector4.ZERO, "unused slots are zero")
+	var many: Array[Vector4] = []
+	for i in 12:
+		many.append(Vector4(i, 0, 5, 1))
+	var crowded := FogField.shader_slots(db, st, Vector2.ZERO, many)
+	eq(crowded.size(), FogField.SLOTS)
+	check(crowded[FogField.SLOTS - 1].z > 100.0, "extra lights never push out the nearest beacons")

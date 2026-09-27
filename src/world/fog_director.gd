@@ -19,8 +19,9 @@ var _time := 0.0
 var palette: Dictionary = {}
 
 
-func mark_lit(beacon_id: String) -> void:
-	_lit_at[beacon_id] = _time
+## Start the clearing's growth animation now (or at `at`, on this node's clock: a time far in the past = fully grown).
+func mark_lit(beacon_id: String, at: float = NAN) -> void:
+	_lit_at[beacon_id] = _time if is_nan(at) else at
 
 
 func _process(delta: float) -> void:
@@ -39,7 +40,7 @@ func _process(delta: float) -> void:
 		dens = float(db.regions[rid]["fog"]["locked"])
 	RenderingServer.global_shader_parameter_set("fog_density", dens)
 	var slots := FogField.shader_slots(db, state, p, extra_lights, _beacon_lights())
-	for i in 4:
+	for i in FogField.SLOTS:
 		RenderingServer.global_shader_parameter_set("fog_clear_%d" % i, slots[i])
 	_apply_sky()
 
@@ -101,7 +102,15 @@ func _mix(a: Dictionary, b: Dictionary, k: float) -> Dictionary:
 
 
 func _apply_sky() -> void:
-	if environment != null and environment.sky != null and environment.sky.sky_material is ProceduralSkyMaterial:
+	if environment != null and environment.sky != null and environment.sky.sky_material is ShaderMaterial:
+		var sm := environment.sky.sky_material as ShaderMaterial
+		sm.set_shader_parameter("horizon", palette["fog"])
+		sm.set_shader_parameter("zenith", palette["zenith"])
+		sm.set_shader_parameter("sun_color", palette["sun"])
+		sm.set_shader_parameter("night", palette["night"])
+		sm.set_shader_parameter("aurora", palette["aurora"])
+		sm.set_shader_parameter("time", _time)
+	elif environment != null and environment.sky != null and environment.sky.sky_material is ProceduralSkyMaterial:
 		var m := environment.sky.sky_material as ProceduralSkyMaterial
 		m.sky_top_color = palette["zenith"]
 		m.sky_horizon_color = palette["fog"]
@@ -111,3 +120,8 @@ func _apply_sky() -> void:
 		sun.light_color = palette["sun"]
 		sun.light_energy = palette["sun_energy"]
 		sun.rotation = Vector3(-asin(clampf(palette["sun_elevation"], 0.02, 1.0)) - 0.25, deg_to_rad(147.0), 0.0)
+		var to_sun := sun.global_transform.basis.z.normalized()
+		RenderingServer.global_shader_parameter_set("sun_dir", to_sun)
+		var sc := (palette["sun"] as Color).srgb_to_linear()
+		var k := 0.55 * float(palette["sun_energy"]) * (1.0 - 0.6 * float(palette["night"]))
+		RenderingServer.global_shader_parameter_set("sun_glint", Vector4(sc.r * k, sc.g * k, sc.b * k, 1.0))

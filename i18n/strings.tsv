@@ -1,0 +1,58 @@
+# key	ru	en
+unit.m	м	m
+unit.mps	м/с	m/s
+unit.min	мин	min
+compass.n	С	N
+compass.e	В	E
+compass.s	Ю	S
+compass.w	З	W
+dir.n	на севере	to the north
+dir.ne	на северо-востоке	to the north-east
+dir.e	на востоке	to the east
+dir.se	на юго-востоке	to the south-east
+dir.s	на юге	to the south
+dir.sw	на юго-западе	to the south-west
+dir.w	на западе	to the west
+dir.nw	на северо-западе	to the north-west
+hud.health	Здоровье	Health
+hud.stamina	Выносливость	Stamina
+hud.hold	Трюм	Hold
+hud.unlocked	Открыто	Unlocked
+wind.head	Ветер встречный	Headwind
+wind.beam	Ветер боковой	Beam wind
+wind.tail	Ветер попутный	Following wind
+sail.full	полный ход	full speed
+sail.slow	ход тише	slower going
+hint.boat	W — парус · S — вёсла · A/D — руль · правая кнопка мыши — осмотреться · M — лоция	W — sail · S — oars · A/D — rudder · right mouse — look around · M — chart
+goal.sail	Плыви на огонёк маяка — он мерцает в тумане.	Sail towards the beacon light flickering in the fog.
+goal.free	Все маяки горят. Мга ушла: море открыто, плыви куда хочешь.	Every beacon burns. The Mga is gone: the sea is open, sail anywhere.
+target.beacon	До маяка «%s»	Beacon “%s”
+cmd.unknown_player	Такого игрока нет в мире.	No such player in this world.
+cmd.unknown_command	Так нельзя.	That can't be done.
+cmd.bad_node	Здесь нечего брать.	Nothing to take here.
+cmd.depleted	Здесь уже всё собрано. Вернётся через пару дней.	Already gathered. It grows back in a couple of days.
+cmd.not_gatherable	Это не собирают руками.	That can't be gathered.
+cmd.not_here	Здесь этого нет.	Not found here.
+cmd.region_locked	Этот берег ещё закрыт Мгой.	The Mga still hides this shore.
+cmd.need_tool	Нужен инструмент.	You need a tool.
+cmd.no_space	Некуда положить: сумка полна.	No room: the bag is full.
+cmd.too_far	Слишком далеко.	Too far away.
+cmd.unknown_piece	Такой постройки нет.	No such building piece.
+cmd.locked	Ещё не открыто.	Not unlocked yet.
+cmd.missing	Не хватает материалов.	Not enough materials.
+cmd.unknown_uid	Этого уже нет.	It's gone.
+cmd.unknown_beacon	Такого маяка нет.	No such beacon.
+cmd.not_in_this_mode	В этом режиме так нельзя.	Not in this world mode.
+cmd.busy	Сейчас идёт бой.	A fight is on.
+cmd.wrong_trial	Этот маяк зажигают иначе.	This beacon is lit another way.
+cmd.no_fight	Сначала начни бой.	Start the fight first.
+cmd.already_lit	Маяк уже горит.	The beacon already burns.
+cmd.trial_not_done	Сначала пройди испытание маяка.	Pass the beacon's trial first.
+cmd.unknown_mode	Такого режима нет.	No such mode.
+cmd.bad_pos	Туда нельзя.	You can't go there.
+cmd.unknown_boat	Лодки нет.	No boat.
+cmd.already_aboard	Ты уже в лодке.	You are already aboard.
+cmd.not_aboard	Ты не в лодке.	You are not aboard.
+cmd.no_land	Здесь нет берега.	No shore here.
+cmd.unknown_recipe	Такого рецепта нет.	No such recipe.
+cmd.no_station	Нужна станция рядом.	You need the station nearby.

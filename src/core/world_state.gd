@@ -3,7 +3,7 @@ extends RefCounted
 ## The whole shared world as plain data. Nodes are views of it; WorldCommands is the only writer.
 ## Serialised by SaveCodec; the host sends it to joining clients (docs/04_TECH_SPEC.md §7).
 
-const VERSION := 2
+const VERSION := 3
 
 var world_seed: int = 0
 var mode: String = "tale"
@@ -12,11 +12,15 @@ var clock_min: float = 0.0  # world minutes since creation (debuffs, respawns, s
 var lit: Dictionary = {}  # beacon id -> day it was lit
 var trials_done: Dictionary = {}  # beacon id -> "trial" | "guardian" | "defense"
 var busy_beacon: String = ""  # guardian fight or fire defence in progress ("" = none)
-var pieces: Dictionary = {}  # uid -> {"id": String, "pos": Vector3, "rot": float, "owner": String}
+var pieces: Dictionary = {}  # uid -> {"id", "pos": Vector3, "rot": float, "owner", optional "inv": Inventory (chests), "queue": Array (stations)}
 var graves: Dictionary = {}  # uid -> {"owner": String, "pos": Vector3, "inv": Dictionary}
 var depleted: Dictionary = {}  # resource node id -> day it respawns
-var players: Dictionary = {}  # player id -> {"inv": Inventory, "pos": Vector3, "spawn": Vector3, "weary_until": float}
-var boats: Dictionary = {}  # uid -> {"type": String, "pos": Vector3, "yaw": float}
+## player id -> {"inv": Inventory, "pos": Vector3, "spawn": Vector3, "weary_until": float, "aboard": boat uid or "",
+##   "food": [{"id", "until"}], "rested_until": float, "steam_until": float}. Times are clock_min.
+var players: Dictionary = {}
+var boats: Dictionary = {}  # uid -> {"type": String, "pos": Vector3, "yaw": float, "cargo": Inventory}
+var journal: Dictionary = {}  # page id -> day it was found
+var tuning: Dictionary = {}  # rule -> value: "fine tuning" overrides of the mode rules (modes.json)
 var next_uid: int = 1
 
 var db: ContentDB
@@ -36,12 +40,20 @@ func new_uid(prefix: String) -> String:
 
 func add_player(pid: String, pos: Vector3 = Vector3.ZERO) -> Dictionary:
 	if not players.has(pid):
-		players[pid] = {"inv": Inventory.new(db, int(db.balance["player"]["carry_slots"])), "pos": pos, "spawn": pos, "weary_until": 0.0}
+		players[pid] = {"inv": Inventory.new(db, int(db.balance["player"]["carry_slots"])), "pos": pos, "spawn": pos,
+			"weary_until": 0.0, "aboard": "", "food": [], "rested_until": 0.0, "steam_until": 0.0}
 	return players[pid]
 
 
 func inv(pid: String) -> Inventory:
 	return players[pid]["inv"]
+
+
+## A boat of a type from boats.json with an empty hold. Only WorldCommands calls this (and tests).
+func add_boat(type: String, pos: Vector3, yaw: float) -> String:
+	var uid := new_uid("b")
+	boats[uid] = {"type": type, "pos": pos, "yaw": yaw, "cargo": Inventory.new(db, int(db.boats[type]["cargo_slots"]))}
+	return uid
 
 
 # ---------------------------------------------------------------- serialisation
@@ -60,11 +72,17 @@ func to_dict() -> Dictionary:
 	var ps := {}
 	for pid: String in players:
 		var p: Dictionary = players[pid]
-		ps[pid] = {"inv": (p["inv"] as Inventory).to_dict(), "pos": _v3(p["pos"]), "spawn": _v3(p["spawn"]), "weary_until": p["weary_until"]}
+		ps[pid] = {"inv": (p["inv"] as Inventory).to_dict(), "pos": _v3(p["pos"]), "spawn": _v3(p["spawn"]), "weary_until": p["weary_until"],
+			"aboard": p["aboard"], "food": (p["food"] as Array).duplicate(true), "rested_until": p["rested_until"], "steam_until": p["steam_until"]}
 	var pcs := {}
 	for uid: String in pieces:
 		var pc: Dictionary = pieces[uid]
-		pcs[uid] = {"id": pc["id"], "pos": _v3(pc["pos"]), "rot": pc["rot"], "owner": pc["owner"]}
+		var row := {"id": pc["id"], "pos": _v3(pc["pos"]), "rot": pc["rot"], "owner": pc["owner"]}
+		if pc.has("inv"):
+			row["inv"] = (pc["inv"] as Inventory).to_dict()
+		if pc.has("queue"):
+			row["queue"] = (pc["queue"] as Array).duplicate(true)
+		pcs[uid] = row
 	var gr := {}
 	for uid: String in graves:
 		var g: Dictionary = graves[uid]
@@ -72,11 +90,12 @@ func to_dict() -> Dictionary:
 	var bs := {}
 	for uid: String in boats:
 		var b: Dictionary = boats[uid]
-		bs[uid] = {"type": b["type"], "pos": _v3(b["pos"]), "yaw": b["yaw"]}
+		bs[uid] = {"type": b["type"], "pos": _v3(b["pos"]), "yaw": b["yaw"], "cargo": (b["cargo"] as Inventory).to_dict()}
 	return {
 		"version": VERSION, "world_seed": world_seed, "mode": mode, "day": day, "clock_min": clock_min,
 		"lit": lit.duplicate(), "trials_done": trials_done.duplicate(), "busy_beacon": busy_beacon,
 		"pieces": pcs, "graves": gr, "depleted": depleted.duplicate(), "players": ps, "boats": bs, "next_uid": next_uid,
+		"journal": journal.duplicate(), "tuning": tuning.duplicate(),
 	}
 
 
@@ -92,7 +111,14 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 	s.busy_beacon = String(d.get("busy_beacon", ""))
 	for uid: String in d["pieces"]:
 		var pc: Dictionary = d["pieces"][uid]
-		s.pieces[uid] = {"id": String(pc["id"]), "pos": _to_v3(pc["pos"]), "rot": float(pc["rot"]), "owner": String(pc["owner"])}
+		var piece := {"id": String(pc["id"]), "pos": _to_v3(pc["pos"]), "rot": float(pc["rot"]), "owner": String(pc["owner"])}
+		if pc.has("inv"):
+			var chest := Inventory.new(p_db)
+			chest.from_dict(pc["inv"])
+			piece["inv"] = chest
+		if pc.has("queue"):
+			piece["queue"] = _int_queue(pc["queue"])
+		s.pieces[uid] = piece
 	for uid: String in d["graves"]:
 		var g: Dictionary = d["graves"][uid]
 		s.graves[uid] = {"owner": String(g["owner"]), "pos": _to_v3(g["pos"]), "inv": g["inv"]}
@@ -102,12 +128,29 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		var p: Dictionary = d["players"][pid]
 		var inv := Inventory.new(p_db)
 		inv.from_dict(p["inv"])
-		s.players[pid] = {"inv": inv, "pos": _to_v3(p["pos"]), "spawn": _to_v3(p["spawn"]), "weary_until": float(p["weary_until"])}
+		var food: Array = []
+		for f: Dictionary in p["food"]:
+			food.append({"id": String(f["id"]), "until": float(f["until"])})
+		s.players[pid] = {"inv": inv, "pos": _to_v3(p["pos"]), "spawn": _to_v3(p["spawn"]), "weary_until": float(p["weary_until"]),
+			"aboard": String(p["aboard"]), "food": food, "rested_until": float(p["rested_until"]), "steam_until": float(p["steam_until"])}
 	for uid: String in d["boats"]:
 		var b: Dictionary = d["boats"][uid]
-		s.boats[uid] = {"type": String(b["type"]), "pos": _to_v3(b["pos"]), "yaw": float(b["yaw"])}
+		var cargo := Inventory.new(p_db, int(p_db.boats[String(b["type"])]["cargo_slots"]))
+		cargo.from_dict(b["cargo"])
+		s.boats[uid] = {"type": String(b["type"]), "pos": _to_v3(b["pos"]), "yaw": float(b["yaw"]), "cargo": cargo}
 	s.next_uid = int(d["next_uid"])
+	for k: String in d["journal"]:
+		s.journal[k] = int(d["journal"][k])
+	s.tuning = (d["tuning"] as Dictionary).duplicate()
 	return s
+
+
+## Station queues from JSON: counts back to int (Godot parses JSON numbers as float).
+static func _int_queue(src: Array) -> Array:
+	var out: Array = []
+	for q: Dictionary in src:
+		out.append({"recipe": String(q["recipe"]), "times": int(q["times"]), "left_s": float(q["left_s"])})
+	return out
 
 
 ## Upgrades an old save dictionary step by step. Add a step for every VERSION bump and a test for it.
@@ -133,5 +176,26 @@ static func migrate(src: Dictionary) -> Dictionary:
 		if not d.has("clock_min"):
 			d["clock_min"] = 0.0
 		v = 2
+	if v < 3:
+		# v3: players know which boat they are aboard, eat food and rest; boats have a hold; journal and fine tuning.
+		for pid: String in d["players"]:
+			var p: Dictionary = d["players"][pid]
+			for key: String in ["aboard"]:
+				if not p.has(key):
+					p[key] = ""
+			if not p.has("food"):
+				p["food"] = []
+			for key: String in ["rested_until", "steam_until"]:
+				if not p.has(key):
+					p[key] = 0.0
+		for uid: String in d["boats"]:
+			var b: Dictionary = d["boats"][uid]
+			if not b.has("cargo"):
+				b["cargo"] = {"slots": []}  # from_dict sizes it from boats.json
+		if not d.has("journal"):
+			d["journal"] = {}
+		if not d.has("tuning"):
+			d["tuning"] = {}
+		v = 3
 	d["version"] = v
 	return d

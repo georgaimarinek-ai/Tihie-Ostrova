@@ -9,14 +9,40 @@ extends RefCounted
 
 const GATHER_MAX := 5
 const BEACON_REACH_M := 12.0
+const BOARD_REACH_M := 16.0  # landing looks up to 14 m from the boat
+const LAND_REACH_M := 18.0
+const WORLD_LIMIT_M := 5000.0
+## Commands only the host itself may issue; Game drops them when they arrive from a remote peer.
+const HOST_ONLY: Array[String] = ["tick", "debug"]
 
 var db: ContentDB
 var state: WorldState
+## Optional: with a map, gather checks that the node exists, gives that item and is within reach, and
+## disembark checks for dry land. Tests without a map keep the older, looser checks.
+var map: WorldMap
+## Debug commands (grant items, pass trials) for screenshots and automation. Off in normal play.
+var allow_debug := false
 
 
-func _init(p_db: ContentDB, p_state: WorldState) -> void:
+func _init(p_db: ContentDB, p_state: WorldState, p_map: WorldMap = null) -> void:
 	db = p_db
 	state = p_state
+	map = p_map
+
+
+## A brand-new world: the starting karbas moored at the home pier with every player aboard. The host calls
+## this once right after creating the state. Returns events like apply() does.
+func init_world() -> Array:
+	if map == null or not state.boats.is_empty():
+		return []
+	var h := map.home
+	var uid := state.add_boat("karbas", h["boat"], float(h["yaw"]))
+	for pid: String in state.players:
+		var p: Dictionary = state.players[pid]
+		p["spawn"] = h["spawn"]
+		p["pos"] = h["boat"]
+		p["aboard"] = uid
+	return [{"type": "boat_added", "uid": uid, "boat": "karbas"}]
 
 
 func apply(pid: String, cmd: Dictionary) -> Dictionary:
@@ -43,11 +69,25 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _die(pid, cmd)
 		"loot_grave":
 			return _loot_grave(pid, cmd)
+		"move":
+			return _move(pid, cmd)
+		"board":
+			return _board(pid, cmd)
+		"disembark":
+			return _disembark(pid, cmd)
+		"tick":
+			return _tick(pid, cmd)
+		"debug":
+			return _debug(pid, cmd)
 	return _fail("unknown_command")
 
 
+## The mode's rules with the world's fine-tuning overrides on top.
 func rules() -> Dictionary:
-	return db.mode_rules(state.mode)
+	var r := db.mode_rules(state.mode).duplicate()
+	for k: String in state.tuning:
+		r[k] = state.tuning[k]
+	return r
 
 
 # ---------------------------------------------------------------- commands
@@ -63,6 +103,16 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 	var it: Dictionary = db.items.get(item, {})
 	if not it.has("gather"):
 		return _fail("not_gatherable")
+	if map != null:
+		var n := map.node(node)
+		if n.is_empty():
+			return _fail("bad_node")
+		if not item in (n["items"] as Array):
+			return _fail("not_here")
+		var p: Vector3 = state.players[pid]["pos"]
+		var np: Vector3 = n["pos"]
+		if Vector2(p.x, p.z).distance_to(Vector2(np.x, np.z)) > float(n.get("reach", WorldMap.REACH_M + float(n["solid"]))):
+			return _fail("too_far")
 	var g: Dictionary = it["gather"]
 	if not db.region_open(g["region"], state.lit):
 		return _fail("region_locked")
@@ -194,6 +244,7 @@ func _die(pid: String, _cmd: Dictionary) -> Dictionary:
 	var p: Dictionary = state.players[pid]
 	var death := String(r["death"])
 	var ev := {"type": "respawn", "player": pid, "at": WorldState._v3(p["spawn"]), "death": death}
+	p["aboard"] = ""
 	if death == "grave":
 		var inv: Inventory = p["inv"]
 		if not inv.is_empty():
@@ -235,7 +286,96 @@ func _loot_grave(pid: String, cmd: Dictionary) -> Dictionary:
 	return _ok([{"type": "grave_looted", "uid": uid, "player": pid, "emptied": not state.graves.has(uid)}])
 
 
+## Where the player is (and the boat they steer). Sent by the local player a few times a second; the host
+## needs it to check reach for every other command. No events: positions travel by the synchroniser.
+func _move(pid: String, cmd: Dictionary) -> Dictionary:
+	var pos := WorldState._to_v3(cmd.get("pos", []))
+	if not _sane(pos):
+		return _fail("bad_pos")
+	var p: Dictionary = state.players[pid]
+	p["pos"] = pos
+	var uid: String = p["aboard"]
+	if uid != "" and state.boats.has(uid) and cmd.has("boat_pos"):
+		var bp := WorldState._to_v3(cmd["boat_pos"])
+		if _sane(bp):
+			state.boats[uid]["pos"] = bp
+			state.boats[uid]["yaw"] = wrapf(float(cmd.get("boat_yaw", 0.0)), -PI, PI)
+	return _ok([])
+
+
+func _board(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("boat", ""))
+	if not state.boats.has(uid):
+		return _fail("unknown_boat")
+	var p: Dictionary = state.players[pid]
+	if p["aboard"] != "":
+		return _fail("already_aboard")
+	var bp: Vector3 = state.boats[uid]["pos"]
+	var pp: Vector3 = p["pos"]
+	if Vector2(pp.x, pp.z).distance_to(Vector2(bp.x, bp.z)) > BOARD_REACH_M:
+		return _fail("too_far")
+	p["aboard"] = uid
+	p["pos"] = bp
+	return _ok([{"type": "boarded", "player": pid, "boat": uid}])
+
+
+func _disembark(pid: String, cmd: Dictionary) -> Dictionary:
+	var p: Dictionary = state.players[pid]
+	var uid: String = p["aboard"]
+	if uid == "":
+		return _fail("not_aboard")
+	var pos := WorldState._to_v3(cmd.get("pos", []))
+	var bp: Vector3 = state.boats[uid]["pos"]
+	if not _sane(pos) or Vector2(pos.x, pos.z).distance_to(Vector2(bp.x, bp.z)) > LAND_REACH_M:
+		return _fail("too_far")
+	if map != null and map.ground_at(pos.x, pos.z) < 0.2:
+		return _fail("no_land")
+	p["aboard"] = ""
+	p["pos"] = pos
+	return _ok([{"type": "disembarked", "player": pid, "boat": uid, "pos": WorldState._v3(pos)}])
+
+
+## Host-only: world time passes (Game sends it once a second while someone plays; no one playing = no time).
+func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
+	var dt := clampf(float(cmd.get("dt_min", 0.0)), 0.0, 1.0)
+	var events: Array[Dictionary] = []
+	var day_len := float(db.balance["day"]["length_min"])
+	state.clock_min += dt
+	var day := 1 + int(floor(state.clock_min / day_len))
+	if day != state.day:
+		state.day = day
+		events.append({"type": "day_changed", "day": day})
+	return _ok(events)
+
+
+## Debug-only (allow_debug): {"give": {item: n}, "trial": beacon, "pos": [x, y, z], "clock_min": t}.
+func _debug(pid: String, cmd: Dictionary) -> Dictionary:
+	if not allow_debug:
+		return _fail("unknown_command")
+	var p: Dictionary = state.players[pid]
+	var events: Array[Dictionary] = []
+	var give: Dictionary = cmd.get("give", {})
+	for k: String in give:
+		if db.items.has(k):
+			(p["inv"] as Inventory).add(k, int(give[k]))
+			events.append({"type": "gathered", "player": pid, "node": "", "item": k, "n": int(give[k])})
+	if cmd.has("trial") and db.beacons.has(String(cmd["trial"])):
+		var bid := String(cmd["trial"])
+		var kind := "trial" if rules()["beacon"] == "trial" else String(db.beacons[bid]["saga"]["type"])
+		state.trials_done[bid] = kind
+		events.append({"type": "trial_done", "beacon": bid, "kind": kind, "player": pid})
+	if cmd.has("pos"):
+		p["pos"] = WorldState._to_v3(cmd["pos"])
+	if cmd.has("clock_min"):
+		state.clock_min = float(cmd["clock_min"])
+	return _ok(events)
+
+
 # ---------------------------------------------------------------- helpers
+
+static func _sane(v: Vector3) -> bool:
+	return v.is_finite() and absf(v.x) < WORLD_LIMIT_M and absf(v.z) < WORLD_LIMIT_M and absf(v.y) < 500.0
+
 
 static func _ok(events: Array) -> Dictionary:
 	return {"ok": true, "error": "", "events": events}

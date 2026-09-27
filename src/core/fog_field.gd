@@ -3,8 +3,10 @@ extends RefCounted
 ## How thick the fog is at a point. 1.0 = the region's full fog, balance.fog.clear_factor (0.22) = the
 ## centre of a lit beacon's clearing. Locked regions return locked/density (> 1: the "wall").
 ## Used by gameplay (Saga creatures spawn only where factor > creature.fog_min), audio (wind level),
-## and to feed the four fog_clear_* shader globals (see src/shaders/fog_clear.gdshaderinc).
+## and to feed the fog_clear_0..7 shader globals (see src/shaders/fog_clear.gdshaderinc).
 ## The maths matches the shader: smoothstep(radius * edge, radius, distance), strength-weighted.
+
+const SLOTS := 8  # fog_clear_0..7 in project.godot and fog_clear.gdshaderinc
 
 ## A light that clears fog: Vector4(x, z, radius, strength 0..1).
 static func clear_term(p: Vector2, light: Vector4, edge: float) -> float:
@@ -35,7 +37,7 @@ static func factor(db: ContentDB, state: WorldState, p: Vector2, extra: Array[Ve
 	return lerpf(float(fog["clear_factor"]), 1.0, k)
 
 
-## The four lights the shader gets: the extra lights first (player lantern, home hearth), then the
+## The SLOTS lights the shader gets: the extra lights first (player light, boat lantern, hearths), then the
 ## lit beacons nearest to `near`. Unused slots are zero (strength 0 = no effect).
 ## `beacons` overrides the lit-beacon list (FogDirector passes radii with the growth animation applied).
 static func shader_slots(db: ContentDB, state: WorldState, near: Vector2, extra: Array[Vector4] = [], beacons: Array[Vector4] = []) -> Array[Vector4]:
@@ -43,12 +45,13 @@ static func shader_slots(db: ContentDB, state: WorldState, near: Vector2, extra:
 	beacon_lights.sort_custom(func(a: Vector4, b: Vector4) -> bool:
 		return near.distance_squared_to(Vector2(a.x, a.y)) < near.distance_squared_to(Vector2(b.x, b.y)))
 	var out: Array[Vector4] = []
+	# keep at least two slots for beacons: the nearest clearings matter more than a far hearth
 	for l: Vector4 in extra:
-		if out.size() < 4:
+		if out.size() < SLOTS - mini(2, beacon_lights.size()):
 			out.append(l)
 	for l: Vector4 in beacon_lights:
-		if out.size() < 4:
+		if out.size() < SLOTS:
 			out.append(l)
-	while out.size() < 4:
+	while out.size() < SLOTS:
 		out.append(Vector4.ZERO)
 	return out

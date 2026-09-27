@@ -199,6 +199,14 @@ func validate() -> PackedStringArray:
 		for k: String in g["creatures"]:
 			if not creatures.has(k):
 				errors.append("region %s: unknown creature %s" % [g["id"], k])
+	var node_cfg: Dictionary = raw["regions"].get("nodes", {})
+	for kid: String in node_cfg.get("kinds", {}):
+		for it: String in node_cfg["kinds"][kid]["items"]:
+			if not items.has(it) or not items[it].has("gather"):
+				errors.append("node kind %s: %s is not a gatherable item" % [kid, it])
+	for kid: String in node_cfg.get("pickups", {}):
+		if not node_cfg.get("kinds", {}).has(kid):
+			errors.append("nodes.pickups: unknown kind %s" % kid)
 	for bid in beacon_order:
 		var b: Dictionary = beacons[bid]
 		if not regions.has(b["region"]):

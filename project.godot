@@ -13,7 +13,7 @@ config_version=5
 config/name="Туманные острова"
 config/description="Fog Isles — a cozy sandbox on the Pomor White Sea: sail, light beacons, push back the fog, build a homestead."
 config/version="0.0.1"
-run/main_scene="res://src/scenes/main.tscn"
+run/main_scene="res://src/scenes/world.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -29,9 +29,15 @@ window/size/viewport_width=1600
 window/size/viewport_height=900
 window/stretch/mode="canvas_items"
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://i18n/ru.po", "res://i18n/en.po")
+locale/fallback="en"
+
 [physics]
 
 common/physics_ticks_per_second=60
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 
@@ -63,6 +69,34 @@ fog_clear_2={
 "value": Vector4(0, 0, 0, 0)
 }
 fog_clear_3={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+fog_clear_4={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+fog_clear_5={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+fog_clear_6={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+fog_clear_7={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+sea_time={
+"type": "float",
+"value": 0.0
+}
+sun_dir={
+"type": "vec3",
+"value": Vector3(0, 1, 0)
+}
+sun_glint={
 "type": "vec4",
 "value": Vector4(0, 0, 0, 0)
 }

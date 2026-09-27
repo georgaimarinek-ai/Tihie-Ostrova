@@ -14,23 +14,26 @@
 ## Команды
 - `GODOT=/путь/к/godot tools/verify.sh` — **всё сразу**: контент, цели баланса, актуальность `02_CONTENT.md`, импорт, юнит-тесты, дымовой запуск сцены. Запускай перед словом «готово» и показывай вывод
 - `godot --headless --path . --import` — один раз на свежем клоне (регистрирует `class_name`)
-- `godot --headless --path . -s res://tests/run_tests.gd -- --filter=commands` — часть тестов
+- `godot --headless --path . -s res://tests/run_tests.gd --fixed-fps 60 -- --filter=commands` — часть тестов (`--fixed-fps 60`: сценовые тесты не ждут реальных секунд)
+- `python3 tools/gen_i18n.py` — после правки `i18n/strings.tsv` (ключ, ru, en)
 - `python3 tools/validate_content.py`, `python3 tools/progression_sim.py [--check|--detail b07]`
-- Скриншот: `xvfb-run -a godot --path . --rendering-driver opengl3 -- --screenshot=/tmp/shot.png --light-at=10 --frames=160`
+- Скриншот игры: `xvfb-run -a godot --path . --rendering-driver opengl3 -- --screenshot=/tmp/shot.png --frames=150 --locale=ru` (+ `--teleport=x,z,yaw`, `--look=yaw,pitch`, `--lit=b01`, `--light-at=N`; список в `src/world/world.gd`)
+- Скриншот среза этапа 0: `xvfb-run -a godot --path . --rendering-driver opengl3 res://src/scenes/main.tscn -- --screenshot=/tmp/shot.png --light-at=10 --frames=160`
 
 ## Архитектура (не нарушать)
 - `src/core/` — чистая логика на `RefCounted`: **никаких** узлов, автозагрузок, `Input`, `get_tree()`, таймеров. Всё тестируется без сцены.
-- **Мир меняет только `WorldCommands.apply()`**. Узлы вызывают `Game.submit({"type": ...})` и слушают `Game.world_event`. Никогда не пиши в `WorldState` из узла: в коопе это сломает синхронизацию.
+- **Мир меняет только `WorldCommands.apply()`**. Узлы вызывают `Game.submit({"type": ...})` и слушают `Game.world_event`. Никогда не пиши в `WorldState` из узла: в коопе это сломает синхронизацию. Даже позицию игрока: команда `move`. Команды `tick` и `debug` — только от хоста (`WorldCommands.HOST_ONLY`).
 - Новая механика = команда + проверки внутри `apply()` + события + тест в `tests/test_commands.gd`.
-- Острова только из `IslandGen` по зерну из контента (детерминизм — основа коопа). Id узлов ресурсов имеют вид `остров:номер`.
+- Острова только из `IslandGen` по зерну из контента (детерминизм — основа коопа), все вместе — `WorldMap` (дом, маяки, островки, тропы, узлы ресурсов). Id узлов ресурсов имеют вид `остров:номер` (подбираемое с земли — `остров:pN`, рыба — `sea:x:z`).
 - **Туман в материалах:** каждый материал мира включает `src/shaders/fog_clear.gdshaderinc` и пишет `FOG = fog_for(...)`. `Environment.fog_enabled = false`. Формулы `FogField` (GDScript) и шейдера совпадают.
-- Волны: `Waves.PARAMS` ⇔ блок `WAVES-BEGIN/END` в `water.gdshader`. Меняешь одно — меняй другое (тест упадёт).
+- Волны: `Waves.PARAMS` ⇔ блок `WAVES-BEGIN/END` в `water.gdshader`. Меняешь одно — меняй другое (тест упадёт). Время волн одно на всех: `Sea.time` ⇔ глобальный `sea_time` (не `TIME`).
+- Зеркальный свет (`SPECULAR_LIGHT`, отражения неба) туманом из `FOG` не покрывается: блики, которые должны тонуть в Мге, делай через `EMISSION` (как блик солнца в `water.gdshader`).
 - Модели художника: `art/models/<категория>/<id>.glb`, загрузка через `ModelLibrary`, иначе заглушка. Код не должен зависеть от того, есть ли модель.
 
 ## Код-стиль
 - GDScript 4 со статическими типами (`var x: int`, `-> void`, `Array[String]`). Имена в коде английские. Термины — из глоссария `01_GDD.md` §2 (`beacon`, `trial`, `guardian`, `clear_radius`, `comfort`, `rested`).
 - JSON-парсер Godot отдаёт все числа как `float`: количества читай через `ContentDB.bag()` или `int()`.
-- Тексты интерфейса только через `tr()`, для RU и EN сразу. Коды ошибок команд — ключи `cmd.<error>`, `craft.<reason>`.
+- Тексты интерфейса только через `tr()` (в статике `Loc.t()`), для RU и EN сразу: строка в `i18n/strings.tsv`, затем `tools/gen_i18n.py`. Коды ошибок команд — ключи `cmd.<error>` (тест `test_i18n` проверяет, что у каждой есть текст).
 - Не добавляй аддоны без явной причины. Тесты работают на своём раннере (`tests/run_tests.gd`).
 
 ## Дизайн-правила, которые легко нарушить

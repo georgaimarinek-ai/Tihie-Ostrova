@@ -2,9 +2,13 @@ extends SceneTree
 ## Headless test runner, no add-ons needed:
 ##   godot --headless --path . -s res://tests/run_tests.gd [-- --filter=inventory]
 ## Runs every method test_* in every tests/test_*.gd. Exit code 1 if anything fails.
+## A test that takes one argument is a scene test: it gets this SceneTree, may add nodes to `root` and
+## `await tree.physics_frame`. Pass --fixed-fps 60 (tools/verify.sh does) so simulated seconds do not
+## take real seconds.
 ## Run `godot --headless --path . --import` once on a fresh checkout so class_name scripts are registered.
 
 func _initialize() -> void:
+	await process_frame  # the root enters the tree on the first frame
 	var filter := ""
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--filter="):
@@ -32,7 +36,11 @@ func _initialize() -> void:
 			var t: Variant = script.new()
 			t.current = full
 			t.before_each()
-			t.call(name)
+			if (m["args"] as Array).size() == 1:
+				await t.call(name, self)
+			else:
+				t.call(name)
+			t.after_each()
 			total += 1
 			if t.failures.is_empty():
 				print("ok   ", full)
@@ -40,5 +48,5 @@ func _initialize() -> void:
 				failed += 1
 				for msg in t.failures:
 					print("FAIL ", msg)
-	print("\ntests: %d, failed: %d" % [total, failed])
+	print("\ntests: %d, failed: %d (%.1f s)" % [total, failed, Time.get_ticks_msec() / 1000.0])
 	quit(1 if failed > 0 or total == 0 else 0)

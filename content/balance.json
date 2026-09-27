@@ -29,6 +29,11 @@
     "resource_nodes_days": 3,
     "berries_days": 2
   },
+  "sea": {
+    "note": "Sailing (docs/01_GDD.md §8): the sail sets itself; a beam or following wind gives full speed, sailing into the wind headwind_speed of it. The wind turns slowly over wind_period_min.",
+    "headwind_speed": 0.6,
+    "wind_period_min": 40
+  },
   "fog": {
     "clear_factor": 0.22,
     "clear_edge": 0.3,

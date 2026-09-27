@@ -14,7 +14,7 @@ var radius: float
 var peak: float
 var island_seed: int
 var plateau: Dictionary = {}  # {"pos": Vector2, "radius": float, "height": float}
-var avoid: Array = []  # [{"pos": Vector2, "radius": float}]: no resource nodes there (izba, pier, beacon)
+var avoid: Array = []  # [{"pos": Vector2, "radius": float, "soft": bool}]: no trees there (izba, pier, beacon; soft = paths)
 
 var _edge := FastNoiseLite.new()
 var _hills := FastNoiseLite.new()
@@ -139,9 +139,29 @@ func _avoided(p: Vector2) -> bool:
 	return false
 
 
+## Avoid areas that even small ground pickups keep off (buildings, the tower); paths are "soft".
+func in_hard_avoid(p: Vector2) -> bool:
+	for a: Dictionary in avoid:
+		if not a.get("soft", false) and p.distance_to(a["pos"]) < float(a["radius"]):
+			return true
+	return false
+
+
 ## Flat-shaded mesh with vertex colours (sand / rock / grass / moss / heath) as in the sketch.
 func build_mesh(step: float = 3.0) -> ArrayMesh:
-	var hf := heightfield(step)
+	return mesh_from_heightfield(heightfield(step))
+
+
+## The same mesh from a heightfield computed once (IslandView shares it with the collision shape).
+func mesh_from_heightfield(hf: Dictionary) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays(hf))
+	return mesh
+
+
+## Surface arrays of the terrain mesh (pure data: safe to compute on a worker thread).
+func mesh_arrays(hf: Dictionary) -> Array:
+	var step: float = hf["step"]
 	var n: int = hf["n"]
 	var origin: Vector2 = hf["origin"]
 	var hs: PackedFloat32Array = hf["heights"]
@@ -189,6 +209,4 @@ func build_mesh(step: float = 3.0) -> ArrayMesh:
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
+	return arrays

@@ -1,6 +1,32 @@
 {
   "version": 1,
   "note": "Distances in metres from the home island (0,0); north is -z. fog.density feeds Environment fog (see docs/04_TECH_SPEC.md §5); fog.locked is the density of a region that is not yet opened. Palette values come from the atmosphere sketch (reference/sketch).",
+  "nodes": {
+    "note": "Resource nodes on islands (docs/01_GDD.md §9.1). kinds: what a node gives; only items listed in the island region's resources count. swap: [kind, share] turns part of the trees into another kind in a region. pickups: small ground nodes per 1000 m2 of land. fish_cell_m: every sea cell of this size is one fishing spot.",
+    "kinds": {
+      "pine": { "items": ["wood", "resin"], "shape": "pine", "solid": 0.45 },
+      "birch": { "items": ["wood", "birch_bark"], "shape": "birch", "solid": 0.4 },
+      "larch": { "items": ["larch", "resin"], "shape": "larch", "solid": 0.45 },
+      "rock": { "items": ["stone", "flint", "mica"], "shape": "rock", "solid": 0.8 },
+      "berry_bush": { "items": ["cloudberry", "lingonberry"], "shape": "bush" },
+      "sticks": { "items": ["branch"], "shape": "sticks" },
+      "nettle": { "items": ["fiber"], "shape": "nettle" },
+      "moss": { "items": ["moss"], "shape": "moss" },
+      "mushrooms": { "items": ["mushroom"], "shape": "mushrooms" },
+      "bog": { "items": ["bog_ore"], "shape": "bog" },
+      "clay_bank": { "items": ["clay"], "shape": "clay" },
+      "flax": { "items": ["flax"], "shape": "flax" },
+      "barley": { "items": ["barley"], "shape": "barley" },
+      "pearl_shoal": { "items": ["pearl"], "shape": "shoal" },
+      "spolokh": { "items": ["spolokh"], "shape": "spolokh" }
+    },
+    "swap": {
+      "r3": { "birch": ["larch", 0.5] },
+      "r4": { "pine": ["rock", 0.7], "birch": ["rock", 1.0], "berry_bush": ["rock", 1.0] }
+    },
+    "pickups": { "sticks": 1.2, "nettle": 0.8, "moss": 0.8, "mushrooms": 0.4, "bog": 0.8, "clay_bank": 0.6, "flax": 0.7, "barley": 0.5, "pearl_shoal": 0.3, "spolokh": 0.35 },
+    "fish_cell_m": 40
+  },
   "home": { "id": "home", "name": { "ru": "Родной остров", "en": "Home island" }, "pos": [0, 0], "radius": 110, "peak": 9, "seed": 11 },
   "regions": [
     {

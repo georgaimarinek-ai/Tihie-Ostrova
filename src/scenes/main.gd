@@ -1,8 +1,8 @@
 extends Node3D
-## Phase 0 scene: the atmosphere slice rebuilt from content (docs/06_ROADMAP.md, phase 0).
+## Phase 0 scene: the atmosphere slice rebuilt from content (docs/06_ROADMAP.md, phase 0). The game itself
+## runs src/scenes/world.tscn; this slice stays as a reference shot (docs/images/p0_*.png) and a smoke test.
 ## Home island, the first beacon island (b01), the sea, fog with clearings. Press L to light the beacon
-## through the real command path (Game.submit: complete_trial -> light_beacon) and watch the fog roll back.
-## Phase 1 replaces this with the real world scene (boat, player, landing): keep it as a smoke test.
+## through the command path (debug: grant fuel and the trial, then light_beacon) and watch the fog roll back.
 ##
 ## Command-line (after "--"):
 ##   --smoke            run 30 frames, print "SMOKE OK", quit (tools/verify.sh, headless)
@@ -11,14 +11,13 @@ extends Node3D
 ##   --light-at=N       light the beacon at frame N (default: never)
 
 const PROP_SHADER := preload("res://src/shaders/prop.gdshader")
-const WATER_SHADER := preload("res://src/shaders/water.gdshader")
 const TERRAIN_SHADER := preload("res://src/shaders/terrain.gdshader")
 const FIRST_BEACON := "b01"
 
 var db: ContentDB
 var director: FogDirector
 var cam: Camera3D
-var sea: MeshInstance3D
+var sea: Sea
 var fire_light: OmniLight3D
 var fire_core: MeshInstance3D
 var _args := {}
@@ -32,6 +31,7 @@ func _ready() -> void:
 	db = ContentDB.shared()
 	_args = _parse_args()
 	if Game.state == null:
+		Game.debug_cheats = true
 		Game.new_world(1, "quiet")
 	Game.world_event.connect(_on_world_event)
 	var env := _build_environment()
@@ -55,6 +55,7 @@ func _ready() -> void:
 	director.environment = env
 	director.sun = sun
 	add_child(director)
+	sea.director = director
 
 
 func _process(delta: float) -> void:
@@ -62,7 +63,6 @@ func _process(delta: float) -> void:
 	_time += delta
 	# a slow look around, like the sketch's intro camera
 	cam.look_at_from_position(Vector3(-15, 10, -95), Vector3(-55 + sin(_time * 0.1) * 25.0, 8, -235))
-	sea.global_position = Vector3(snappedf(cam.global_position.x, 4.0), 0.0, snappedf(cam.global_position.z, 4.0))
 	if _fire_on > 0.0:
 		_fire_on = minf(1.0, _fire_on + delta / FogDirector.GROW_S)
 		fire_light.light_energy = (5.0 + sin(_time * 17.0) * 1.2 + randf() * 0.8) * _fire_on
@@ -87,13 +87,8 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Demo shortcut: stand at the beacon with its fuel, pass the trial, light it. Real play does the same
 ## through the player's actions (roadmap phase 5).
 func light_first_beacon() -> void:
-	var pid := Net.local_player_id()
-	var st := Game.state
 	var bpos := db.beacon_pos(FIRST_BEACON)
-	st.players[pid]["pos"] = Vector3(bpos.x, 0.0, bpos.y)
-	var fuel := ContentDB.bag(db.beacons[FIRST_BEACON]["fuel"])
-	for k: String in fuel:
-		st.inv(pid).add(k, fuel[k])
+	Game.submit({"type": "debug", "give": ContentDB.bag(db.beacons[FIRST_BEACON]["fuel"]), "pos": [bpos.x, 0.0, bpos.y]})
 	Game.submit({"type": "complete_trial", "beacon": FIRST_BEACON, "kind": "trial"})
 	var res := Game.submit({"type": "light_beacon", "beacon": FIRST_BEACON})
 	if not res["ok"]:
@@ -130,15 +125,7 @@ func _build_environment() -> Environment:
 
 
 func _build_sea() -> void:
-	sea = MeshInstance3D.new()
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(900, 900)
-	plane.subdivide_width = 220
-	plane.subdivide_depth = 220
-	sea.mesh = plane
-	var m := ShaderMaterial.new()
-	m.shader = WATER_SHADER
-	sea.material_override = m
+	sea = Sea.new()
 	add_child(sea)
 
 

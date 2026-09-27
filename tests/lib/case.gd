@@ -1,6 +1,6 @@
 extends RefCounted
 ## Base class for tests: tiny assertion helpers. A test file is tests/test_*.gd, a test is a method test_*.
-## Tests are synchronous and must not depend on autoloads (the runner is a bare SceneTree).
+## Tests must not depend on autoloads. Scene tests (one SceneTree argument) may add nodes and await frames.
 
 var failures: PackedStringArray = []
 var current := ""
@@ -9,6 +9,28 @@ var db: ContentDB
 
 func before_each() -> void:
 	db = ContentDB.shared()
+
+
+## Scene tests add nodes here; they are freed after the test.
+var nodes: Array[Node] = []
+
+
+func after_each() -> void:
+	for n in nodes:
+		if is_instance_valid(n):
+			n.queue_free()
+	nodes.clear()
+
+
+func add(tree: SceneTree, n: Node) -> Node:
+	tree.root.add_child(n)
+	nodes.append(n)
+	return n
+
+
+func frames(tree: SceneTree, n: int) -> void:
+	for i in n:
+		await tree.physics_frame
 
 
 func check(cond: bool, msg: String) -> void:
