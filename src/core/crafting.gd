@@ -47,6 +47,34 @@ static func apply(db: ContentDB, state: WorldState, pid: String, recipe_id: Stri
 	return ""
 
 
+## Long recipes (balance.sim.background_craft_min_s and up) cook in the station in the background:
+## load them with "load_station", collect later (docs/01_GDD.md §9.3).
+static func is_background(db: ContentDB, recipe_id: String) -> bool:
+	var r: Dictionary = db.recipes.get(recipe_id, {})
+	return not r.is_empty() and r["station"] != "hand" and float(r["time_s"]) >= float(db.balance["sim"]["background_craft_min_s"])
+
+
+## Stations of a kind within reach of a point, nearest first: [uid, ...].
+static func stations_near(state: WorldState, pos: Vector3, reach: float = REACH_M) -> Array[String]:
+	var out: Array[String] = []
+	for uid: String in state.pieces:
+		var pc: Dictionary = state.pieces[uid]
+		if (pc["pos"] as Vector3).distance_to(pos) <= reach:
+			out.append(uid)
+	out.sort_custom(func(a: String, b: String) -> bool:
+		return (state.pieces[a]["pos"] as Vector3).distance_to(pos) < (state.pieces[b]["pos"] as Vector3).distance_to(pos))
+	return out
+
+
+## How many times the bag can afford a recipe right now (0 = not even once).
+static func affordable(db: ContentDB, inv: Inventory, recipe_id: String) -> int:
+	var inputs: Dictionary = db.recipes[recipe_id]["inputs"]
+	var n := 999
+	for k: String in inputs:
+		n = mini(n, inv.count(k) / maxi(1, int(inputs[k])))
+	return n
+
+
 static func scaled(bag: Dictionary, times: int) -> Dictionary:
 	var out := {}
 	for k: String in bag:

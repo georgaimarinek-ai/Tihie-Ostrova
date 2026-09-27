@@ -72,8 +72,12 @@ reference/sketch/        браузерный набросок, эталон о�
 | `move` | pos, [boat_pos, boat_yaw] | координаты конечны и в пределах мира; лодку двигает тот, кто в ней | — (позиции идут синхронизатором) |
 | `board` | boat | лодка есть, игрок не в лодке, до лодки ≤ 16 м | `boarded` |
 | `disembark` | pos | игрок в лодке, точка ≤ 18 м от лодки, там суша (`WorldMap`) | `disembarked` |
+| `load_station` | uid, recipe, times | станция этого рецепта, рецепт долгий (≥ `background_craft_min_s`) и открыт, игрок в 6 м, очередь < 10, есть входы | `station_loaded` |
+| `cancel_station` | uid, index | игрок в 6 м, есть место под возврат (всё незаконченное) | `station_canceled` |
+| `collect` | uid | игрок в 6 м, в станции есть готовое | `station_collected` |
+| `eat` | item | еда, такого блюда нет в слотах, слотов < 3 | `ate` (`food_gone` из `tick`) |
 | `light` | item ("" — погасить) | предмет со свойством `light`; факел сгорает (1 шт. на 5 мин), фонарь тратит `fuel` | `light_changed` |
-| `tick` | dt_min ≤ 1 | **только хост**: идут часы мира, смена дня, догорает свет (фонарь сам берёт ворвань) | `day_changed`, `light_changed` |
+| `tick` | dt_min ≤ 1 | **только хост**: идут часы мира, смена дня, догорает свет (фонарь сам берёт ворвань), истекает еда, станции готовят | `day_changed`, `light_changed`, `food_gone`, `station_done` |
 | `debug` | give, trial, pos, clock_min | **только хост** и только при `allow_debug` (скриншоты, автоматизация) | `gathered`, `trial_done` |
 
 С картой (`WorldCommands.map`) `gather` дополнительно проверяет, что узел существует, даёт этот предмет и игрок рядом. Новый мир: `WorldCommands.init_world()` ставит карбас у причала дома и сажает в него игроков.

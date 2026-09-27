@@ -12,7 +12,9 @@ var clock_min: float = 0.0  # world minutes since creation (debuffs, respawns, s
 var lit: Dictionary = {}  # beacon id -> day it was lit
 var trials_done: Dictionary = {}  # beacon id -> "trial" | "guardian" | "defense"
 var busy_beacon: String = ""  # guardian fight or fire defence in progress ("" = none)
-var pieces: Dictionary = {}  # uid -> {"id", "pos": Vector3, "rot": float, "owner", optional "inv": Inventory (chests), "queue": Array (stations)}
+## uid -> {"id", "pos": Vector3, "rot": float, "owner", optional "inv": Inventory (chests),
+##   "queue": [{"recipe", "times" (units left), "left_s" (seconds left on the current unit)}], "out": {item: n}}
+var pieces: Dictionary = {}
 var graves: Dictionary = {}  # uid -> {"owner": String, "pos": Vector3, "inv": Dictionary}
 var depleted: Dictionary = {}  # resource node id -> day it respawns
 ## player id -> {"inv": Inventory, "pos": Vector3, "spawn": Vector3, "weary_until": float, "aboard": boat uid or "",
@@ -84,6 +86,8 @@ func to_dict() -> Dictionary:
 			row["inv"] = (pc["inv"] as Inventory).to_dict()
 		if pc.has("queue"):
 			row["queue"] = (pc["queue"] as Array).duplicate(true)
+		if pc.has("out"):
+			row["out"] = (pc["out"] as Dictionary).duplicate()
 		pcs[uid] = row
 	var gr := {}
 	for uid: String in graves:
@@ -120,6 +124,8 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 			piece["inv"] = chest
 		if pc.has("queue"):
 			piece["queue"] = _int_queue(pc["queue"])
+		if pc.has("out"):
+			piece["out"] = ContentDB.bag(pc["out"])
 		s.pieces[uid] = piece
 	for uid: String in d["graves"]:
 		var g: Dictionary = d["graves"][uid]

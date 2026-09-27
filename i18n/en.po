@@ -261,3 +261,213 @@ msgstr "W/S — walk · A/D — turn · Shift — run · Space — jump · right
 
 msgid "toast.light_out"
 msgstr "The torch burnt out."
+
+msgid "cmd.background"
+msgstr "A long recipe: load it into the station and it cooks by itself."
+
+msgid "cmd.wrong_station"
+msgstr "This recipe belongs to another station."
+
+msgid "cmd.not_background"
+msgstr "This is made right away, no need to load it."
+
+msgid "cmd.queue_full"
+msgstr "The station is full."
+
+msgid "cmd.empty"
+msgstr "Nothing yet."
+
+msgid "cmd.not_food"
+msgstr "That's not food."
+
+msgid "cmd.already_eaten"
+msgstr "That dish is still warming you. Eat something else."
+
+msgid "cmd.food_full"
+msgstr "All three food slots are full."
+
+msgid "kind.raw"
+msgstr "Raw material"
+
+msgid "kind.tool"
+msgstr "Tool"
+
+msgid "kind.food"
+msgstr "Food"
+
+msgid "kind.fuel"
+msgstr "Beacon fuel"
+
+msgid "kind.material"
+msgstr "Material"
+
+msgid "kind.light"
+msgstr "Light"
+
+msgid "kind.weapon"
+msgstr "Weapon"
+
+msgid "kind.armor"
+msgstr "Gear"
+
+msgid "kind.ammo"
+msgstr "Ammunition"
+
+msgid "kind.valuable"
+msgstr "Valuable"
+
+msgid "kind.trinket"
+msgstr "Charm"
+
+msgid "info.fuel"
+msgstr "Burns hot and long. Beacons: %s."
+
+msgid "info.tool"
+msgstr "Tier %d. Gathers: %s."
+
+msgid "info.food"
+msgstr "+%d health and +%d stamina for %d min. No hunger: food only helps."
+
+msgid "info.lantern"
+msgstr "Pushes the fog back %d m. One %s lasts %d min and is taken from the bag by itself."
+
+msgid "info.torch"
+msgstr "Pushes the fog back %d m, burns for %d min."
+
+msgid "info.eternal"
+msgstr "Pushes the fog back %d m and never goes out."
+
+msgid "info.weapon"
+msgstr "Damage %d, stamina per blow %d."
+
+msgid "info.gather"
+msgstr "Gathered with: %s. First found: %s."
+
+msgid "info.used_for"
+msgstr "Used for: %s"
+
+msgid "unit.s"
+msgstr "s"
+
+msgid "ui.bag"
+msgstr "Bag"
+
+msgid "ui.food_slots"
+msgstr "Food · 3 places"
+
+msgid "ui.empty"
+msgstr "empty"
+
+msgid "ui.by_hand"
+msgstr "By hand"
+
+msgid "ui.nearby"
+msgstr "nearby: %s"
+
+msgid "ui.recipes_hand"
+msgstr "Recipes by hand"
+
+msgid "ui.recipes_of"
+msgstr "Recipes: %s"
+
+msgid "ui.cooking"
+msgstr "Cooking"
+
+msgid "ui.waiting"
+msgstr "waiting"
+
+msgid "ui.cancel_load"
+msgstr "Take out: everything comes back"
+
+msgid "ui.ready"
+msgstr "Ready: %s"
+
+msgid "ui.collect"
+msgstr "Collect"
+
+msgid "ui.opens_at"
+msgstr "opens with %s"
+
+msgid "ui.can"
+msgstr "can ×%d"
+
+msgid "ui.lacks"
+msgstr "lacks: %s"
+
+msgid "ui.background_short"
+msgstr "background"
+
+msgid "ui.pick_recipe"
+msgstr "Pick a recipe or a thing in the bag. Right-click food to eat it, a torch to light it."
+
+msgid "ui.making"
+msgstr "Making… %d%%"
+
+msgid "ui.load"
+msgstr "Load"
+
+msgid "ui.make"
+msgstr "Make"
+
+msgid "ui.make_all"
+msgstr "Make all (×%d)"
+
+msgid "ui.background_note"
+msgstr "A long recipe cooks in the background: load it and go. It waits in the station."
+
+msgid "ui.background_hint"
+msgstr "Long recipes (charcoal, iron, tar, salt) cook in the background: load and go."
+
+msgid "ui.eat"
+msgstr "Eat"
+
+msgid "ui.light"
+msgstr "Light"
+
+msgid "ui.rested"
+msgstr "Rested"
+
+msgid "craft.unknown_recipe"
+msgstr "No such recipe."
+
+msgid "craft.locked"
+msgstr "Not unlocked yet."
+
+msgid "craft.no_station"
+msgstr "You need the station nearby (within 6 m)."
+
+msgid "craft.missing"
+msgstr "Not enough materials."
+
+msgid "craft.no_space"
+msgstr "The bag is full."
+
+msgid "ui.stations"
+msgstr "Set up a station"
+
+msgid "ui.place"
+msgstr "Place"
+
+msgid "act.hook"
+msgstr "Strike!"
+
+msgid "act.reel"
+msgstr "Rod %d/%d · E — reel in"
+
+msgid "act.station"
+msgstr "%s — open"
+
+msgid "act.collect"
+msgstr "Collect: %s"
+
+msgid "toast.station_done"
+msgstr "%s: done"
+
+msgid "toast.fish_lost"
+msgstr "It got away…"
+
+msgid "toast.ate"
+msgstr "Eaten: %s"
+
+msgid "hint.fishing"
+msgstr "Wait for a bite. When the float dives, press E."

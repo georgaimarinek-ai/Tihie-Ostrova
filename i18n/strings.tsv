@@ -85,3 +85,73 @@ goal.home	Родной остров. Собирай камни, хворост �
 target.boat	До лодки	Boat
 hint.foot	W/S — идти · A/D — поворот · Shift — бег · Пробел — прыжок · правая кнопка мыши — осмотреться · E — действие · Q — выбрать	W/S — walk · A/D — turn · Shift — run · Space — jump · right mouse — look around · E — action · Q — choose
 toast.light_out	Факел догорел.	The torch burnt out.
+cmd.background	Это долгий рецепт: заложи его в станцию, он сготовится сам.	A long recipe: load it into the station and it cooks by itself.
+cmd.wrong_station	Этот рецепт делают на другой станции.	This recipe belongs to another station.
+cmd.not_background	Это делают сразу, без закладки.	This is made right away, no need to load it.
+cmd.queue_full	Станция загружена до отказа.	The station is full.
+cmd.empty	Пока пусто.	Nothing yet.
+cmd.not_food	Это не едят.	That's not food.
+cmd.already_eaten	Это блюдо уже греет. Съешь что-нибудь другое.	That dish is still warming you. Eat something else.
+cmd.food_full	Все три места для еды заняты.	All three food slots are full.
+kind.raw	Сырьё	Raw material
+kind.tool	Инструмент	Tool
+kind.food	Еда	Food
+kind.fuel	Топливо маяков	Beacon fuel
+kind.material	Материал	Material
+kind.light	Свет	Light
+kind.weapon	Оружие	Weapon
+kind.armor	Снаряжение	Gear
+kind.ammo	Стрелы	Ammunition
+kind.valuable	Ценность	Valuable
+kind.trinket	Оберег	Charm
+info.fuel	Горит жарко и долго. Маяки: %s.	Burns hot and long. Beacons: %s.
+info.tool	Ярус %d. Им собирают: %s.	Tier %d. Gathers: %s.
+info.food	+%d здоровья и +%d выносливости на %d мин. Голода нет: еда только помогает.	+%d health and +%d stamina for %d min. No hunger: food only helps.
+info.lantern	Раздвигает туман на %d м. Одна %s — на %d мин, берётся из сумки сама.	Pushes the fog back %d m. One %s lasts %d min and is taken from the bag by itself.
+info.torch	Раздвигает туман на %d м, горит %d мин.	Pushes the fog back %d m, burns for %d min.
+info.eternal	Раздвигает туман на %d м и не гаснет.	Pushes the fog back %d m and never goes out.
+info.weapon	Урон %d, выносливость за удар %d.	Damage %d, stamina per blow %d.
+info.gather	Собирают: %s. Впервые — %s.	Gathered with: %s. First found: %s.
+info.used_for	Идёт на: %s	Used for: %s
+unit.s	с	s
+ui.bag	Сумка	Bag
+ui.food_slots	Еда · 3 места	Food · 3 places
+ui.empty	пусто	empty
+ui.by_hand	Руками	By hand
+ui.nearby	рядом: %s	nearby: %s
+ui.recipes_hand	Рецепты без станции	Recipes by hand
+ui.recipes_of	Рецепты: %s	Recipes: %s
+ui.cooking	В работе	Cooking
+ui.waiting	ждёт	waiting
+ui.cancel_load	Вынуть: всё вернётся	Take out: everything comes back
+ui.ready	Готово: %s	Ready: %s
+ui.collect	Забрать	Collect
+ui.opens_at	откроет %s	opens with %s
+ui.can	можно ×%d	can ×%d
+ui.lacks	нет: %s	lacks: %s
+ui.background_short	в фоне	background
+ui.pick_recipe	Выбери рецепт или вещь в сумке. Правая кнопка мыши по еде — съесть, по факелу — зажечь.	Pick a recipe or a thing in the bag. Right-click food to eat it, a torch to light it.
+ui.making	Делаю… %d%%	Making… %d%%
+ui.load	Заложить	Load
+ui.make	Сделать	Make
+ui.make_all	Сделать всё (×%d)	Make all (×%d)
+ui.background_note	Долгий рецепт идёт в фоне: заложил — и можно уходить. Готовое ждёт в станции.	A long recipe cooks in the background: load it and go. It waits in the station.
+ui.background_hint	Долгие рецепты (уголь, железо, дёготь, соль) идут в фоне: заложил — и можно уходить.	Long recipes (charcoal, iron, tar, salt) cook in the background: load and go.
+ui.eat	Съесть	Eat
+ui.light	Зажечь	Light
+ui.rested	Отдых	Rested
+craft.unknown_recipe	Такого рецепта нет.	No such recipe.
+craft.locked	Ещё не открыто.	Not unlocked yet.
+craft.no_station	Нужна станция рядом (в 6 м).	You need the station nearby (within 6 m).
+craft.missing	Не хватает материалов.	Not enough materials.
+craft.no_space	Сумка полна.	The bag is full.
+ui.stations	Поставить станцию	Set up a station
+ui.place	Поставить	Place
+act.hook	Подсечь!	Strike!
+act.reel	Удочка %d/%d · E — смотать	Rod %d/%d · E — reel in
+act.station	%s — открыть	%s — open
+act.collect	Забрать: %s	Collect: %s
+toast.station_done	%s: готово	%s: done
+toast.fish_lost	Сорвалась…	It got away…
+toast.ate	Съедено: %s	Eaten: %s
+hint.fishing	Жди поклёвку. Поплавок нырнул — жми E.	Wait for a bite. When the float dives, press E.

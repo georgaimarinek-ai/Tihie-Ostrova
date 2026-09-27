@@ -261,3 +261,213 @@ msgstr "W/S — идти · A/D — поворот · Shift — бег · Про
 
 msgid "toast.light_out"
 msgstr "Факел догорел."
+
+msgid "cmd.background"
+msgstr "Это долгий рецепт: заложи его в станцию, он сготовится сам."
+
+msgid "cmd.wrong_station"
+msgstr "Этот рецепт делают на другой станции."
+
+msgid "cmd.not_background"
+msgstr "Это делают сразу, без закладки."
+
+msgid "cmd.queue_full"
+msgstr "Станция загружена до отказа."
+
+msgid "cmd.empty"
+msgstr "Пока пусто."
+
+msgid "cmd.not_food"
+msgstr "Это не едят."
+
+msgid "cmd.already_eaten"
+msgstr "Это блюдо уже греет. Съешь что-нибудь другое."
+
+msgid "cmd.food_full"
+msgstr "Все три места для еды заняты."
+
+msgid "kind.raw"
+msgstr "Сырьё"
+
+msgid "kind.tool"
+msgstr "Инструмент"
+
+msgid "kind.food"
+msgstr "Еда"
+
+msgid "kind.fuel"
+msgstr "Топливо маяков"
+
+msgid "kind.material"
+msgstr "Материал"
+
+msgid "kind.light"
+msgstr "Свет"
+
+msgid "kind.weapon"
+msgstr "Оружие"
+
+msgid "kind.armor"
+msgstr "Снаряжение"
+
+msgid "kind.ammo"
+msgstr "Стрелы"
+
+msgid "kind.valuable"
+msgstr "Ценность"
+
+msgid "kind.trinket"
+msgstr "Оберег"
+
+msgid "info.fuel"
+msgstr "Горит жарко и долго. Маяки: %s."
+
+msgid "info.tool"
+msgstr "Ярус %d. Им собирают: %s."
+
+msgid "info.food"
+msgstr "+%d здоровья и +%d выносливости на %d мин. Голода нет: еда только помогает."
+
+msgid "info.lantern"
+msgstr "Раздвигает туман на %d м. Одна %s — на %d мин, берётся из сумки сама."
+
+msgid "info.torch"
+msgstr "Раздвигает туман на %d м, горит %d мин."
+
+msgid "info.eternal"
+msgstr "Раздвигает туман на %d м и не гаснет."
+
+msgid "info.weapon"
+msgstr "Урон %d, выносливость за удар %d."
+
+msgid "info.gather"
+msgstr "Собирают: %s. Впервые — %s."
+
+msgid "info.used_for"
+msgstr "Идёт на: %s"
+
+msgid "unit.s"
+msgstr "с"
+
+msgid "ui.bag"
+msgstr "Сумка"
+
+msgid "ui.food_slots"
+msgstr "Еда · 3 места"
+
+msgid "ui.empty"
+msgstr "пусто"
+
+msgid "ui.by_hand"
+msgstr "Руками"
+
+msgid "ui.nearby"
+msgstr "рядом: %s"
+
+msgid "ui.recipes_hand"
+msgstr "Рецепты без станции"
+
+msgid "ui.recipes_of"
+msgstr "Рецепты: %s"
+
+msgid "ui.cooking"
+msgstr "В работе"
+
+msgid "ui.waiting"
+msgstr "ждёт"
+
+msgid "ui.cancel_load"
+msgstr "Вынуть: всё вернётся"
+
+msgid "ui.ready"
+msgstr "Готово: %s"
+
+msgid "ui.collect"
+msgstr "Забрать"
+
+msgid "ui.opens_at"
+msgstr "откроет %s"
+
+msgid "ui.can"
+msgstr "можно ×%d"
+
+msgid "ui.lacks"
+msgstr "нет: %s"
+
+msgid "ui.background_short"
+msgstr "в фоне"
+
+msgid "ui.pick_recipe"
+msgstr "Выбери рецепт или вещь в сумке. Правая кнопка мыши по еде — съесть, по факелу — зажечь."
+
+msgid "ui.making"
+msgstr "Делаю… %d%%"
+
+msgid "ui.load"
+msgstr "Заложить"
+
+msgid "ui.make"
+msgstr "Сделать"
+
+msgid "ui.make_all"
+msgstr "Сделать всё (×%d)"
+
+msgid "ui.background_note"
+msgstr "Долгий рецепт идёт в фоне: заложил — и можно уходить. Готовое ждёт в станции."
+
+msgid "ui.background_hint"
+msgstr "Долгие рецепты (уголь, железо, дёготь, соль) идут в фоне: заложил — и можно уходить."
+
+msgid "ui.eat"
+msgstr "Съесть"
+
+msgid "ui.light"
+msgstr "Зажечь"
+
+msgid "ui.rested"
+msgstr "Отдых"
+
+msgid "craft.unknown_recipe"
+msgstr "Такого рецепта нет."
+
+msgid "craft.locked"
+msgstr "Ещё не открыто."
+
+msgid "craft.no_station"
+msgstr "Нужна станция рядом (в 6 м)."
+
+msgid "craft.missing"
+msgstr "Не хватает материалов."
+
+msgid "craft.no_space"
+msgstr "Сумка полна."
+
+msgid "ui.stations"
+msgstr "Поставить станцию"
+
+msgid "ui.place"
+msgstr "Поставить"
+
+msgid "act.hook"
+msgstr "Подсечь!"
+
+msgid "act.reel"
+msgstr "Удочка %d/%d · E — смотать"
+
+msgid "act.station"
+msgstr "%s — открыть"
+
+msgid "act.collect"
+msgstr "Забрать: %s"
+
+msgid "toast.station_done"
+msgstr "%s: готово"
+
+msgid "toast.fish_lost"
+msgstr "Сорвалась…"
+
+msgid "toast.ate"
+msgstr "Съедено: %s"
+
+msgid "hint.fishing"
+msgstr "Жди поклёвку. Поплавок нырнул — жми E."

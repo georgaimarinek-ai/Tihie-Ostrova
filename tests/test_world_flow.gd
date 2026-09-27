@@ -56,3 +56,59 @@ func test_land_gather_and_board(tree: SceneTree) -> void:
 	check(not world.on_foot(), "aboard again")
 	eq(st.players[pid]["aboard"], world.my_boat.uid)
 	game.state = null
+
+
+func test_station_crafting_and_fishing(tree: SceneTree) -> void:
+	var game: Node = tree.root.get_node("Game")
+	game.state = null
+	game.debug_cheats = true
+	game.new_world(6, "quiet")
+	var world: Node3D = add(tree, load("res://src/scenes/world.tscn").instantiate())
+	await frames(tree, 3)
+	var st: WorldState = game.state
+	var m: WorldMap = game.map
+	var pid: String = Net.local_player_id()
+	var sea: Vector2 = WorldMap.walk_out(m.by_id["home"], (m.by_id["home"] as IslandGen).center, Vector2(1, 0.3).normalized())["sea"]
+	world.my_boat.global_position = Vector3(sea.x, 0.0, sea.y)
+	await frames(tree, 3)
+	world._scan()
+	world._disembark()
+	await frames(tree, 3)
+	Game.submit({"type": "debug", "give": {"wood": 30, "resin": 4, "fishing_rod": 1}})
+	# a workbench goes down in front of the player, through "place"
+	world._place_station("workbench")
+	await frames(tree, 2)
+	var bench := ""
+	for uid: String in st.pieces:
+		if st.pieces[uid]["id"] == "workbench":
+			bench = uid
+	check(bench != "", "the workbench stands in the world")
+	check(world.pieces.nodes.has(bench), "and in the view")
+	# the crafting window opens at it and makes pitch-pine kindling over the recipe's time
+	world._open_craft()
+	var craft: CraftWindow = world.craft
+	check(craft.visible, "the window is open")
+	eq(craft.tab, "workbench", "at the workbench")
+	craft.selected = "smolye"
+	craft._make("smolye", 1)
+	check(craft.is_busy(), "making")
+	await frames(tree, int(float(ContentDB.shared().recipes["smolye"]["time_s"]) * 60.0) + 10)
+	eq(st.inv(pid).count("smolye"), 1, "made after the recipe's time")
+	eq(st.inv(pid).count("resin"), 2)
+	craft.close_window()
+	# fishing from the boat: every strike in time is a fish, the catch is one gather of the sea cell
+	world.player.place(world.last_boat.global_position + Vector3(3.0, 0.0, 0.0), 0.0)
+	world.player.walked = 10.0
+	world._board()
+	await frames(tree, 30)
+	check(world._can_fish(), "a rod and a still boat")
+	world._start_fishing()
+	for i in 3:
+		world._fishing["next"] = 0.0
+		await frames(tree, 2)
+		world._hook()
+	var spot: String = world._fishing["spot"]
+	world._stop_fishing()
+	eq(st.inv(pid).count("raw_fish"), 3, "three fish")
+	check(int(st.depleted.get(spot, 0)) > st.day, "the spot rests for a while")
+	game.state = null

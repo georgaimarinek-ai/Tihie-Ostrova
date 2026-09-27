@@ -11,6 +11,7 @@ const GATHER_MAX := 5
 const BEACON_REACH_M := 12.0
 const BOARD_REACH_M := 16.0  # landing looks up to 14 m from the boat
 const LAND_REACH_M := 18.0
+const PLACE_REACH_M := 10.0
 const WORLD_LIMIT_M := 5000.0
 ## Commands only the host itself may issue; Game drops them when they arrive from a remote peer.
 const HOST_ONLY: Array[String] = ["tick", "debug"]
@@ -77,6 +78,14 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _disembark(pid, cmd)
 		"light":
 			return _light(pid, cmd)
+		"load_station":
+			return _load_station(pid, cmd)
+		"cancel_station":
+			return _cancel_station(pid, cmd)
+		"collect":
+			return _collect(pid, cmd)
+		"eat":
+			return _eat(pid, cmd)
 		"tick":
 			return _tick(pid, cmd)
 		"debug":
@@ -132,6 +141,8 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 func _craft(pid: String, cmd: Dictionary) -> Dictionary:
 	var rid := String(cmd.get("recipe", ""))
 	var times := clampi(int(cmd.get("times", 1)), 1, 99)
+	if Crafting.is_background(db, rid):
+		return _fail("background")
 	var reason := Crafting.apply(db, state, pid, rid, times)
 	if reason != "":
 		return _fail(reason)
@@ -147,10 +158,15 @@ func _place(pid: String, cmd: Dictionary) -> Dictionary:
 		return _fail("locked")
 	var cost := ContentDB.bag(p["cost"])
 	var inv := state.inv(pid)
+	var pos := WorldState._to_v3(cmd.get("pos", []))
+	if map != null:
+		if not _sane(pos) or not _near(pid, pos, PLACE_REACH_M):
+			return _fail("too_far")
+		if map.ground_at(pos.x, pos.z) < -0.6 and String(p.get("snap", "free")) != "pier":
+			return _fail("no_land")
 	if not inv.remove_bag(cost):
 		return _fail("missing")
 	var uid := state.new_uid("p")
-	var pos := WorldState._to_v3(cmd.get("pos", []))
 	state.pieces[uid] = {"id": piece_id, "pos": pos, "rot": float(cmd.get("rot", 0.0)), "owner": pid}
 	if p.get("spawn", false):
 		state.players[pid]["spawn"] = pos
@@ -364,6 +380,108 @@ func _light(pid: String, cmd: Dictionary) -> Dictionary:
 	return _ok([{"type": "light_changed", "player": pid, "item": item, "until": until}])
 
 
+## Put a long recipe into a station: the inputs leave the bag now, the output waits in the station.
+func _load_station(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var rid := String(cmd.get("recipe", ""))
+	var times := clampi(int(cmd.get("times", 1)), 1, 99)
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty():
+		return _fail("unknown_uid")
+	var r: Dictionary = db.recipes.get(rid, {})
+	if r.is_empty():
+		return _fail("unknown_recipe")
+	if r["station"] != pc["id"]:
+		return _fail("wrong_station")
+	if not Crafting.is_background(db, rid):
+		return _fail("not_background")
+	if not db.is_unlocked(r["unlock"], state.lit):
+		return _fail("locked")
+	if not _near(pid, pc["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var queue: Array = pc.get("queue", [])
+	if queue.size() >= int(db.balance["stations"]["queue_max"]):
+		return _fail("queue_full")
+	if not state.inv(pid).remove_bag(Crafting.scaled(r["inputs"], times)):
+		return _fail("missing")
+	queue.append({"recipe": rid, "times": times, "left_s": float(r["time_s"])})
+	pc["queue"] = queue
+	return _ok([{"type": "station_loaded", "uid": uid, "recipe": rid, "times": times, "player": pid}])
+
+
+## Take a load back out: every unit not finished yet returns its inputs in full.
+func _cancel_station(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var idx := int(cmd.get("index", 0))
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty():
+		return _fail("unknown_uid")
+	if not _near(pid, pc["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var queue: Array = pc.get("queue", [])
+	if idx < 0 or idx >= queue.size():
+		return _fail("unknown_uid")
+	var q: Dictionary = queue[idx]
+	var back := Crafting.scaled(db.recipes[q["recipe"]]["inputs"], int(q["times"]))
+	var inv := state.inv(pid)
+	if not inv.can_fit(back):
+		return _fail("no_space")
+	for k: String in back:
+		inv.add(k, back[k])
+	queue.remove_at(idx)
+	return _ok([{"type": "station_canceled", "uid": uid, "recipe": q["recipe"], "player": pid}])
+
+
+## Take what the station made (as much as fits in the bag; the rest waits).
+func _collect(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty():
+		return _fail("unknown_uid")
+	if not _near(pid, pc["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var out: Dictionary = pc.get("out", {})
+	if out.is_empty():
+		return _fail("empty")
+	var inv := state.inv(pid)
+	var got := {}
+	for k: String in out.keys():
+		var left := inv.add(k, int(out[k]))
+		if int(out[k]) - left > 0:
+			got[k] = int(out[k]) - left
+		if left == 0:
+			out.erase(k)
+		else:
+			out[k] = left
+	if got.is_empty():
+		return _fail("no_space")
+	return _ok([{"type": "station_collected", "uid": uid, "items": got, "player": pid}])
+
+
+## Food: three slots (balance.player.food_slots), no two of the same dish; the bonus lasts food.minutes.
+func _eat(pid: String, cmd: Dictionary) -> Dictionary:
+	var item := String(cmd.get("item", ""))
+	var it: Dictionary = db.items.get(item, {})
+	if not it.has("food"):
+		return _fail("not_food")
+	var p: Dictionary = state.players[pid]
+	var food: Array = p["food"]
+	for f: Dictionary in food:
+		if f["id"] == item:
+			return _fail("already_eaten")
+	if food.size() >= int(db.balance["player"]["food_slots"]):
+		return _fail("food_full")
+	if not (p["inv"] as Inventory).remove(item, 1):
+		return _fail("missing")
+	var until := state.clock_min + float(it["food"]["minutes"])
+	food.append({"id": item, "until": until})
+	return _ok([{"type": "ate", "player": pid, "item": item, "until": until}])
+
+
+func _near(pid: String, pos: Vector3, reach: float) -> bool:
+	return (state.players[pid]["pos"] as Vector3).distance_to(pos) <= reach
+
+
 ## Host-only: world time passes (Game sends it once a second while someone plays; no one playing = no time).
 func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
 	var dt := clampf(float(cmd.get("dt_min", 0.0)), 0.0, 1.0)
@@ -376,7 +494,48 @@ func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
 		events.append({"type": "day_changed", "day": day})
 	for pid: String in state.players:
 		events.append_array(_tick_light(pid))
+		events.append_array(_tick_food(pid))
+	events.append_array(_tick_stations(dt * 60.0))
 	return _ok(events)
+
+
+## Food runs out: the slot frees up.
+func _tick_food(pid: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var food: Array = state.players[pid]["food"]
+	for i in range(food.size() - 1, -1, -1):
+		if float(food[i]["until"]) <= state.clock_min:
+			out.append({"type": "food_gone", "player": pid, "item": food[i]["id"]})
+			food.remove_at(i)
+	return out
+
+
+## Stations cook their queues: each finished unit goes into the station's output ("out").
+func _tick_stations(seconds: float) -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	for uid: String in state.pieces:
+		var pc: Dictionary = state.pieces[uid]
+		var queue: Array = pc.get("queue", [])
+		var t := seconds
+		while t > 0.0 and not queue.is_empty():
+			var q: Dictionary = queue[0]
+			var step := minf(t, float(q["left_s"]))
+			q["left_s"] = float(q["left_s"]) - step
+			t -= step
+			if float(q["left_s"]) > 0.0:
+				break
+			var r: Dictionary = db.recipes[q["recipe"]]
+			if not pc.has("out"):
+				pc["out"] = {}
+			for k: String in r["output"]:
+				pc["out"][k] = int(pc["out"].get(k, 0)) + int(r["output"][k])
+			q["times"] = int(q["times"]) - 1
+			events.append({"type": "station_done", "uid": uid, "recipe": q["recipe"]})
+			if int(q["times"]) <= 0:
+				queue.pop_front()
+			else:
+				q["left_s"] = float(r["time_s"])
+	return events
 
 
 ## Lights burn down; a lantern takes its next fuel from the bag by itself.

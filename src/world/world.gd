@@ -11,7 +11,8 @@ extends Node3D
 ##   --ashore             land at the nearest shore right away
 ##   --walk=x,z,yaw       put the player on foot there
 ##   --look=yaw,pitch     camera offset (degrees; boat: from the stern) and pitch (0..90)
-##   --give=item:n,...    items in the bag (debug), --torch lights a torch
+##   --give=item:n,...    items in the bag (debug), --torch lights a torch, --eat=a,b eats dishes
+##   --place=piece,...    set up pieces in front of the player, --craft[=recipe] opens the crafting window
 ##   --locale=ru|en       interface language
 ##   --mode=quiet|tale|saga, --seed=N   a new world
 ##   --lit=b01,b02        light beacons at start (debug), --light-at=N lights the next beacon at frame N
@@ -35,6 +36,8 @@ var env: Environment
 var boats: Dictionary = {}  # uid -> Boat
 var beacons: Dictionary = {}  # beacon id -> BeaconView
 var player: Player
+var pieces: PiecesView
+var craft: CraftWindow
 var my_boat: Boat  # the boat the local player is aboard (null on foot)
 var last_boat: Boat  # the boat the player came ashore from
 
@@ -48,6 +51,10 @@ var _near_node: Dictionary = {}
 var _choice := 0
 var _channel: Dictionary = {}  # gathering in progress: {"node", "item", "per", "t", "done", "want"}
 var _board_dist := 6.0
+var _near_station := ""  # uid of the nearest station within reach
+var _fishing: Dictionary = {}  # {"spot", "t", "next", "bite", "caught", "want"}
+var _bobber: Node3D
+var _hot := 0  # chosen hotbar place
 
 
 func _ready() -> void:
@@ -56,7 +63,7 @@ func _ready() -> void:
 		TranslationServer.set_locale(String(_args["locale"]))
 	db = ContentDB.shared()
 	if Game.state == null:
-		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk"]:
+		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft"]:
 			if _args.has(k):
 				Game.debug_cheats = true
 		Game.new_world(int(_args.get("seed", 4127)), String(_args.get("mode", "")))
@@ -82,6 +89,9 @@ func _ready() -> void:
 	home = HomeView.new()
 	home.setup(map)
 	add_child(home)
+	pieces = PiecesView.new()
+	pieces.setup(db, state)
+	add_child(pieces)
 	for bid in db.beacon_order:
 		var bv := BeaconView.new()
 		bv.setup(db, map, bid)
@@ -107,6 +117,12 @@ func _ready() -> void:
 	add_child(layer)
 	layer.add_child(hud)
 	hud.action_pressed.connect(_do_action)
+	craft = CraftWindow.new()
+	layer.add_child(craft)
+	craft.closed.connect(func() -> void: player.busy = not _channel.is_empty())
+	craft.place_requested.connect(_place_station)
+	_bobber = _make_bobber()
+	add_child(_bobber)
 	_debug_setup()
 	_attach_player()
 	streamer.build_around(_focus())
@@ -198,6 +214,7 @@ func _process(delta: float) -> void:
 	elif my_boat != null:
 		extra.append(my_boat.fog_light(true))
 	extra.append(home.hearth_light)
+	extra.append_array(pieces.fog_lights(Vector2(focus.x, focus.z), 2))
 	director.extra_lights = extra
 	director.boost_target = _fog_boost()
 	_scan_timer -= delta
@@ -205,6 +222,8 @@ func _process(delta: float) -> void:
 		_scan_timer = 0.15
 		_scan()
 	_update_channel(delta)
+	_update_fishing(delta)
+	_update_vitals()
 	_update_beacons()
 	_update_audio(focus)
 	_update_hud()
@@ -253,6 +272,11 @@ func _scan() -> void:
 		_landing = map.find_landing(Vector2(bp.x, bp.z), _blocked)
 		return
 	var p := player.global_position
+	_near_station = ""
+	for uid in Crafting.stations_near(state, p, Crafting.REACH_M - 1.0):
+		if db.pieces[state.pieces[uid]["id"]].get("station", false):
+			_near_station = uid
+			break
 	var isl := map.island_at(p.x, p.z)
 	if isl == null:
 		return
@@ -281,12 +305,22 @@ func _action() -> Dictionary:
 	if cam.in_shot():
 		return {}
 	if my_boat != null:
+		if not _fishing.is_empty():
+			if float(_fishing["bite"]) > 0.0:
+				return {"label": tr("act.hook"), "run": _hook}
+			return {"label": tr("act.reel") % [int(_fishing["caught"]), int(_fishing["want"])], "run": _stop_fishing}
 		if not _landing.is_empty():
 			return {"label": tr("act.land"), "run": _disembark}
+		if _can_fish():
+			return {"label": tr("act.fish") % Loc.item(db, "raw_fish"), "run": _start_fishing}
 		return {}
 	if not _channel.is_empty():
 		var c := _channel
 		return {"label": tr("act.working") % [Loc.item(db, c["item"]), int(c["done"]), int(c["want"])], "run": _finish_channel}
+	if not _fishing.is_empty():
+		if float(_fishing["bite"]) > 0.0:
+			return {"label": tr("act.hook"), "run": _hook}
+		return {"label": tr("act.reel") % [int(_fishing["caught"]), int(_fishing["want"])], "run": _stop_fishing}
 	var inv := state.inv(_pid)
 	if not _near_node.is_empty():
 		var items: Array = _near_node["items"]
@@ -300,6 +334,16 @@ func _action() -> Dictionary:
 		if items.size() > 1:
 			label += "   ·   " + tr("act.other")
 		return {"label": label, "run": _start_channel.bind(_near_node, item)}
+	if _near_station != "":
+		var pc: Dictionary = state.pieces[_near_station]
+		var out: Dictionary = pc.get("out", {})
+		if not out.is_empty():
+			return {"label": tr("act.collect") % ItemInfo.bag_text(db, out), "run": func() -> void:
+				_send_move()
+				Game.submit({"type": "collect", "uid": _near_station})}
+		return {"label": tr("act.station") % Loc.name_of(db.pieces[pc["id"]]["name"]), "run": _open_craft}
+	if _can_fish():
+		return {"label": tr("act.fish") % Loc.item(db, "raw_fish"), "run": _start_fishing}
 	var lit_now := not (state.players[_pid].get("light", {}) as Dictionary).is_empty()
 	if not lit_now and inv.count("torch") > 0:
 		return {"label": tr("act.light_torch"), "run": func() -> void: Game.submit({"type": "light", "item": "torch"})}
@@ -320,10 +364,55 @@ func _do_action() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if craft.visible:
+		return
 	if event.is_action_pressed("interact"):
 		_do_action()
 	elif event.is_action_pressed("cycle"):
 		_choice += 1
+	elif event.is_action_pressed("inventory"):
+		_open_craft()
+		get_viewport().set_input_as_handled()
+	else:
+		for i in 8:
+			if event.is_action_pressed("slot_%d" % (i + 1)):
+				_use_hotbar(i)
+
+
+## The bag and crafting at the stations within reach.
+func _open_craft() -> void:
+	_send_move()
+	var near: Array = []
+	var p := player.global_position if on_foot() else my_boat.global_position
+	for uid in Crafting.stations_near(state, p):
+		near.append({"uid": uid, "id": state.pieces[uid]["id"]})
+	craft.open(db, state, _pid, near)
+	player.busy = true
+
+
+## Keys 1–8: a light is lit, food is eaten, anything else becomes the chosen tool.
+func _use_hotbar(i: int) -> void:
+	_hot = i
+	var s: Dictionary = state.inv(_pid).slots[i]
+	if s.is_empty():
+		return
+	var it: Dictionary = db.items[s["id"]]
+	if it.has("food"):
+		Game.submit({"type": "eat", "item": s["id"]})
+	elif it.has("light"):
+		Game.submit({"type": "light", "item": s["id"]})
+
+
+## A station goes down 2.5 m in front of the player, facing them.
+func _place_station(piece: String) -> void:
+	if not on_foot():
+		return
+	var yaw := player.model.rotation.y
+	var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
+	var at := player.global_position + fwd * 2.5
+	at.y = map.ground_at(at.x, at.z)
+	_send_move()
+	Game.submit({"type": "place", "piece": piece, "pos": [at.x, at.y, at.z], "rot": yaw + PI})
 
 
 func _disembark() -> void:
@@ -397,6 +486,111 @@ func _finish_channel() -> void:
 	Game.submit({"type": "gather", "node": c["node"], "item": c["item"], "qty": int(c["done"])})
 
 
+# ---------------------------------------------------------------- fishing
+
+## A rod in the bag and open water in front: from a boat that has stopped or from the shore.
+func _can_fish() -> bool:
+	var inv := state.inv(_pid)
+	if inv.best_tool_tier("rod") < 1:
+		return false
+	if my_boat != null:
+		return absf(my_boat.speed) < 0.8
+	return _cast_point().y < -0.5
+
+
+func _cast_point() -> Vector3:
+	if my_boat != null:
+		var bp := my_boat.global_position
+		var side := my_boat.global_transform.basis.x
+		var p := bp + side * 5.0
+		return Vector3(p.x, map.ground_at(p.x, p.z), p.z)
+	var yaw := player.model.rotation.y
+	var p := player.global_position + Vector3(-sin(yaw), 0, -cos(yaw)) * 6.0
+	return Vector3(p.x, map.ground_at(p.x, p.z), p.z)
+
+
+## Fishing works like gathering: bites come at the fish's gather rate, each strike in time is one fish,
+## and the catch of this spot goes to the host as one "gather" of the sea cell.
+func _start_fishing() -> void:
+	var cp := _cast_point()
+	var per := Gathering.unit_seconds(db, state.inv(_pid), "raw_fish")
+	_fishing = {"spot": map.fish_spot(Vector2(cp.x, cp.z)), "pos": cp, "t": 0.0, "next": per * randf_range(0.6, 1.3), "bite": 0.0, "caught": 0, "want": WorldCommands.GATHER_MAX, "per": per}
+	_bobber.visible = true
+	player.busy = true
+	audio.sfx("board")
+
+
+func _update_fishing(delta: float) -> void:
+	if _fishing.is_empty():
+		_bobber.visible = false
+		return
+	var f := _fishing
+	var cp: Vector3 = f["pos"]
+	var dip := 0.0
+	f["t"] = float(f["t"]) + delta
+	if float(f["bite"]) > 0.0:
+		f["bite"] = float(f["bite"]) - delta
+		dip = -0.25 - 0.1 * sin(float(f["t"]) * 30.0)
+		if float(f["bite"]) <= 0.0:
+			hud.toast(tr("toast.fish_lost"))
+			f["t"] = 0.0
+			f["next"] = float(f["per"]) * randf_range(0.6, 1.3)
+	elif float(f["t"]) >= float(f["next"]):
+		f["bite"] = 1.3
+		audio.sfx("pickup", 2)
+	_bobber.global_position = Vector3(cp.x, Sea.height(cp.x, cp.z) + 0.1 + dip, cp.z)
+	var moved := (my_boat != null and absf(my_boat.throttle) > 0.1) or (on_foot() and player.velocity.length() > 0.5)
+	if moved:
+		_stop_fishing()
+
+
+func _hook() -> void:
+	var f := _fishing
+	f["caught"] = int(f["caught"]) + 1
+	f["bite"] = 0.0
+	f["t"] = 0.0
+	f["next"] = float(f["per"]) * randf_range(0.6, 1.3)
+	audio.sfx("pickup", int(f["caught"]))
+	if int(f["caught"]) >= int(f["want"]):
+		_stop_fishing()
+
+
+func _stop_fishing() -> void:
+	var f := _fishing
+	_fishing = {}
+	_bobber.visible = false
+	player.busy = false
+	if f.is_empty() or int(f["caught"]) <= 0:
+		return
+	_send_move()
+	Game.submit({"type": "gather", "node": f["spot"], "item": "raw_fish", "qty": int(f["caught"])})
+
+
+func _make_bobber() -> Node3D:
+	var root := Node3D.new()
+	root.name = "Bobber"
+	var top := MeshInstance3D.new()
+	var s := SphereMesh.new()
+	s.radius = 0.12
+	s.height = 0.24
+	s.radial_segments = 6
+	s.rings = 3
+	top.mesh = s
+	top.material_override = Placeholders.mat(Color("d9cbb0"), Color("ff9a40"), 0.8, false)
+	root.add_child(top)
+	root.visible = false
+	return root
+
+
+## Food and rest set the limits: the player node carries them for movement and the HUD.
+func _update_vitals() -> void:
+	player.hp_max = Vitals.max_hp(db, state, _pid)
+	player.hp = minf(player.hp_max, maxf(player.hp, float(db.balance["player"]["hp"])))
+	player.stamina_max = Vitals.max_stamina(db, state, _pid)
+	player.stamina = minf(player.stamina, player.stamina_max)
+	player.stamina_regen = Vitals.stamina_regen(db, state, _pid)
+
+
 func _update_beacons() -> void:
 	var next := Progress.next_beacon(db, state)
 	for bid: String in beacons:
@@ -431,6 +625,7 @@ func _update_audio(focus: Vector3) -> void:
 # ---------------------------------------------------------------- HUD
 
 func _update_hud() -> void:
+	hud.visible = not craft.visible
 	var p := Vector2(cam.global_position.x, cam.global_position.z)
 	var rid := db.region_at(p)
 	hud.set_region("%s · %s" % [Loc.chapter(db, rid), Loc.region(db, rid)])
@@ -447,8 +642,20 @@ func _update_hud() -> void:
 		hud.set_compass(cam_bearing, atan2(rel.x, -rel.y), "%s: %s" % [goal["label"], Loc.meters(rel.length())])
 	else:
 		hud.set_compass(cam_bearing, NAN, "")
-	hud.set_action(String(_action().get("label", "")))
-	hud.set_bars(player.hp, player.hp_max, 0.0, player.stamina, player.stamina_max)
+	hud.set_action("" if craft.visible else String(_action().get("label", "")))
+	hud.set_bars(player.hp, player.hp_max, float(Vitals.bonus(db, state, _pid)["hp"]), player.stamina, player.stamina_max)
+	var food: Array = []
+	for f: Dictionary in state.players[_pid]["food"]:
+		food.append({"id": f["id"], "left_min": float(f["until"]) - state.clock_min})
+	hud.set_buffs(food, maxf(0.0, float(state.players[_pid]["rested_until"]) - state.clock_min))
+	hud.set_hotbar(state.inv(_pid).slots.slice(0, 8), _hot, on_foot() and not craft.visible)
+	var light: Dictionary = state.players[_pid].get("light", {})
+	if on_foot() and not light.is_empty():
+		var lt: Dictionary = db.items[light["id"]]["light"]
+		var total := float(lt.get("minutes", lt.get("minutes_per_fuel", 0.0)))
+		hud.set_light(String(light["id"]), -1.0 if float(light["until"]) < 0.0 else float(light["until"]) - state.clock_min, total)
+	else:
+		hud.set_light("", 0.0, 0.0)
 	if my_boat != null:
 		var wind := Weather.wind(db, state.world_seed, state.clock_min)
 		var side := Weather.wind_side(my_boat.heading(), wind)
@@ -469,7 +676,7 @@ func _update_hud() -> void:
 		hud.set_hint(tr("hint.boat"))
 	else:
 		hud.set_boat({})
-		hud.set_hint(tr("hint.foot"))
+		hud.set_hint(tr("hint.fishing") if not _fishing.is_empty() else tr("hint.foot"))
 
 
 ## What the player should do now and where the compass points: {"text", "target": Vector3, "label"}.
@@ -520,6 +727,27 @@ func _on_world_event(e: Dictionary) -> void:
 				hud.toast(tr("toast.light_out"))
 		"day_changed":
 			streamer.refresh_all()
+		"piece_placed":
+			pieces.add_piece(String(e["uid"]))
+			audio.sfx("chop")
+		"piece_removed":
+			pieces.remove_piece(String(e["uid"]))
+		"station_done":
+			var pc: Dictionary = state.pieces.get(String(e["uid"]), {})
+			if not pc.is_empty() and (pc["pos"] as Vector3).distance_to(_focus()) < 60.0:
+				hud.toast(tr("toast.station_done") % Loc.name_of(db.pieces[pc["id"]]["name"]), "✓")
+		"station_collected":
+			if mine:
+				for k: String in e["items"]:
+					hud.toast(Loc.item(db, k), "+%d" % int(e["items"][k]))
+				audio.sfx("pickup", 1)
+		"station_loaded":
+			if mine:
+				audio.sfx("craft")
+		"ate":
+			if mine:
+				hud.toast(tr("toast.ate") % Loc.item(db, e["item"]))
+	craft.refresh()
 
 
 func _on_command_failed(_cmd: Dictionary, error: String) -> void:
@@ -604,6 +832,24 @@ func _debug_place() -> void:
 		cam.foot_yaw = yaw + (deg_to_rad(float(String(_args["look"]).split(",")[0])) if _args.has("look") else 0.0)
 		streamer.build_around(player.global_position)
 		cam.snap()
+	if _args.has("place") and on_foot():
+		var n := 0
+		for piece: String in String(_args["place"]).split(","):
+			Game.submit({"type": "debug", "give": ContentDB.bag(db.pieces[piece]["cost"])})
+			var yaw := player.model.rotation.y + (n - 0.5) * 0.9
+			var at := player.global_position + Vector3(-sin(yaw), 0, -cos(yaw)) * 3.2
+			at.y = map.ground_at(at.x, at.z)
+			Game.submit({"type": "place", "piece": piece, "pos": [at.x, at.y, at.z], "rot": yaw + PI})
+			n += 1
+	if _args.has("eat"):
+		for dish: String in String(_args["eat"]).split(","):
+			Game.submit({"type": "debug", "give": {dish: 1}})
+			Game.submit({"type": "eat", "item": dish})
+	if _args.has("craft") and on_foot():
+		_open_craft()
+		if String(_args["craft"]) != "true":
+			craft.selected = String(_args["craft"])
+			craft.refresh()
 
 
 ## Debug: pass the trial, stand at the beacon with its fuel, light it (the same commands real play uses).

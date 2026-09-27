@@ -54,6 +54,8 @@ static func build(category: String, id: String) -> Node3D:
 			return boat(id)
 		"player":
 			return pomor()
+		"pieces":
+			return piece(id)
 		"props":
 			match id:
 				"izba":
@@ -429,6 +431,201 @@ static func beacon_tower() -> Node3D:
 	fire.name = "Fire"
 	fire.position = Vector3(0, 11.2, 0)
 	root.add_child(fire)
+	return root
+
+
+# ---------------------------------------------------------------- building pieces (buildables.json)
+
+## Pieces whose fire burns while they work (and clears the fog around them, if fog_radius).
+const FIRE_PIECES := {"hearth": Vector3(0, 0.35, 0), "stove": Vector3(0, 0.7, -0.95), "kiln": Vector3(0, 0.5, -0.9),
+	"bloomery": Vector3(0, 1.7, 0), "forge": Vector3(-0.5, 0.95, 0), "trypot": Vector3(0, 0.3, 0),
+	"salt_pan": Vector3(0, 0.3, 0), "tar_pit": Vector3(0, 0.3, 0.9), "bathhouse_stove": Vector3(0, 0.4, 0)}
+
+
+## A building piece: pivot at the centre of the bottom face, grid pieces 2 m (half walls 1 m), front -Z.
+## Children: "Fire" marker where the flame burns (stations with fire), "*-glow" parts that light up.
+static func piece(id: String) -> Node3D:
+	var root := Node3D.new()
+	root.name = id
+	var parts: Array = []
+	var log_m := _cyl(0.2, 0.2, 1.0, 6)
+	var along_x := func(len: float, y: float, z: float, c: Color) -> void:
+		parts.append([log_m, Transform3D(Basis(Vector3.BACK, PI * 0.5) * Basis.from_scale(Vector3(1, len, 1)), Vector3(0, y, z)), c])
+	var box := func(size: Vector3, pos: Vector3, c: Color, rot: Vector3 = Vector3.ZERO) -> void:
+		var bm := BoxMesh.new()
+		bm.size = size
+		parts.append([bm, Transform3D(Basis.from_euler(rot), pos), c])
+	var glow: Array = []  # [[Vector3 size, Vector3 pos, Color]]
+	match id:
+		"log_foundation":
+			for z: float in [-0.9, 0.9]:
+				along_x.call(2.0, 0.2, z, WOOD)
+			for x: float in [-0.9, 0.9]:
+				parts.append([log_m, Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(1, 2.0, 1)), Vector3(x, 0.45, 0)), PLANK])
+			box.call(Vector3(1.8, 0.1, 1.8), Vector3(0, 0.55, 0), PLANK)
+		"log_wall", "log_wall_half", "door", "window_hatch", "mica_window":
+			var len := 1.0 if id == "log_wall_half" else 2.0
+			for i in 6:
+				along_x.call(len + 0.2, 0.2 + i * 0.4, 0.0, WOOD if i % 2 == 0 else PLANK)
+			if id == "door":
+				box.call(Vector3(0.9, 1.8, 0.46), Vector3(0, 0.9, 0), DARK_WOOD)
+			elif id == "window_hatch":
+				box.call(Vector3(0.6, 0.35, 0.46), Vector3(0, 1.4, 0), DARK_WOOD)
+			elif id == "mica_window":
+				glow.append([Vector3(0.7, 0.5, 0.44), Vector3(0, 1.4, 0), Color("ffd89a")])
+		"plank_floor":
+			for i in 5:
+				box.call(Vector3(2.0, 0.1, 0.38), Vector3(0, 0.05, -0.8 + i * 0.4), PLANK if i % 2 else WOOD)
+		"gable_roof":
+			box.call(Vector3(2.0, 0.12, 2.4), Vector3(0, 0.7, 0), Color("4a3526"), Vector3(0.6, 0, 0))
+		"roof_ridge":
+			along_x.call(2.0, 0.25, 0.0, DARK_WOOD)
+		"carved_horse":
+			box.call(Vector3(0.25, 0.9, 0.3), Vector3(0, 0.45, 0), DARK_WOOD)
+			box.call(Vector3(0.25, 0.3, 0.7), Vector3(0, 0.95, -0.2), DARK_WOOD, Vector3(0.4, 0, 0))
+		"pier":
+			for i in 2:
+				box.call(Vector3(2.0, 0.16, 0.95), Vector3(0, 0.0, -0.5 + i), PLANK if i else WOOD)
+			for c: Vector2 in [Vector2(-0.9, -0.9), Vector2(0.9, -0.9), Vector2(-0.9, 0.9), Vector2(0.9, 0.9)]:
+				box.call(Vector3(0.22, 3.0, 0.22), Vector3(c.x, -1.5, c.y), DARK_WOOD)
+		"workbench":
+			box.call(Vector3(1.9, 0.14, 0.8), Vector3(0, 0.9, 0), PLANK)
+			for c: Vector2 in [Vector2(-0.8, -0.3), Vector2(0.8, -0.3), Vector2(-0.8, 0.3), Vector2(0.8, 0.3)]:
+				box.call(Vector3(0.12, 0.85, 0.12), Vector3(c.x, 0.42, c.y), DARK_WOOD)
+			box.call(Vector3(0.3, 0.25, 0.3), Vector3(0.65, 1.1, 0), STONE)
+			box.call(Vector3(0.5, 0.06, 0.1), Vector3(-0.3, 0.99, 0.1), Color("9aa0a4"))
+		"hearth", "bathhouse_stove":
+			for i in 8:
+				var a := i * TAU / 8.0
+				var r := SphereMesh.new()
+				r.radius = 0.28
+				r.height = 0.4
+				r.radial_segments = 5
+				r.rings = 2
+				parts.append([r, Transform3D(Basis(), Vector3(cos(a) * 0.62, 0.18, sin(a) * 0.62)), STONE.darkened(0.1 * (i % 2))])
+			if id == "bathhouse_stove":
+				var heap := SphereMesh.new()
+				heap.radius = 0.6
+				heap.height = 0.9
+				heap.radial_segments = 6
+				heap.rings = 3
+				parts.append([heap, Transform3D(Basis(), Vector3(0, 0.45, 0)), Color("6a6e72")])
+			glow.append([Vector3(0.6, 0.12, 0.6), Vector3(0, 0.08, 0), Color("ff7a2a")])
+		"stove":
+			box.call(Vector3(2.0, 1.6, 1.8), Vector3(0, 0.8, 0), Color("e6e0d2"))
+			box.call(Vector3(0.8, 1.4, 0.8), Vector3(0.4, 2.3, 0.4), Color("e6e0d2"))
+			box.call(Vector3(0.8, 0.6, 0.1), Vector3(0, 0.7, -0.91), Color("2a2622"))
+			glow.append([Vector3(0.6, 0.35, 0.08), Vector3(0, 0.62, -0.9), Color("ff7a2a")])
+		"kiln":
+			var dome := SphereMesh.new()
+			dome.radius = 1.0
+			dome.height = 1.4
+			dome.radial_segments = 7
+			dome.rings = 3
+			parts.append([dome, Transform3D(Basis(), Vector3(0, 0.3, 0)), Color("8a6a4a")])
+			glow.append([Vector3(0.5, 0.4, 0.1), Vector3(0, 0.45, -0.95), Color("ff7a2a")])
+		"bloomery":
+			parts.append([_cyl(0.7, 0.45, 1.6, 7), Transform3D(Basis(), Vector3(0, 0.8, 0)), Color("9a6a4a")])
+			glow.append([Vector3(0.3, 0.3, 0.1), Vector3(0, 0.3, -0.62), Color("ff7a2a")])
+		"forge":
+			box.call(Vector3(1.4, 0.9, 1.0), Vector3(-0.5, 0.45, 0), STONE)
+			box.call(Vector3(0.5, 0.35, 0.3), Vector3(0.8, 0.75, 0), Color("4a4d52"))
+			box.call(Vector3(0.25, 0.55, 0.25), Vector3(0.8, 0.3, 0), DARK_WOOD)
+			glow.append([Vector3(0.8, 0.1, 0.6), Vector3(-0.5, 0.92, 0), Color("ff7a2a")])
+		"loom":
+			for x: float in [-0.8, 0.8]:
+				box.call(Vector3(0.1, 1.8, 0.1), Vector3(x, 0.9, 0), WOOD)
+			box.call(Vector3(1.7, 0.1, 0.1), Vector3(0, 1.75, 0), WOOD)
+			box.call(Vector3(1.5, 1.2, 0.03), Vector3(0, 1.1, 0), Color("d9cbb0"))
+		"quern":
+			parts.append([_cyl(0.5, 0.5, 0.2, 10), Transform3D(Basis(), Vector3(0, 0.1, 0)), STONE])
+			parts.append([_cyl(0.48, 0.48, 0.18, 10), Transform3D(Basis(), Vector3(0, 0.3, 0)), STONE.lightened(0.1)])
+			box.call(Vector3(0.06, 0.35, 0.06), Vector3(0.35, 0.55, 0), WOOD)
+		"garden_bed":
+			box.call(Vector3(2.0, 0.3, 1.0), Vector3(0, 0.15, 0), Color("5a3f2c"))
+			box.call(Vector3(1.8, 0.05, 0.8), Vector3(0, 0.3, 0), Color("3a2a1e"))
+			for i in 6:
+				parts.append([_cone(0.08, 0.4), Transform3D(Basis(), Vector3(-0.75 + i * 0.3, 0.5, 0)), Color("8aa050")])
+		"boatyard":
+			for i in 5:
+				box.call(Vector3(0.2, 0.2, 8.0), Vector3(-1.6 + i * 0.8, 0.1, 0), DARK_WOOD)
+			for i in 6:
+				box.call(Vector3(3.6, 0.1, 0.15), Vector3(0, 0.25, -3.0 + i * 1.2), PLANK)
+			for x: float in [-1.8, 1.8]:
+				box.call(Vector3(0.2, 2.0, 0.2), Vector3(x, 1.0, 2.8), WOOD)
+			box.call(Vector3(3.8, 0.2, 0.2), Vector3(0, 2.0, 2.8), WOOD)
+		"trypot", "salt_pan":
+			for i in 5:
+				var a := i * TAU / 5.0
+				box.call(Vector3(0.35, 0.3, 0.35), Vector3(cos(a) * 0.6, 0.15, sin(a) * 0.6), STONE)
+			if id == "trypot":
+				parts.append([_cyl(0.35, 0.55, 0.6, 8), Transform3D(Basis(), Vector3(0, 0.6, 0)), Color("3a3c40")])
+			else:
+				box.call(Vector3(1.8, 0.12, 1.2), Vector3(0, 0.4, 0), Color("5a5d62"))
+			glow.append([Vector3(0.5, 0.08, 0.5), Vector3(0, 0.05, 0), Color("ff7a2a")])
+		"tar_pit":
+			var mound := SphereMesh.new()
+			mound.radius = 1.0
+			mound.height = 1.0
+			mound.radial_segments = 7
+			mound.rings = 3
+			parts.append([mound, Transform3D(Basis(), Vector3(0, 0.1, 0)), Color("5a4a3a")])
+			parts.append([_cyl(0.08, 0.08, 1.0, 5), Transform3D(Basis(Vector3.RIGHT, 1.2), Vector3(0, 0.4, 0.9)), DARK_WOOD])
+			glow.append([Vector3(0.3, 0.1, 0.3), Vector3(0, 0.05, 0.9), Color("ff7a2a")])
+		"bench":
+			box.call(Vector3(1.8, 0.1, 0.4), Vector3(0, 0.45, 0), PLANK)
+			for x: float in [-0.7, 0.7]:
+				box.call(Vector3(0.1, 0.45, 0.35), Vector3(x, 0.22, 0), DARK_WOOD)
+		"table":
+			box.call(Vector3(1.6, 0.1, 0.9), Vector3(0, 0.8, 0), PLANK)
+			for c: Vector2 in [Vector2(-0.7, -0.35), Vector2(0.7, -0.35), Vector2(-0.7, 0.35), Vector2(0.7, 0.35)]:
+				box.call(Vector3(0.1, 0.78, 0.1), Vector3(c.x, 0.39, c.y), DARK_WOOD)
+		"bed":
+			box.call(Vector3(2.0, 0.12, 1.2), Vector3(0, 1.2, 0), PLANK)
+			box.call(Vector3(1.8, 0.14, 1.0), Vector3(0, 1.32, 0), Color("7d9a4a"))
+			for c: Vector2 in [Vector2(-0.9, -0.5), Vector2(0.9, -0.5), Vector2(-0.9, 0.5), Vector2(0.9, 0.5)]:
+				box.call(Vector3(0.12, 1.2, 0.12), Vector3(c.x, 0.6, c.y), DARK_WOOD)
+			box.call(Vector3(0.1, 0.1, 1.0), Vector3(-1.05, 0.6, 0), WOOD)
+		"chest":
+			box.call(Vector3(1.0, 0.55, 0.6), Vector3(0, 0.28, 0), Color("6b3f2a"))
+			box.call(Vector3(1.04, 0.1, 0.64), Vector3(0, 0.6, 0), DARK_WOOD)
+			box.call(Vector3(0.12, 0.14, 0.04), Vector3(0, 0.45, -0.31), Color("c9a24a"))
+		"drying_rack":
+			for x: float in [-0.9, 0.9]:
+				box.call(Vector3(0.12, 1.9, 0.12), Vector3(x, 0.95, 0), WOOD)
+			box.call(Vector3(2.0, 0.08, 0.08), Vector3(0, 1.8, 0), DARK_WOOD)
+			for i in 5:
+				box.call(Vector3(0.12, 0.5, 0.05), Vector3(-0.6 + i * 0.3, 1.5, 0), Color("b0a890"))
+		"oil_lamp":
+			box.call(Vector3(0.1, 0.4, 0.1), Vector3(0, 1.6, 0), DARK_WOOD)
+			parts.append([_cyl(0.12, 0.08, 0.1, 6), Transform3D(Basis(), Vector3(0, 1.85, -0.1)), Color("4a4d52")])
+			glow.append([Vector3(0.08, 0.14, 0.08), Vector3(0, 1.95, -0.1), Color("ffb24a")])
+		"sheep_pen":
+			for side in 4:
+				var a := side * PI * 0.5
+				for i in 3:
+					var bm := BoxMesh.new()
+					bm.size = Vector3(4.0, 0.08, 0.08)
+					parts.append([bm, Transform3D(Basis(Vector3.UP, a), Vector3(sin(a) * 2.0, 0.3 + i * 0.3, cos(a) * 2.0)), WOOD])
+			for c: Vector2 in [Vector2(-2, -2), Vector2(2, -2), Vector2(-2, 2), Vector2(2, 2)]:
+				box.call(Vector3(0.14, 1.1, 0.14), Vector3(c.x, 0.55, c.y), DARK_WOOD)
+		"pomor_cross":
+			return pomor_cross()
+		_:
+			box.call(Vector3(1, 1, 1), Vector3(0, 0.5, 0), Color.MAGENTA)
+	var mi := MeshInstance3D.new()
+	mi.name = "Body"
+	mi.mesh = merge_colored(parts)
+	mi.material_override = mat(Color.WHITE, Color.BLACK, 0.0, true, true)
+	root.add_child(mi)
+	for g: Array in glow:
+		var gm := _box(g[0], mat(Color("2a1a10"), g[2], 2.4, false), root, g[1])
+		gm.name = "Ember-glow"
+	if FIRE_PIECES.has(id):
+		var f := Marker3D.new()
+		f.name = "Fire"
+		f.position = FIRE_PIECES[id]
+		root.add_child(f)
 	return root
 
 

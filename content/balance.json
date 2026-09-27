@@ -29,6 +29,10 @@
     "resource_nodes_days": 3,
     "berries_days": 2
   },
+  "stations": {
+    "note": "Crafting stations (docs/01_GDD.md §9.3): recipes of sim.background_craft_min_s seconds or longer are loaded into the station and cook without the player; a station holds up to queue_max loads.",
+    "queue_max": 10
+  },
   "sea": {
     "note": "Sailing (docs/01_GDD.md §8): the sail sets itself; a beam or following wind gives full speed, sailing into the wind headwind_speed of it. The wind turns slowly over wind_period_min.",
     "headwind_speed": 0.6,
