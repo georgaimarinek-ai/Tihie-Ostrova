@@ -30,12 +30,18 @@ func test_voices_render() -> void:
 
 
 func test_wav_loops_whole_buffer() -> void:
-	var rng := RandomNumberGenerator.new()
-	var buf := Synth.noise_loop(rng, 0.25, 8000, 0.985, 0.15)
-	var w := AudioDirector.to_wav(buf, 8000, true)
-	eq(w.loop_end, buf.size())
-	eq(w.data.size(), buf.size() * 2, "16-bit mono")
-	check(absf(buf[0] - buf[buf.size() - 1]) < 0.2, "the loop seam is smooth")
+	for seed_value in [1, 2, 3, 4, 5]:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_value
+		var buf := Synth.noise_loop(rng, 0.25, 8000, 0.985, 0.15)
+		var w := AudioDirector.to_wav(buf, 8000, true)
+		eq(w.loop_end, buf.size())
+		eq(w.data.size(), buf.size() * 2, "16-bit mono")
+		var step := 0.0
+		for i in buf.size() - 1:
+			step = maxf(step, absf(buf[i + 1] - buf[i]))
+		var seam := absf(buf[0] - buf[buf.size() - 1])
+		check(seam <= step * 1.001, "seed %d: the loop seam (%.3f) is no bigger than an ordinary step (%.3f)" % [seed_value, seam, step])
 
 
 func test_music_layer_samples_exist_for_every_note() -> void:

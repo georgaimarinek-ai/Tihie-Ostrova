@@ -13,6 +13,10 @@ var state: WorldState
 var environment: Environment
 var sun: DirectionalLight3D
 var extra_lights: Array[Vector4] = []  # player lantern, home hearth: Vector4(x, z, radius, strength)
+## The Mga clings to land: ×2.3 on foot on an island whose beacon is dark, ×1.2 at home (GDD §4.2, the
+## sketch's fogBoost). World sets the target; the density eases towards it.
+var boost_target := 1.0
+var boost := 1.0
 
 var _lit_at: Dictionary = {}  # beacon id -> time it was lit (for the growth animation)
 var _time := 0.0
@@ -34,7 +38,8 @@ func _process(delta: float) -> void:
 	var fog_col: Color = palette["fog"]
 	var lin := fog_col.srgb_to_linear()
 	RenderingServer.global_shader_parameter_set("fog_color", Vector4(lin.r, lin.g, lin.b, 1.0))
-	var dens := float(palette["density"])
+	boost = lerpf(boost, boost_target, 1.0 - exp(-delta * 0.8))
+	var dens := float(palette["density"]) * boost
 	var rid := db.region_at(p)
 	if not db.region_open(rid, state.lit):
 		dens = float(db.regions[rid]["fog"]["locked"])

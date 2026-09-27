@@ -174,3 +174,90 @@ msgstr "No such recipe."
 
 msgid "cmd.no_station"
 msgstr "You need the station nearby."
+
+msgid "cmd.not_a_light"
+msgstr "That gives no light."
+
+msgid "cmd.no_fuel"
+msgstr "No fish oil for the lantern."
+
+msgid "tool.hand"
+msgstr "hands"
+
+msgid "tool.axe"
+msgstr "an axe"
+
+msgid "tool.knife"
+msgstr "a knife"
+
+msgid "tool.shovel"
+msgstr "a shovel"
+
+msgid "tool.pick"
+msgstr "a pick"
+
+msgid "tool.rod"
+msgstr "a fishing rod"
+
+msgid "act.chop"
+msgstr "Chop: %s"
+
+msgid "act.cut"
+msgstr "Cut: %s"
+
+msgid "act.mine"
+msgstr "Mine: %s"
+
+msgid "act.dig"
+msgstr "Dig: %s"
+
+msgid "act.take"
+msgstr "Take: %s"
+
+msgid "act.fish"
+msgstr "Fish: %s"
+
+msgid "act.need_tool"
+msgstr "You need %s"
+
+msgid "act.working"
+msgstr "%s… %d/%d"
+
+msgid "act.land"
+msgstr "Go ashore"
+
+msgid "act.board"
+msgstr "Board the boat"
+
+msgid "act.make_torch"
+msgstr "Make a torch"
+
+msgid "act.light_torch"
+msgstr "Light the torch"
+
+msgid "act.other"
+msgstr "Q — other"
+
+msgid "goal.land"
+msgstr "The shore is close. Go ashore."
+
+msgid "goal.need_fire"
+msgstr "The fog is thicker on the island: without fire you cannot see the path. You need a torch — sticks and resin (cut resin from a pine with a knife)."
+
+msgid "goal.climb"
+msgstr "The torch pushes the fog back. Climb the path to the beacon."
+
+msgid "goal.back_to_boat"
+msgstr "The beacon is on another island. Go back to the boat and sail towards the light."
+
+msgid "goal.home"
+msgstr "Home island. Gather stones, sticks and fibre — the first tools are made from them. Then to the boat and towards the light."
+
+msgid "target.boat"
+msgstr "Boat"
+
+msgid "hint.foot"
+msgstr "W/S — walk · A/D — turn · Shift — run · Space — jump · right mouse — look around · E — action · Q — choose"
+
+msgid "toast.light_out"
+msgstr "The torch burnt out."

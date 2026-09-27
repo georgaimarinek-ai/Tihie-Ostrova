@@ -75,6 +75,8 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _board(pid, cmd)
 		"disembark":
 			return _disembark(pid, cmd)
+		"light":
+			return _light(pid, cmd)
 		"tick":
 			return _tick(pid, cmd)
 		"debug":
@@ -335,6 +337,33 @@ func _disembark(pid: String, cmd: Dictionary) -> Dictionary:
 	return _ok([{"type": "disembarked", "player": pid, "boat": uid, "pos": WorldState._v3(pos)}])
 
 
+## Light in hand (items.json → light): a torch burns one torch item for `minutes`; a lantern burns one
+## `fuel` per `minutes_per_fuel`; the aurora lantern never goes out. {"item": ""} puts the light out.
+func _light(pid: String, cmd: Dictionary) -> Dictionary:
+	var item := String(cmd.get("item", ""))
+	var p: Dictionary = state.players[pid]
+	if item == "":
+		p["light"] = {}
+		return _ok([{"type": "light_changed", "player": pid, "item": ""}])
+	var it: Dictionary = db.items.get(item, {})
+	if not it.has("light"):
+		return _fail("not_a_light")
+	var inv: Inventory = p["inv"]
+	if inv.count(item) < 1:
+		return _fail("missing")
+	var l: Dictionary = it["light"]
+	var until := -1.0  # forever
+	if l.has("fuel"):
+		if not inv.remove(String(l["fuel"]), 1):
+			return _fail("no_fuel")
+		until = state.clock_min + float(l["minutes_per_fuel"])
+	elif float(l.get("minutes", 0.0)) > 0.0:
+		inv.remove(item, 1)
+		until = state.clock_min + float(l["minutes"])
+	p["light"] = {"id": item, "until": until}
+	return _ok([{"type": "light_changed", "player": pid, "item": item, "until": until}])
+
+
 ## Host-only: world time passes (Game sends it once a second while someone plays; no one playing = no time).
 func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
 	var dt := clampf(float(cmd.get("dt_min", 0.0)), 0.0, 1.0)
@@ -345,7 +374,24 @@ func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
 	if day != state.day:
 		state.day = day
 		events.append({"type": "day_changed", "day": day})
+	for pid: String in state.players:
+		events.append_array(_tick_light(pid))
 	return _ok(events)
+
+
+## Lights burn down; a lantern takes its next fuel from the bag by itself.
+func _tick_light(pid: String) -> Array[Dictionary]:
+	var p: Dictionary = state.players[pid]
+	var l: Dictionary = p.get("light", {})
+	if l.is_empty() or float(l["until"]) < 0.0 or float(l["until"]) > state.clock_min:
+		return []
+	var it: Dictionary = db.items[l["id"]]["light"]
+	var inv: Inventory = p["inv"]
+	if it.has("fuel") and inv.count(String(l["id"])) > 0 and inv.remove(String(it["fuel"]), 1):
+		l["until"] = state.clock_min + float(it["minutes_per_fuel"])
+		return []
+	p["light"] = {}
+	return [{"type": "light_changed", "player": pid, "item": "", "burnt_out": true}]
 
 
 ## Debug-only (allow_debug): {"give": {item: n}, "trial": beacon, "pos": [x, y, z], "clock_min": t}.

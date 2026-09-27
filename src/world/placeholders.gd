@@ -249,20 +249,20 @@ static func pomor() -> Node3D:
 	arm_l.position = Vector3(-0.32, 1.3, 0)
 	root.add_child(arm_l)
 	_box(Vector3(0.12, 0.52, 0.12), mat(RED), arm_l, Vector3(0, -0.22, 0))
+	# the torch stands up out of the fist (arm raised forward ~0.5 rad keeps it upright and a little ahead)
 	var torch := Node3D.new()
 	torch.name = "Torch"
-	torch.position = Vector3(0, -0.42, 0)
+	torch.position = Vector3(0, -0.44, 0)
 	torch.rotation.x = -0.35
 	arm.add_child(torch)
 	var stick := MeshInstance3D.new()
-	stick.mesh = _cyl(0.045, 0.035, 0.75, 5)
+	stick.mesh = _cyl(0.035, 0.045, 0.75, 5)
 	stick.material_override = mat(WOOD)
-	stick.position = Vector3(0, 0.0, -0.3)
-	stick.rotation.x = -PI * 0.5
+	stick.position = Vector3(0, 0.22, 0)
 	torch.add_child(stick)
 	var tip := Marker3D.new()
 	tip.name = "TorchTip"
-	tip.position = Vector3(0, 0.02, -0.7)
+	tip.position = Vector3(0, 0.62, 0)
 	torch.add_child(tip)
 	torch.visible = false
 	return root

@@ -174,3 +174,90 @@ msgstr "Такого рецепта нет."
 
 msgid "cmd.no_station"
 msgstr "Нужна станция рядом."
+
+msgid "cmd.not_a_light"
+msgstr "Это не светит."
+
+msgid "cmd.no_fuel"
+msgstr "Нет ворвани для фонаря."
+
+msgid "tool.hand"
+msgstr "руки"
+
+msgid "tool.axe"
+msgstr "топор"
+
+msgid "tool.knife"
+msgstr "нож"
+
+msgid "tool.shovel"
+msgstr "лопата"
+
+msgid "tool.pick"
+msgstr "кайло"
+
+msgid "tool.rod"
+msgstr "удочка"
+
+msgid "act.chop"
+msgstr "Рубить: %s"
+
+msgid "act.cut"
+msgstr "Срезать: %s"
+
+msgid "act.mine"
+msgstr "Колоть: %s"
+
+msgid "act.dig"
+msgstr "Копать: %s"
+
+msgid "act.take"
+msgstr "Взять: %s"
+
+msgid "act.fish"
+msgstr "Удить: %s"
+
+msgid "act.need_tool"
+msgstr "Нужен инструмент: %s"
+
+msgid "act.working"
+msgstr "%s… %d/%d"
+
+msgid "act.land"
+msgstr "Сойти на берег"
+
+msgid "act.board"
+msgstr "Сесть в лодку"
+
+msgid "act.make_torch"
+msgstr "Сделать факел"
+
+msgid "act.light_torch"
+msgstr "Зажечь факел"
+
+msgid "act.other"
+msgstr "Q — другое"
+
+msgid "goal.land"
+msgstr "Берег рядом. Сойди на него."
+
+msgid "goal.need_fire"
+msgstr "На острове туман гуще: без огня тропы не видно. Нужен факел — хворост и живица (живицу срезают ножом с сосны)."
+
+msgid "goal.climb"
+msgstr "Факел горит и раздвигает туман. Поднимись по тропе к маяку."
+
+msgid "goal.back_to_boat"
+msgstr "Маяк на другом острове. Вернись к лодке и плыви на огонёк."
+
+msgid "goal.home"
+msgstr "Родной остров. Собирай камни, хворост и волокно — из них делают первые инструменты. Потом к лодке и на огонёк."
+
+msgid "target.boat"
+msgstr "До лодки"
+
+msgid "hint.foot"
+msgstr "W/S — идти · A/D — поворот · Shift — бег · Пробел — прыжок · правая кнопка мыши — осмотреться · E — действие · Q — выбрать"
+
+msgid "toast.light_out"
+msgstr "Факел догорел."

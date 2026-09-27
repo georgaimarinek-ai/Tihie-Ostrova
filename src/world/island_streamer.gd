@@ -102,6 +102,13 @@ func _add_full(isl: IslandGen, data: Dictionary) -> void:
 	island_built.emit(v)
 
 
+## After a node was gathered or came back: update the island it belongs to.
+func refresh_node(node_id: String) -> void:
+	var v: IslandView = views.get(node_id.get_slice(":", 0))
+	if v != null:
+		v.refresh(state)
+
+
 func refresh_all() -> void:
 	for v: IslandView in views.values():
 		v.refresh(state)

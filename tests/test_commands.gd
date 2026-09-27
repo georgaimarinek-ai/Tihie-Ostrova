@@ -200,3 +200,27 @@ func test_gather_with_a_map_checks_the_node() -> void:
 	eq(c.apply("p1", {"type": "gather", "node": pine["id"], "item": "stone"})["error"], "not_here", "pines give no stone")
 	eq(c.apply("p1", {"type": "gather", "node": "home:99999", "item": "wood"})["error"], "bad_node")
 	check(c.apply("p1", {"type": "gather", "node": pine["id"], "item": "resin", "qty": 2})["ok"], "resin from a pine")
+
+
+func test_torch_burns_and_lantern_refuels() -> void:
+	var c := new_world()
+	eq(c.apply("p1", {"type": "light", "item": "torch"})["error"], "missing")
+	c.state.inv("p1").add("torch", 2)
+	check(c.apply("p1", {"type": "light", "item": "torch"})["ok"], "light a torch")
+	eq(c.state.inv("p1").count("torch"), 1, "a torch burns up")
+	var mins := float(db.items["torch"]["light"]["minutes"])
+	c.apply("p1", {"type": "tick", "dt_min": 1.0})
+	eq(c.state.players["p1"]["light"]["id"], "torch")
+	c.state.clock_min = mins + 0.5
+	var r := c.apply("p1", {"type": "tick", "dt_min": 0.1})
+	eq(c.state.players["p1"]["light"], {}, "burnt out")
+	check(r["events"].any(func(e: Dictionary) -> bool: return e["type"] == "light_changed"), "the view hears about it")
+	c.state.inv("p1").add("iron_lantern", 1)
+	eq(c.apply("p1", {"type": "light", "item": "iron_lantern"})["error"], "no_fuel")
+	c.state.inv("p1").add("fish_oil", 2)
+	check(c.apply("p1", {"type": "light", "item": "iron_lantern"})["ok"], "lantern lit")
+	c.state.clock_min += float(db.items["iron_lantern"]["light"]["minutes_per_fuel"]) + 0.1
+	c.apply("p1", {"type": "tick", "dt_min": 0.1})
+	eq(c.state.players["p1"]["light"]["id"], "iron_lantern", "takes the next fuel by itself")
+	eq(c.state.inv("p1").count("fish_oil"), 0)
+	eq(c.apply("p1", {"type": "light", "item": "stone"})["error"], "not_a_light")

@@ -13,7 +13,7 @@ static func hz(midi: float) -> float:
 ## Brown-ish noise that loops without a click (the tail is cross-faded into the head).
 static func noise_loop(rng: RandomNumberGenerator, seconds: float, rate: int, keep: float, add: float) -> PackedFloat32Array:
 	var n := int(seconds * rate)
-	var fade := int(0.5 * rate)
+	var fade := mini(int(0.5 * rate), n / 2)  # the cross-fade never reaches past the loop
 	var out := PackedFloat32Array()
 	out.resize(n + fade)
 	var b := 0.0
@@ -29,11 +29,11 @@ static func noise_loop(rng: RandomNumberGenerator, seconds: float, rate: int, ke
 
 static func crackle_loop(rng: RandomNumberGenerator, seconds: float, rate: int) -> PackedFloat32Array:
 	var out := noise_loop(rng, seconds, rate, 0.6, 0.4)
-	for i in out.size():
+	var n := out.size()
+	for i in n:
 		if rng.randf() < 0.0015:
-			for k in 60:
-				if i + k < out.size():
-					out[i + k] += (rng.randf() * 2.0 - 1.0) * (1.0 - k / 60.0) * 0.9
+			for k in 60:  # a crackle near the end wraps around, so the loop seam stays clean
+				out[(i + k) % n] += (rng.randf() * 2.0 - 1.0) * (1.0 - k / 60.0) * 0.9
 	return _normalise(out, 0.6)
 
 

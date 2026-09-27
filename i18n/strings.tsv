@@ -56,3 +56,32 @@ cmd.not_aboard	Ты не в лодке.	You are not aboard.
 cmd.no_land	Здесь нет берега.	No shore here.
 cmd.unknown_recipe	Такого рецепта нет.	No such recipe.
 cmd.no_station	Нужна станция рядом.	You need the station nearby.
+cmd.not_a_light	Это не светит.	That gives no light.
+cmd.no_fuel	Нет ворвани для фонаря.	No fish oil for the lantern.
+tool.hand	руки	hands
+tool.axe	топор	an axe
+tool.knife	нож	a knife
+tool.shovel	лопата	a shovel
+tool.pick	кайло	a pick
+tool.rod	удочка	a fishing rod
+act.chop	Рубить: %s	Chop: %s
+act.cut	Срезать: %s	Cut: %s
+act.mine	Колоть: %s	Mine: %s
+act.dig	Копать: %s	Dig: %s
+act.take	Взять: %s	Take: %s
+act.fish	Удить: %s	Fish: %s
+act.need_tool	Нужен инструмент: %s	You need %s
+act.working	%s… %d/%d	%s… %d/%d
+act.land	Сойти на берег	Go ashore
+act.board	Сесть в лодку	Board the boat
+act.make_torch	Сделать факел	Make a torch
+act.light_torch	Зажечь факел	Light the torch
+act.other	Q — другое	Q — other
+goal.land	Берег рядом. Сойди на него.	The shore is close. Go ashore.
+goal.need_fire	На острове туман гуще: без огня тропы не видно. Нужен факел — хворост и живица (живицу срезают ножом с сосны).	The fog is thicker on the island: without fire you cannot see the path. You need a torch — sticks and resin (cut resin from a pine with a knife).
+goal.climb	Факел горит и раздвигает туман. Поднимись по тропе к маяку.	The torch pushes the fog back. Climb the path to the beacon.
+goal.back_to_boat	Маяк на другом острове. Вернись к лодке и плыви на огонёк.	The beacon is on another island. Go back to the boat and sail towards the light.
+goal.home	Родной остров. Собирай камни, хворост и волокно — из них делают первые инструменты. Потом к лодке и на огонёк.	Home island. Gather stones, sticks and fibre — the first tools are made from them. Then to the boat and towards the light.
+target.boat	До лодки	Boat
+hint.foot	W/S — идти · A/D — поворот · Shift — бег · Пробел — прыжок · правая кнопка мыши — осмотреться · E — действие · Q — выбрать	W/S — walk · A/D — turn · Shift — run · Space — jump · right mouse — look around · E — action · Q — choose
+toast.light_out	Факел догорел.	The torch burnt out.

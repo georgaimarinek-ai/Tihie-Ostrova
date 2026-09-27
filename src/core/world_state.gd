@@ -16,7 +16,8 @@ var pieces: Dictionary = {}  # uid -> {"id", "pos": Vector3, "rot": float, "owne
 var graves: Dictionary = {}  # uid -> {"owner": String, "pos": Vector3, "inv": Dictionary}
 var depleted: Dictionary = {}  # resource node id -> day it respawns
 ## player id -> {"inv": Inventory, "pos": Vector3, "spawn": Vector3, "weary_until": float, "aboard": boat uid or "",
-##   "food": [{"id", "until"}], "rested_until": float, "steam_until": float}. Times are clock_min.
+##   "food": [{"id", "until"}], "rested_until": float, "steam_until": float, "light": {} or {"id", "until" (-1 = forever)}}.
+## Times are clock_min.
 var players: Dictionary = {}
 var boats: Dictionary = {}  # uid -> {"type": String, "pos": Vector3, "yaw": float, "cargo": Inventory}
 var journal: Dictionary = {}  # page id -> day it was found
@@ -41,7 +42,7 @@ func new_uid(prefix: String) -> String:
 func add_player(pid: String, pos: Vector3 = Vector3.ZERO) -> Dictionary:
 	if not players.has(pid):
 		players[pid] = {"inv": Inventory.new(db, int(db.balance["player"]["carry_slots"])), "pos": pos, "spawn": pos,
-			"weary_until": 0.0, "aboard": "", "food": [], "rested_until": 0.0, "steam_until": 0.0}
+			"weary_until": 0.0, "aboard": "", "food": [], "rested_until": 0.0, "steam_until": 0.0, "light": {}}
 	return players[pid]
 
 
@@ -73,7 +74,8 @@ func to_dict() -> Dictionary:
 	for pid: String in players:
 		var p: Dictionary = players[pid]
 		ps[pid] = {"inv": (p["inv"] as Inventory).to_dict(), "pos": _v3(p["pos"]), "spawn": _v3(p["spawn"]), "weary_until": p["weary_until"],
-			"aboard": p["aboard"], "food": (p["food"] as Array).duplicate(true), "rested_until": p["rested_until"], "steam_until": p["steam_until"]}
+			"aboard": p["aboard"], "food": (p["food"] as Array).duplicate(true), "rested_until": p["rested_until"], "steam_until": p["steam_until"],
+			"light": (p["light"] as Dictionary).duplicate()}
 	var pcs := {}
 	for uid: String in pieces:
 		var pc: Dictionary = pieces[uid]
@@ -132,7 +134,8 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		for f: Dictionary in p["food"]:
 			food.append({"id": String(f["id"]), "until": float(f["until"])})
 		s.players[pid] = {"inv": inv, "pos": _to_v3(p["pos"]), "spawn": _to_v3(p["spawn"]), "weary_until": float(p["weary_until"]),
-			"aboard": String(p["aboard"]), "food": food, "rested_until": float(p["rested_until"]), "steam_until": float(p["steam_until"])}
+			"aboard": String(p["aboard"]), "food": food, "rested_until": float(p["rested_until"]), "steam_until": float(p["steam_until"]),
+			"light": _light_from(p.get("light", {}))}
 	for uid: String in d["boats"]:
 		var b: Dictionary = d["boats"][uid]
 		var cargo := Inventory.new(p_db, int(p_db.boats[String(b["type"])]["cargo_slots"]))
@@ -143,6 +146,12 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		s.journal[k] = int(d["journal"][k])
 	s.tuning = (d["tuning"] as Dictionary).duplicate()
 	return s
+
+
+static func _light_from(src: Dictionary) -> Dictionary:
+	if src.is_empty():
+		return {}
+	return {"id": String(src["id"]), "until": float(src["until"])}
 
 
 ## Station queues from JSON: counts back to int (Godot parses JSON numbers as float).
