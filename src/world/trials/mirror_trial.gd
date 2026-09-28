@@ -134,6 +134,12 @@ func _segment(i: int, a: Vector3, b: Vector3) -> void:
 		beam.look_at_from_position(mid, b, Vector3.UP if absf((b - a).normalized().y) < 0.99 else Vector3.RIGHT)
 
 
+func debug_solve(n: int) -> void:
+	for i in mini(n, mirrors.size()):
+		while not aligned(i):
+			turn(i)
+
+
 func goal() -> String:
 	return tr("goal.mirror") % [aligned_count(), mirrors.size()]
 

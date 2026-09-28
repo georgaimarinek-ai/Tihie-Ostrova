@@ -88,6 +88,11 @@ func light_lantern(i: int) -> void:
 		complete()
 
 
+func debug_solve(n: int) -> void:
+	for i in mini(n, lamps.size()):
+		light_lantern(i)
+
+
 func goal() -> String:
 	if lit_count() < lamps.size():
 		return tr("goal.lanterns") % [lit_count(), lamps.size()]

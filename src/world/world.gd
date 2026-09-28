@@ -21,6 +21,11 @@ extends Node3D
 
 const FOG_DIRECTOR := preload("res://src/world/fog_director.gd")
 const GATHER_REACH := 3.2
+## The beacon moment (docs/01_GDD.md §5.4): the flame catches, the banner comes, the camera returns.
+const MOMENT_S := 8.0
+const KINDLE_AT := 1.0
+const BANNER_AT := 2.0
+const TRAIL_STEP_M := 25.0
 const TOOL_VERB := {"axe": "act.chop", "knife": "act.cut", "pick": "act.mine", "shovel": "act.dig", "hand": "act.take", "rod": "act.fish"}
 
 var db: ContentDB
@@ -42,6 +47,10 @@ var pieces: PiecesView
 var craft: CraftWindow
 var storage: StorageWindow
 var build: BuildMode
+var chart: MapWindow
+var trials: Dictionary = {}  # beacon id -> Trial, built while its island is near
+var trail := PackedVector2Array()  # where the player has been (the chart's dotted path)
+var mark := Vector2.INF  # the chart's mark: the compass follows it until you get there
 var my_boat: Boat  # the boat the local player is aboard (null on foot)
 var last_boat: Boat  # the boat the player came ashore from
 
@@ -61,6 +70,7 @@ var _bobber: Node3D
 var _hot := 0  # chosen hotbar place
 var _near_use := ""  # a bed, a sauna stove or a chest within reach
 var _fade: ColorRect
+var _moment := ""  # the beacon in its lighting moment
 
 
 func _ready() -> void:
@@ -69,7 +79,7 @@ func _ready() -> void:
 		TranslationServer.set_locale(String(_args["locale"]))
 	db = ContentDB.shared()
 	if Game.state == null:
-		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft", "house", "build"]:
+		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon"]:
 			if _args.has(k):
 				Game.debug_cheats = true
 		Game.new_world(int(_args.get("seed", 4127)), String(_args.get("mode", "")))
@@ -133,6 +143,10 @@ func _ready() -> void:
 	build = BuildMode.new()
 	add_child(build)
 	build.setup(db, state, map, player, cam, _pid, layer)
+	chart = MapWindow.new()
+	layer.add_child(chart)
+	chart.closed.connect(func() -> void: player.busy = false)
+	chart.mark_set.connect(func(at: Vector2) -> void: mark = at)
 	_fade = ColorRect.new()
 	_fade.color = Color(0.02, 0.03, 0.05, 0.0)
 	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -182,6 +196,7 @@ func _spawn_boat(uid: String) -> Boat:
 	add_child(b)
 	b.global_position = row["pos"]
 	b.rotation.y = float(row["yaw"])
+	b.world_state = state  # the sea wall: closed regions turn the boat home
 	boats[uid] = b
 	return b
 
@@ -232,6 +247,8 @@ func _process(delta: float) -> void:
 		extra.append(my_boat.fog_light(true))
 	extra.append(home.hearth_light)
 	extra.append_array(pieces.fog_lights(Vector2(focus.x, focus.z), 2))
+	for t: Trial in trials.values():
+		extra.append_array(t.fog_lights())
 	director.extra_lights = extra
 	director.boost_target = _fog_boost()
 	_scan_timer -= delta
@@ -242,6 +259,8 @@ func _process(delta: float) -> void:
 	_update_fishing(delta)
 	_update_vitals()
 	_update_beacons()
+	_update_trials(delta)
+	_update_trail(focus)
 	_update_audio(focus)
 	_update_hud()
 	_move_timer -= delta
@@ -344,6 +363,9 @@ func _action() -> Dictionary:
 		if float(_fishing["bite"]) > 0.0:
 			return {"label": tr("act.hook"), "run": _hook}
 		return {"label": tr("act.reel") % [int(_fishing["caught"]), int(_fishing["want"])], "run": _stop_fishing}
+	var beacon_act := _beacon_action()
+	if not beacon_act.is_empty():
+		return beacon_act
 	var inv := state.inv(_pid)
 	if not _near_node.is_empty():
 		var items: Array = _near_node["items"]
@@ -399,7 +421,11 @@ func _do_action() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if craft.visible or storage.visible:
+	if craft.visible or storage.visible or chart.visible or cam.in_shot():
+		return
+	if event.is_action_pressed("map") and not build.active:
+		_open_chart()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("build_menu") and on_foot() and not build.active:
 		build.enter()
@@ -506,6 +532,45 @@ func _board() -> void:
 		_attach_player()
 		cam.look_yaw = 0.0
 		audio.sfx("board")
+
+
+## E by a trial's props, or at the tower once the trial is passed: "Light the beacon" (or what fuel is missing).
+func _beacon_action() -> Dictionary:
+	var p := player.global_position
+	for t: Trial in trials.values():
+		var a := t.action(p)
+		if not a.is_empty():
+			return a
+	var bid := _beacon_at(p)
+	if bid == "" or state.lit.has(bid) or not state.trials_done.has(bid):
+		return {}
+	var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
+	if state.inv(_pid).has_bag(fuel):
+		return {"label": tr("act.light_beacon"), "run": _light_beacon.bind(bid)}
+	var need := tr("act.need_fuel") % ItemInfo.bag_text(db, fuel)
+	return {"label": need, "run": func() -> void: hud.toast(need)}
+
+
+## The beacon whose tower is within lighting reach of a point on foot ("" if none).
+func _beacon_at(p: Vector3) -> String:
+	for bid: String in db.beacon_order:
+		if Vector2(p.x, p.z).distance_to(db.beacon_pos(bid)) <= WorldCommands.BEACON_REACH_M - 1.5:
+			return bid
+	return ""
+
+
+func _light_beacon(bid: String) -> void:
+	_send_move()
+	Game.submit({"type": "light_beacon", "beacon": bid})
+
+
+## The chart (M): what the fog has shown so far.
+func _open_chart() -> void:
+	_send_move()
+	var me := _focus()
+	var yaw := my_boat.rotation.y if my_boat != null else player.model.rotation.y
+	chart.open(db, state, map, Vector2(me.x, me.z), yaw, trail, mark)
+	player.busy = true
 
 
 func _make_torch() -> void:
@@ -676,6 +741,38 @@ func _update_beacons() -> void:
 	sea.glow = best
 
 
+## Trials are props on their islands: built when the island comes near (Quiet and Tale; the Saga lights
+## beacons by fights), dropped when it is far again or its beacon burns and the player has sailed off.
+func _update_trials(delta: float) -> void:
+	var by_trial := Game.commands != null and String(Game.commands.rules()["beacon"]) == "trial"
+	var f := _focus()
+	for bid: String in db.beacon_order:
+		var d := Vector2(f.x, f.z).distance_to(db.beacon_pos(bid))
+		var t: Trial = trials.get(bid)
+		if t == null:
+			if by_trial and d < 420.0 and not state.trials_done.has(bid) and not state.lit.has(bid) \
+					and db.region_open(db.beacons[bid]["region"], state.lit):
+				t = Trial.create(String(db.beacons[bid]["trial"]))
+				add_child(t)
+				t.setup(self, bid)
+				trials[bid] = t
+		elif d > 650.0 or (state.lit.has(bid) and d > 160.0) or not by_trial:
+			trials.erase(bid)
+			t.queue_free()
+	for t: Trial in trials.values():
+		t.tick(delta)  # finished trials keep animating (lit lanterns flicker, bells settle)
+
+
+## The dotted path on the chart: a point every TRAIL_STEP_M metres.
+func _update_trail(focus: Vector3) -> void:
+	var p := Vector2(focus.x, focus.z)
+	if trail.is_empty() or trail[trail.size() - 1].distance_to(p) >= TRAIL_STEP_M:
+		trail.append(p)
+	if mark != Vector2.INF and p.distance_to(mark) < 25.0:
+		mark = Vector2.INF
+		hud.toast(tr("toast.mark_reached"))
+
+
 func _update_audio(focus: Vector3) -> void:
 	audio.lit = state.lit.size()
 	audio.fog = FogField.factor(db, state, Vector2(focus.x, focus.z), director.extra_lights) * director.boost
@@ -693,7 +790,9 @@ func _update_audio(focus: Vector3) -> void:
 # ---------------------------------------------------------------- HUD
 
 func _update_hud() -> void:
-	hud.visible = not craft.visible and not storage.visible and not build.active
+	hud.visible = not craft.visible and not storage.visible and not build.active and not chart.visible
+	if hud.in_cinema:
+		return  # the beacon moment: only the banner and the black bars
 	var p := Vector2(cam.global_position.x, cam.global_position.z)
 	var rid := db.region_at(p)
 	hud.set_region("%s · %s" % [Loc.chapter(db, rid), Loc.region(db, rid)])
@@ -701,6 +800,9 @@ func _update_hud() -> void:
 		hud.set_backdrop((director.palette["fog"] as Color).get_luminance() > 0.45)
 	var goal := _goal()
 	hud.set_goal(goal["text"])
+	if mark != Vector2.INF:
+		goal["target"] = Vector3(mark.x, 0.0, mark.y)
+		goal["label"] = tr("target.mark")
 	var fwd := -cam.global_transform.basis.z
 	var cam_bearing := atan2(fwd.x, -fwd.z)
 	if goal.has("target") and not cam.in_shot():
@@ -750,25 +852,158 @@ func _update_hud() -> void:
 ## What the player should do now and where the compass points: {"text", "target": Vector3, "label"}.
 func _goal() -> Dictionary:
 	var next := Progress.next_beacon(db, state)
-	if next == "":
-		return {"text": tr("goal.free")}
-	var bv: BeaconView = beacons[next]
-	var beacon_goal := {"target": bv.fire_pos, "label": tr("target.beacon") % Loc.beacon(db, next)}
+	var beacon_goal := {}
+	if next != "":
+		var bv: BeaconView = beacons[next]
+		beacon_goal = {"target": bv.fire_pos, "label": tr("target.beacon") % Loc.beacon(db, next)}
 	if my_boat != null:
+		if my_boat.wall != "":
+			var g := beacon_goal.duplicate()
+			var bp := Vector2(my_boat.global_position.x, my_boat.global_position.z)
+			var need := Loc.name_of(db.boats[SeaWall.boat_needed(db, bp)]["name"])
+			g["text"] = tr("goal.wall_locked") if my_boat.wall == "locked" else tr("goal.wall_boat") % need
+			return g
+		if next == "":
+			return {"text": tr("goal.free")}
 		var near_isl := map.nearest_island(Vector2(my_boat.global_position.x, my_boat.global_position.z), 40.0)
 		var text := tr("goal.land") if not _landing.is_empty() and near_isl != null and near_isl.id == next else tr("goal.sail")
 		beacon_goal["text"] = text
 		return beacon_goal
 	var isl := map.island_at(player.global_position.x, player.global_position.z)
 	var boat_goal := {"target": last_boat.global_position if last_boat != null else Vector3.ZERO, "label": tr("target.boat")}
-	if isl != null and isl.id == next:
-		beacon_goal["text"] = tr("goal.climb") if player.light_id != "" else tr("goal.need_fire")
-		return beacon_goal
+	if isl != null and map.kind_of[isl.id] == "beacon":
+		var here := _beacon_goal(isl.id, boat_goal)
+		if not here.is_empty():
+			return here
+	if next == "":
+		return {"text": tr("goal.free")}
 	if isl != null and isl.id == WorldMap.HOME:
 		boat_goal["text"] = tr("goal.home")
 		return boat_goal
 	boat_goal["text"] = tr("goal.back_to_boat")
 	return boat_goal
+
+
+## On a beacon's island: the trial's own line and target, then the fuel, then "back to the boat".
+func _beacon_goal(bid: String, boat_goal: Dictionary) -> Dictionary:
+	var bv: BeaconView = beacons[bid]
+	var tower := {"target": bv.fire_pos, "label": tr("target.beacon") % Loc.beacon(db, bid)}
+	if state.lit.has(bid):
+		if Progress.next_beacon(db, state) == "":
+			return {}
+		boat_goal["text"] = tr("goal.lit_here")
+		return boat_goal
+	if not db.region_open(db.beacons[bid]["region"], state.lit):
+		return {}
+	if state.trials_done.has(bid):
+		var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
+		tower["text"] = tr("goal.light") if state.inv(_pid).has_bag(fuel) else tr("goal.fuel") % ItemInfo.bag_text(db, fuel)
+		return tower
+	if Game.commands != null and String(Game.commands.rules()["beacon"]) != "trial":
+		tower["text"] = tr("goal.saga_later")
+		return tower
+	var t: Trial = trials.get(bid)
+	if t == null:
+		tower["text"] = tr("goal.climb") if player.light_id != "" else tr("goal.need_fire")
+		return tower
+	tower["text"] = t.goal()
+	var tg := t.target()
+	if not tg.is_empty():
+		tower["target"] = tg["target"]
+		tower["label"] = tg["label"]
+	return tower
+
+
+# ---------------------------------------------------------------- the beacon moment
+
+## docs/01_GDD.md §5.4: the fire is set, the camera flies out to the side (across the sun, so the flame
+## isn't lost in the glare), the flame catches and the clearing grows over GROW_S, the music rises, the
+## banner says what opened; then the camera comes back. A beacon lit far away (a co-op friend) just kindles.
+func _on_beacon_lit(e: Dictionary) -> void:
+	var bid: String = e["beacon"]
+	var bv: BeaconView = beacons[bid]
+	if _moment != "" or bv.fire_pos.distance_to(_focus()) > 150.0:
+		bv.kindle()
+		director.mark_lit(bid)
+		audio.sfx("swell")
+		hud.toast(tr("banner.lit") % [state.lit.size(), db.beacon_order.size()], Loc.beacon(db, bid))
+		return
+	_moment = bid
+	director.mark_lit_after(bid, KINDLE_AT)
+	player.busy = true
+	hud.cinematic(true, _next_line(bid))
+	cam.play_shot(bv.fire_pos, moment_offset(bv.fire_pos), MOMENT_S, _end_moment, 2.0)
+	var unlocks: Dictionary = e.get("unlocks", {})
+	get_tree().create_timer(KINDLE_AT).timeout.connect(func() -> void:
+		bv.kindle()
+		audio.sfx("swell"))
+	get_tree().create_timer(BANNER_AT).timeout.connect(_moment_banner.bind(bid, unlocks))
+
+
+## Where the camera stands for the moment, relative to the fire: out to the side across the sun's direction
+## (on the player's side of the tower), a little towards the sun so the sun is behind, a bit below the fire.
+func moment_offset(fire: Vector3) -> Vector3:
+	var s3 := sun.global_transform.basis.z  # towards the sun
+	var s := Vector2(s3.x, s3.z)
+	s = s.normalized() if s.length() > 0.01 else Vector2(0, 1)
+	var side := Vector2(-s.y, s.x)
+	var me := _focus()
+	if side.dot(Vector2(me.x - fire.x, me.z - fire.z)) < 0.0:
+		side = -side
+	var o2 := side * 21.0 + s * 6.0
+	var off := Vector3(o2.x, -3.0, o2.y)
+	var at := fire + off
+	var ground := map.ground_at(at.x, at.z)
+	if at.y < ground + 2.5:
+		off.y += ground + 2.5 - at.y
+	return off
+
+
+## The line in the lower black bar: where the next light glimmers.
+func _next_line(bid: String) -> String:
+	var next := Progress.next_beacon(db, state)
+	if next == "":
+		return tr("banner.last")
+	var v := db.beacon_pos(next) - db.beacon_pos(bid)
+	return tr("banner.next") % [Loc.direction(v), Loc.beacon(db, next)]
+
+
+func _moment_banner(bid: String, unlocks: Dictionary) -> void:
+	var n := state.lit.size()
+	var lines: Array = [tr("banner.cleared") % int(db.beacons[bid]["clear_radius"])]
+	var opens: Variant = db.beacons[bid].get("opens")
+	if opens != null:
+		lines.append(tr("banner.region") % Loc.region(db, String(opens)))
+	var layers: Array[String] = []
+	var before := Progress.music_layers(n - 1)
+	for l: String in Progress.music_layers(n):
+		if not before.has(l):
+			layers.append(tr("music." + l))
+	var music := "" if layers.is_empty() else "♪ " + tr("banner.music") % ", ".join(layers)
+	hud.show_banner(tr("banner.lit") % [n, db.beacon_order.size()], Loc.beacon(db, bid), lines, unlock_chips(unlocks), music, MOMENT_S - BANNER_AT + 1.5)
+
+
+## "Opened:" chips with icons: new pieces, the things new recipes make, new boats.
+func unlock_chips(unlocks: Dictionary) -> Array:
+	var out: Array = []
+	var seen := {}
+	for id: String in unlocks.get("pieces", []):
+		out.append({"text": Loc.name_of(db.pieces[id]["name"]), "icon": id})
+		seen[id] = true
+	for rid: String in unlocks.get("recipes", []):
+		for item: String in db.recipes[rid]["output"]:
+			if not seen.has(item) and not db.pieces.has(item):
+				out.append({"text": Loc.item(db, item), "icon": item})
+				seen[item] = true
+	for id: String in unlocks.get("boats", []):
+		out.append({"text": Loc.name_of(db.boats[id]["name"]), "icon": id})
+	return out.slice(0, 8)
+
+
+func _end_moment() -> void:
+	hud.cinematic(false)
+	player.busy = false
+	_moment = ""
 
 
 # ---------------------------------------------------------------- world events
@@ -777,10 +1012,15 @@ func _on_world_event(e: Dictionary) -> void:
 	var mine := String(e.get("player", "")) == _pid
 	match String(e.get("type", "")):
 		"beacon_lit":
-			var bid: String = e["beacon"]
-			director.mark_lit(bid)
-			(beacons[bid] as BeaconView).kindle()
-			audio.sfx("swell")
+			_on_beacon_lit(e)
+		"region_opened":
+			if _moment == "":  # during the moment the banner says it
+				hud.toast(tr("toast.region_opened") % Loc.region(db, String(e["region"])))
+		"trial_done":
+			if mine:
+				var kind := String(db.beacons[e["beacon"]]["trial"])
+				hud.toast(tr("toast.trial_done") % Loc.name_of(db.trial_types[kind]), "✓")
+				audio.sfx("lantern", 2)
 		"gathered":
 			streamer.refresh_node(String(e["node"]))
 			if mine:
@@ -896,7 +1136,8 @@ func _debug_setup() -> void:
 
 ## After the first frames: landing and walking shortcuts for screenshots.
 func _debug_place() -> void:
-	if (_args.has("ashore") or _args.has("walk")) and my_boat != null:
+	hud.clear_toasts()  # the setup's own toasts (debug gifts, instantly lit beacons) are not the shot
+	if (_args.has("ashore") or _args.has("walk") or _args.has("at-beacon")) and my_boat != null:
 		var bp := my_boat.global_position
 		_landing = map.find_landing(Vector2(bp.x, bp.z), _blocked)
 		if not _landing.is_empty():
@@ -911,6 +1152,30 @@ func _debug_place() -> void:
 		cam.foot_yaw = yaw + (deg_to_rad(float(String(_args["look"]).split(",")[0])) if _args.has("look") else 0.0)
 		streamer.build_around(player.global_position)
 		cam.snap()
+	if _args.has("at-beacon") and on_foot():
+		# on the path to a beacon's tower (t along the path: --path-t=0.82), facing the tower
+		var bid := String(_args["at-beacon"])
+		var q := map.path_point(bid, float(_args.get("path-t", 0.82)), float(_args.get("path-side", 0.0)))
+		var bp := db.beacon_pos(bid)
+		var yaw := atan2(-(bp.x - q.x), -(bp.y - q.z)) + deg_to_rad(float(_args.get("turn", 0.0)))
+		Game.submit({"type": "debug", "pos": [q.x, q.y, q.z]})
+		player.place(q + Vector3(0, 0.2, 0), yaw)
+		cam.foot_yaw = yaw + (deg_to_rad(float(String(_args["look"]).split(",")[0])) if _args.has("look") else 0.0)
+		streamer.build_around(player.global_position)
+		cam.snap()
+	if _args.has("trail"):
+		# debug: a travelled path home → every lit beacon → here, for the chart
+		var pts: Array[Vector2] = [Vector2(map.home["spawn"].x, map.home["spawn"].z)]
+		for bid: String in db.beacon_order:
+			if state.lit.has(bid):
+				pts.append(db.beacon_pos(bid))
+		var f := _focus()
+		pts.append(Vector2(f.x, f.z))
+		trail = PackedVector2Array()
+		for i in range(1, pts.size()):
+			var n := maxi(1, int(pts[i - 1].distance_to(pts[i]) / TRAIL_STEP_M))
+			for k in n:
+				trail.append(pts[i - 1].lerp(pts[i], float(k) / n))
 	if _args.has("place") and on_foot():
 		var n := 0
 		for piece: String in String(_args["place"]).split(","):
@@ -932,6 +1197,8 @@ func _debug_place() -> void:
 		var yaw := player.model.rotation.y
 		var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
 		build.debug_aim = player.global_position + fwd * 5.0 + Vector3(fwd.z, 0, -fwd.x) * 2.0
+	if _args.has("chart"):
+		_open_chart()
 	if _args.has("craft") and on_foot():
 		_open_craft()
 		if String(_args["craft"]) != "true":
@@ -990,6 +1257,9 @@ func _debug_light(bid: String, instant: bool) -> void:
 func _debug_frame() -> void:
 	if _frame == 2:
 		_debug_place()
+	if _args.has("solve") and _frame == 6:
+		for t: Trial in trials.values():
+			t.debug_solve(int(_args["solve"]))
 	if _args.has("light-at") and _frame == int(_args["light-at"]):
 		var next := Progress.next_beacon(db, state)
 		if next != "":

@@ -71,3 +71,22 @@ func test_anchor_holds(tree: SceneTree) -> void:
 	await frames(tree, 300)
 	var p := b.global_position
 	check(Vector2(p.x - at.x, p.z - at.z).length() < 1.5, "anchored boat stays put (%.2f m)" % Vector2(p.x - at.x, p.z - at.z).length())
+
+
+## The sea wall (roadmap phase 5): sailing into a closed region, after lock_push_s the current takes the helm
+## and turns the bow home; no damage, no stop.
+func test_sea_wall_turns_the_boat_home(tree: SceneTree) -> void:
+	var b := _boat(tree, true)
+	b.world_state = WorldState.new(db, 3, "quiet")
+	b.global_position = Vector3(0, 0.4, -760)  # just inside the Summer Coast, still closed
+	await frames(tree, 30)
+	b.wind = Vector2(1, 0)
+	b.throttle = 1.0  # full sail northwards, away from home
+	await frames(tree, 60)
+	eq(b.wall, "locked", "the sea says: not yet")
+	check(not b.pushed, "the helm is still the player's")
+	await frames(tree, int(SeaWall.push_after_s(db) * 60.0))
+	check(b.pushed, "after %d s the current takes the helm" % int(SeaWall.push_after_s(db)))
+	await frames(tree, 600)
+	var home := SeaWall.pull(Vector2(b.global_position.x, b.global_position.z))
+	check(b.heading().dot(home) > 0.7, "the bow points home (%.2f)" % b.heading().dot(home))

@@ -71,6 +71,11 @@ func tick(_delta: float) -> void:
 	pass
 
 
+## Debug and screenshots (--solve=N): do the first n steps as a player would.
+func debug_solve(_n: int) -> void:
+	pass
+
+
 ## Tell the host the trial is passed (World sends the player's position first).
 func complete() -> void:
 	if finished:

@@ -23,6 +23,8 @@ const GLYPH := {
 	"bloomery": "fire", "forge": "anvil", "stove": "stove", "loom": "rack", "quern": "stone",
 	"garden_bed": "grain", "boatyard": "pier", "trypot": "bowl", "salt_pan": "pile", "oil_lamp": "lantern",
 	"sheep_pen": "pen", "pomor_cross": "cross", "bathhouse_stove": "stone",
+	# boats, and the few signs banners and the map need
+	"karbas": "boat", "shnyaka": "boat", "koch": "boat", "music": "note", "beacon": "tower",
 }
 
 var item := ""
@@ -276,6 +278,22 @@ func _draw() -> void:
 			draw_line(P.call(6, 9), P.call(18, 9), c, w)
 			draw_line(P.call(9, 5), P.call(15, 5), c, w * 0.8)
 			draw_line(P.call(8, 17), P.call(16, 14), c, w * 0.8)
+		"boat":
+			draw_polyline(PackedVector2Array([P.call(3, 13), P.call(21, 13), P.call(18, 18), P.call(6, 18), P.call(3, 13)]), c, w)
+			draw_line(P.call(12, 13), P.call(12, 3), c, w)
+			draw_polyline(PackedVector2Array([P.call(12, 4), P.call(18, 11), P.call(12, 11)]), c, w)
+		"note":
+			draw_arc(P.call(8, 17), 2.5 * s, 0, TAU, 12, c, w)
+			draw_arc(P.call(17, 15), 2.5 * s, 0, TAU, 12, c, w)
+			draw_line(P.call(10.5, 17), P.call(10.5, 6), c, w)
+			draw_line(P.call(19.5, 15), P.call(19.5, 4), c, w)
+			draw_line(P.call(10.5, 6), P.call(19.5, 4), c, w * 1.6)
+		"tower":
+			draw_line(P.call(8, 21), P.call(10, 8), c, w)
+			draw_line(P.call(16, 21), P.call(14, 8), c, w)
+			draw_line(P.call(7, 8), P.call(17, 8), c, w)
+			draw_line(P.call(9, 15), P.call(15, 15), c, w * 0.8)
+			draw_polyline(PackedVector2Array([P.call(9, 8), P.call(10, 5), P.call(14, 5), P.call(15, 8)]), c, w)
 		"necklace":
 			for i in 7:
 				var a := PI * 0.15 + i * PI * 0.7 / 6.0

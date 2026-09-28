@@ -684,3 +684,84 @@ msgstr "frost bells"
 
 msgid "music.choir"
 msgstr "a far choir"
+
+msgid "target.mark"
+msgstr "Mark"
+
+msgid "toast.mark_reached"
+msgstr "You reached the mark."
+
+msgid "map.title"
+msgstr "Sea chart"
+
+msgid "map.lit"
+msgstr "Beacons lit: %d of %d"
+
+msgid "map.legend.lit"
+msgstr "A lit beacon"
+
+msgid "map.legend.next"
+msgstr "A light in the fog: the next beacon"
+
+msgid "map.legend.fog"
+msgstr "Mga: not seen yet"
+
+msgid "map.legend.cross"
+msgstr "Your pomor cross"
+
+msgid "map.legend.trail"
+msgstr "The way you have come"
+
+msgid "map.next"
+msgstr "Next"
+
+msgid "map.info"
+msgstr "Trial: %s. Fuel: %s."
+
+msgid "map.opens"
+msgstr "Opens %s."
+
+msgid "map.mark"
+msgstr "Set a mark"
+
+msgid "map.pick"
+msgstr "Click on the chart…"
+
+msgid "map.pick_hint"
+msgstr "Click where the mark goes. The compass will lead you there."
+
+msgid "map.unmark"
+msgstr "Remove the mark"
+
+msgid "map.close"
+msgstr "Close · M"
+
+msgid "map.fog"
+msgstr "Mga"
+
+msgid "map.border"
+msgstr "border: %s · %d m"
+
+msgid "map.home"
+msgstr "Home"
+
+msgid "map.north"
+msgstr "N"
+
+msgid "trial.carry"
+msgstr "carry the fire"
+
+msgid "trial.climb"
+msgstr "the ledges"
+
+msgid "trial.bells"
+msgstr "the bells"
+
+msgid "trial.lanterns"
+msgstr "path lanterns"
+
+msgid "trial.mirror"
+msgstr "the reflectors"
+
+msgid "trial.finale"
+msgstr "all trials in a row"

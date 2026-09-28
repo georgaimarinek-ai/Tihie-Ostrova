@@ -684,3 +684,84 @@ msgstr "колокольчики-иней"
 
 msgid "music.choir"
 msgstr "далёкий хор"
+
+msgid "target.mark"
+msgstr "До метки"
+
+msgid "toast.mark_reached"
+msgstr "Метка достигнута."
+
+msgid "map.title"
+msgstr "Лоция"
+
+msgid "map.lit"
+msgstr "Маяков зажжено: %d из %d"
+
+msgid "map.legend.lit"
+msgstr "Зажжённый маяк"
+
+msgid "map.legend.next"
+msgstr "Огонёк в тумане: следующий маяк"
+
+msgid "map.legend.fog"
+msgstr "Мга: ещё не видно"
+
+msgid "map.legend.cross"
+msgstr "Твой поморский крест"
+
+msgid "map.legend.trail"
+msgstr "Пройденный путь"
+
+msgid "map.next"
+msgstr "Дальше"
+
+msgid "map.info"
+msgstr "Испытание: %s. Топливо: %s."
+
+msgid "map.opens"
+msgstr "Откроет %s."
+
+msgid "map.mark"
+msgstr "Поставить метку"
+
+msgid "map.pick"
+msgstr "Щёлкни по карте…"
+
+msgid "map.pick_hint"
+msgstr "Щёлкни, где поставить метку. Компас поведёт к ней."
+
+msgid "map.unmark"
+msgstr "Убрать метку"
+
+msgid "map.close"
+msgstr "Закрыть · M"
+
+msgid "map.fog"
+msgstr "Мга"
+
+msgid "map.border"
+msgstr "граница: %s · %d м"
+
+msgid "map.home"
+msgstr "Дом"
+
+msgid "map.north"
+msgstr "С"
+
+msgid "trial.carry"
+msgstr "донести огонь"
+
+msgid "trial.climb"
+msgstr "уступы"
+
+msgid "trial.bells"
+msgstr "колокола"
+
+msgid "trial.lanterns"
+msgstr "путевые фонари"
+
+msgid "trial.mirror"
+msgstr "отражатели"
+
+msgid "trial.finale"
+msgstr "все испытания подряд"

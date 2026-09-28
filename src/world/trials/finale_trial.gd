@@ -67,6 +67,12 @@ func fog_lights() -> Array[Vector4]:
 	return out
 
 
+func debug_solve(n: int) -> void:
+	var t := _active()
+	if t != null:
+		t.debug_solve(n)
+
+
 func tick(delta: float) -> void:
 	var t := _active()
 	if t != null:

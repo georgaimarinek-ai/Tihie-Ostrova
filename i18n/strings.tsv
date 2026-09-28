@@ -226,3 +226,30 @@ music.gudok	гудок и низкие струны	the gudok and low strings
 music.bells	колокольный звон с мысов	bells from the capes
 music.frost	колокольчики-иней	frost bells
 music.choir	далёкий хор	a far choir
+target.mark	До метки	Mark
+toast.mark_reached	Метка достигнута.	You reached the mark.
+map.title	Лоция	Sea chart
+map.lit	Маяков зажжено: %d из %d	Beacons lit: %d of %d
+map.legend.lit	Зажжённый маяк	A lit beacon
+map.legend.next	Огонёк в тумане: следующий маяк	A light in the fog: the next beacon
+map.legend.fog	Мга: ещё не видно	Mga: not seen yet
+map.legend.cross	Твой поморский крест	Your pomor cross
+map.legend.trail	Пройденный путь	The way you have come
+map.next	Дальше	Next
+map.info	Испытание: %s. Топливо: %s.	Trial: %s. Fuel: %s.
+map.opens	Откроет %s.	Opens %s.
+map.mark	Поставить метку	Set a mark
+map.pick	Щёлкни по карте…	Click on the chart…
+map.pick_hint	Щёлкни, где поставить метку. Компас поведёт к ней.	Click where the mark goes. The compass will lead you there.
+map.unmark	Убрать метку	Remove the mark
+map.close	Закрыть · M	Close · M
+map.fog	Мга	Mga
+map.border	граница: %s · %d м	border: %s · %d m
+map.home	Дом	Home
+map.north	С	N
+trial.carry	донести огонь	carry the fire
+trial.climb	уступы	the ledges
+trial.bells	колокола	the bells
+trial.lanterns	путевые фонари	path lanterns
+trial.mirror	отражатели	the reflectors
+trial.finale	все испытания подряд	all trials in a row

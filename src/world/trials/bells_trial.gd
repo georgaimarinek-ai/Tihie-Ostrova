@@ -102,6 +102,12 @@ func _ring(i: int) -> void:
 	sfx("bell", NOTES[i])
 
 
+func debug_solve(n: int) -> void:
+	listen()
+	for i in mini(n, melody.size()):
+		strike(melody[i])
+
+
 func goal() -> String:
 	if not heard:
 		return tr("goal.bells_listen")

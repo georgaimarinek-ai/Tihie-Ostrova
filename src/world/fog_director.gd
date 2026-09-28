@@ -28,6 +28,11 @@ func mark_lit(beacon_id: String, at: float = NAN) -> void:
 	_lit_at[beacon_id] = _time if is_nan(at) else at
 
 
+## The clearing starts growing `delay` seconds from now (the beacon moment: when the flame catches).
+func mark_lit_after(beacon_id: String, delay: float) -> void:
+	_lit_at[beacon_id] = _time + delay
+
+
 func _process(delta: float) -> void:
 	_time += delta
 	if db == null or state == null:

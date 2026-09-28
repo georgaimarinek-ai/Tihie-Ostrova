@@ -209,7 +209,7 @@ func _layout() -> void:
 func cinematic(on: bool, footer_text: String = "") -> void:
 	in_cinema = on
 	for c in get_children():
-		if c == banner or c == bars_top or c == bars_bottom or c == footer or c == toasts:
+		if c == banner or c == bars_top or c == bars_bottom or c == footer:
 			continue
 		(c as CanvasItem).visible = not on if c != action_button else false
 	bars_top.visible = on
@@ -372,8 +372,16 @@ func toast(text: String, accent: String = "") -> void:
 	p.add_child(l)
 	p.set_meta("age", 0.0)
 	toasts.add_child(p)
-	if toasts.get_child_count() > 6:
-		toasts.get_child(0).queue_free()
+	while toasts.get_child_count() > 5:
+		var old := toasts.get_child(0)
+		toasts.remove_child(old)
+		old.queue_free()
+
+
+func clear_toasts() -> void:
+	for c in toasts.get_children():
+		toasts.remove_child(c)
+		c.queue_free()
 
 
 ## A banner at the top: caps kicker, a title in Ruslan Display, lines, chips. Stays `seconds`.
@@ -401,16 +409,36 @@ func show_banner(kicker: String, title: String, lines: Array, chips: Array, foot
 		flow.custom_minimum_size = Vector2(520, 0)
 		flow.add_theme_constant_override("h_separation", 8)
 		flow.add_theme_constant_override("v_separation", 8)
-		for chip: String in chips:
+		for chip: Variant in chips:
+			# a chip is a text, or {"text", "icon"} with an ItemIcon glyph id in front
+			var d: Dictionary = chip if chip is Dictionary else {"text": String(chip)}
 			var cp := PanelContainer.new()
 			cp.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.28, 0.31, 0.33, 0.9), 8, 12, Color(1, 1, 1, 0.12)))
-			cp.add_child(UiTheme.label(chip, 16))
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			if d.has("icon"):
+				var ic := ItemIcon.new(String(d["icon"]))
+				ic.custom_minimum_size = Vector2(20, 20)
+				ic.color = UiTheme.TEXT
+				row.add_child(ic)
+			row.add_child(UiTheme.label(String(d["text"]), 16))
+			cp.add_child(row)
 			flow.add_child(cp)
 		banner_box.add_child(flow)
 	if footer != "":
-		var f := UiTheme.label(footer, 16, UiTheme.BIRCH)
-		f.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		banner_box.add_child(f)
+		# the footer line: the music that joined (with a note glyph when it starts with "♪")
+		var fr := HBoxContainer.new()
+		fr.alignment = BoxContainer.ALIGNMENT_CENTER
+		fr.add_theme_constant_override("separation", 8)
+		var text := footer
+		if footer.begins_with("♪"):
+			text = footer.trim_prefix("♪").strip_edges()
+			var ic := ItemIcon.new("music")
+			ic.custom_minimum_size = Vector2(20, 20)
+			ic.color = UiTheme.BIRCH
+			fr.add_child(ic)
+		fr.add_child(UiTheme.label(text, 16, UiTheme.BIRCH))
+		banner_box.add_child(fr)
 	banner.visible = true
 	banner.modulate.a = 0.0
 	banner.size = Vector2.ZERO
