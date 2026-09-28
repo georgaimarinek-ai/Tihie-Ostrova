@@ -169,6 +169,12 @@ reference/sketch/        браузерный набросок, эталон о�
 - **Меню и пауза:** `Game.new_world(зерно, режим, имя, тонкая настройка)`; `Game.save()` → `user://worlds/<имя>`, `Game.last_world()` для «Продолжить». Пауза в соло останавливает часы (`Game.paused`).
 - **Сохранение v4:** имя мира, здоровье игроков, место высадки, опрокинутые лодки, память духов, существа, текущий бой; миграция v3→v4.
 
+## 6.3 Сохранения, настройки, выход (этап 8)
+
+- **Слоты:** `user://worlds/<имя>/world.json` + `world.1..3.json`; `SaveCodec.list_worlds`, `delete_world`, `backups`; `SaveCodec.last_restored` — из какого файла поднят мир (0 — основной). `Game.save()` (только хост), автосохранение `Game.AUTOSAVE_S` = 300 с, сигнал `Game.saved`.
+- **Выход:** `get_tree().auto_accept_quit = false`; закрытие окна → `Game.quit_requested` → мир показывает `EveningWindow`, повторное закрытие или «Выйти до завтра» → `Game.quit_now()` (сохранить и выйти). Итоги вечера — `Game.session` из событий мира.
+- **Настройки:** `GameSettings` (`user://settings.cfg`): качество (рендерер пишется в `override.cfg`, применяется при перезапуске), окно, громкость шин Master/Music/Ambience/Sfx, клавиши (`GameSettings.bind`), язык.
+
 ## 7. Кооператив (готовность с первого дня)
 
 - `Net` (автозагрузка) задаёт API: `is_authority()`, `local_player_id()` = `"p<peer_id>"`, `host()`, `join()`, `send_command()`, `broadcast_events()`. Сейчас это соло, API зафиксирован.

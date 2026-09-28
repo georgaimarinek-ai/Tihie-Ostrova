@@ -55,6 +55,8 @@ var combat: Combat
 var journal: JournalWindow
 var pause_menu: PauseMenu
 var menu: MainMenu
+var evening: EveningWindow
+var settings_win: SettingsWindow
 var trials: Dictionary = {}  # beacon id -> Trial, built while its island is near
 var trail := PackedVector2Array()  # where the player has been (the chart's dotted path)
 var mark := Vector2.INF  # the chart's mark: the compass follows it until you get there
@@ -173,6 +175,21 @@ func _ready() -> void:
 	layer.add_child(pause_menu)
 	pause_menu.closed.connect(func() -> void: player.busy = false)
 	pause_menu.journal_requested.connect(_open_journal)
+	pause_menu.settings_requested.connect(func() -> void:
+		settings_win.open()
+		player.busy = true)
+	pause_menu.evening_requested.connect(_open_evening)
+	evening = EveningWindow.new()
+	layer.add_child(evening)
+	evening.closed.connect(func() -> void: player.busy = false)
+	settings_win = SettingsWindow.new()
+	layer.add_child(settings_win)
+	settings_win.closed.connect(func() -> void: player.busy = false)
+	Game.quit_requested.connect(_on_quit_requested)
+	Game.saved.connect(func(ok: bool) -> void:
+		if not evening.visible:
+			hud.toast(tr("toast.saved") if ok else tr("toast.save_failed")))
+	Game.settings.apply()  # the audio buses exist now
 	chart = MapWindow.new()
 	layer.add_child(chart)
 	chart.closed.connect(func() -> void: player.busy = false)
@@ -190,6 +207,9 @@ func _ready() -> void:
 		menu = MainMenu.new()
 		layer.add_child(menu)
 		player.busy = true
+	if Game.restored_from > 0:
+		hud.toast(tr("toast.restored") % Game.restored_from, "!")  # the save was broken: a backup came back
+		Game.restored_from = 0
 	streamer.build_around(_focus())
 	cam.snap()
 
@@ -467,11 +487,12 @@ func _do_action() -> void:
 ## Anything that takes the keys and the mouse from the world.
 func ui_open() -> bool:
 	return craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or build.active \
-			or (menu != null and menu.visible)
+			or evening.visible or settings_win.visible or (menu != null and menu.visible)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or cam.in_shot():
+	if craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or cam.in_shot() \
+			or evening.visible or settings_win.visible:
 		return
 	if menu != null and menu.visible:
 		return
@@ -643,6 +664,20 @@ func _saga_action(bid: String) -> Dictionary:
 func _light_beacon(bid: String) -> void:
 	_send_move()
 	Game.submit({"type": "light_beacon", "beacon": bid})
+
+
+## The window's close button or "Until tomorrow": the evening screen first; a second close quits.
+func _on_quit_requested() -> void:
+	if evening.visible or (menu != null and menu.visible):
+		Game.quit_now()
+	else:
+		_open_evening()
+
+
+func _open_evening() -> void:
+	_send_move()
+	evening.open(db, state, _focus())
+	player.busy = true
 
 
 func _open_journal() -> void:
@@ -881,7 +916,8 @@ func _update_audio(focus: Vector3) -> void:
 
 func _update_hud() -> void:
 	hud.visible = not craft.visible and not storage.visible and not build.active and not chart.visible \
-			and not journal.visible and not pause_menu.visible and (menu == null or not menu.visible)
+			and not journal.visible and not pause_menu.visible and (menu == null or not menu.visible) \
+			and not evening.visible and not settings_win.visible
 	if hud.in_cinema:
 		return  # the beacon moment: only the banner and the black bars
 	var p := Vector2(cam.global_position.x, cam.global_position.z)
@@ -1432,6 +1468,14 @@ func _debug_place() -> void:
 		_open_journal()
 	if _args.has("pause"):
 		pause_menu.open(self)
+	if _args.has("evening"):
+		Game.submit({"type": "debug", "give": {"wood": 64, "stone": 40, "raw_fish": 11}})
+		Game.session["gathered"] = {"wood": 64, "stone": 40, "raw_fish": 11}
+		Game.session["built"] = {"bathhouse_stove": 1, "log_wall": 6, "gable_roof": 1}
+		Game.session["started"] = Time.get_ticks_msec() - 72 * 60000
+		_open_evening()
+	if _args.has("settings"):
+		settings_win.open()
 	if _args.has("creature"):
 		# debug: creatures in front of the player (through the same "spawn" the host sends, as a fight spawn
 		# when a fight is on, else ambient: the host may still say no)

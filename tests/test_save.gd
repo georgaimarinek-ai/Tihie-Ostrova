@@ -79,3 +79,88 @@ func test_backups_rescue_a_broken_save() -> void:
 	for name in DirAccess.get_files_at(dir):
 		DirAccess.remove_absolute(dir.path_join(name))
 	DirAccess.remove_absolute(dir)
+
+
+func _dir(tag: String) -> String:
+	return "user://test_worlds/%s_%d" % [tag, randi()]
+
+
+func _wipe(dir: String) -> void:
+	SaveCodec.delete_world(dir)
+
+
+func test_migrates_v1_all_the_way_to_v4() -> void:
+	var v1 := {"world_seed": 9, "mode": "tale", "lit": ["b01"], "players": {"p1": {"inv": {"slots": []}, "pos": [1, 2, 3], "spawn": [0, 0, 0], "weary_until": 0.0}}}
+	var s := WorldState.from_dict(db, v1)
+	eq(s.lit.keys(), ["b01"])
+	eq(s.trials_done["b01"], "trial", "v1→v2: lit beacons count as passed")
+	eq(s.players["p1"]["aboard"], "", "v2→v3: aboard nothing")
+	near(float(s.players["p1"]["hp"]), 100.0, 1e-6, "v3→v4: full health")
+	eq(s.players["p1"]["landed"], Vector3.ZERO, "v3→v4: last landing = spawn")
+	eq(s.creatures, {}, "v3→v4: no creatures")
+	eq(WorldState.migrate(v1)["version"], WorldState.VERSION)
+
+
+func test_a_broken_save_says_which_backup_came_back() -> void:
+	var dir := _dir("restore")
+	var st := _busy_world()
+	st.name = "Проба"
+	check(SaveCodec.save_world(st, dir) == OK, "saved")
+	st.day = 5
+	check(SaveCodec.save_world(st, dir) == OK, "saved again (a backup now)")
+	var f := FileAccess.open(dir.path_join("world.json"), FileAccess.WRITE)
+	f.store_string("{ broken")
+	f.close()
+	var back := SaveCodec.load_world(db, dir)
+	check(back != null, "the world comes back")
+	eq(SaveCodec.last_restored, 1, "from backup 1 (the UI says so)")
+	eq(back.day, 4, "as it was one save ago")
+	eq(SaveCodec.backups(dir), 1)
+	for i in range(1, SaveCodec.BACKUPS + 1):
+		if FileAccess.file_exists(dir.path_join("world.%d.json" % i)):
+			var g := FileAccess.open(dir.path_join("world.%d.json" % i), FileAccess.WRITE)
+			g.store_string("nope")
+			g.close()
+	check(SaveCodec.load_world(db, dir) == null, "all broken: nothing, never a half world")
+	eq(SaveCodec.last_restored, -1)
+	_wipe(dir)
+
+
+func test_world_slots_list_and_delete() -> void:
+	var root := "user://test_worlds/slots_%d" % randi()
+	var a := _busy_world()
+	a.name = "Первая"
+	var b := _busy_world()
+	b.name = "Вторая"
+	b.day = 9
+	SaveCodec.save_world(a, root.path_join("first"))
+	SaveCodec.save_world(b, root.path_join("second"))
+	var all := SaveCodec.list_worlds(db, root)
+	eq(all.size(), 2, "two slots")
+	var names: Array = all.map(func(w: Dictionary) -> String: return w["name"])
+	check(names.has("Первая") and names.has("Вторая"), "named slots")
+	check(SaveCodec.delete_world(root.path_join("first")) == OK, "deleted")
+	eq(SaveCodec.list_worlds(db, root).size(), 1, "one left")
+	_wipe(root.path_join("second"))
+	DirAccess.remove_absolute(root)
+
+
+func test_settings_round_trip() -> void:
+	var s := GameSettings.new()
+	s.path = "user://test_settings_%d.cfg" % randi()
+	s.quality = "low"
+	s.fullscreen = true
+	s.volume["Music"] = 0.25
+	s.keys["jump"] = KEY_J
+	s.language = "en"
+	check(s.save_file() == OK, "saved")
+	var t := GameSettings.new()
+	t.path = s.path
+	t.load_file()
+	eq(t.quality, "low")
+	eq(t.rendering_method(), "gl_compatibility", "light = Compatibility")
+	eq(t.fullscreen, true)
+	near(float(t.volume["Music"]), 0.25, 1e-6)
+	eq(int(t.keys["jump"]), KEY_J)
+	eq(t.language, "en")
+	DirAccess.remove_absolute(s.path)

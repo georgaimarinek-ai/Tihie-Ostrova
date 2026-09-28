@@ -52,3 +52,33 @@ func test_every_command_error_has_a_message() -> void:
 			check(ru.has("cmd." + code), "cmd.%s has no message" % code)
 	for side in ["head", "beam", "tail"]:
 		check(ru.has("wind." + side), "wind." + side)
+
+
+func test_english_is_complete() -> void:
+	var f := FileAccess.open("res://i18n/strings.tsv", FileAccess.READ)
+	var n := 0
+	while not f.eof_reached():
+		var line := f.get_line()
+		if line.strip_edges() == "" or line.begins_with("#") or line.begins_with("key\t"):
+			continue
+		var cols := line.split("\t")
+		check(cols.size() >= 3 and cols[2].strip_edges() != "", "an English text for " + cols[0])
+		n += 1
+	check(n > 400, "all the strings (%d)" % n)
+	for table: Dictionary in [db.items, db.pieces, db.boats, db.creatures, db.beacons, db.regions, db.modes]:
+		for id: String in table:
+			var name: Dictionary = table[id]["name"]
+			check(String(name.get("en", "")) != "" and String(name.get("ru", "")) != "", "names in both languages: " + id)
+
+
+func test_no_russian_text_hidden_in_code() -> void:
+	var re := RegEx.create_from_string("\"[^\"]*[\\x{0400}-\\x{04FF}][^\"]*\"")
+	for path in _scripts("res://src"):
+		var f := FileAccess.open(path, FileAccess.READ)
+		var i := 0
+		while not f.eof_reached():
+			var line := f.get_line()
+			i += 1
+			if line.strip_edges().begins_with("#"):
+				continue
+			check(re.search(line) == null, "%s:%d says it in Russian outside tr()" % [path, i])

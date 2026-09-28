@@ -4,6 +4,8 @@ extends Node
 
 signal world_event(event: Dictionary)
 signal command_failed(cmd: Dictionary, error: String)
+signal saved(ok: bool)
+signal quit_requested  # the window's close button: the world shows the evening screen first
 
 const INPUT_ACTIONS := {
 	"move_forward": [KEY_W, KEY_UP], "move_back": [KEY_S, KEY_DOWN],
@@ -17,6 +19,7 @@ const INPUT_ACTIONS := {
 const MOUSE_ACTIONS := {"attack": MOUSE_BUTTON_LEFT}
 const TICK_S := 1.0  # how often the host advances the world clock
 const WORLDS_DIR := "user://worlds"
+const AUTOSAVE_S := 300.0  # every 5 minutes (roadmap phase 8), and on the way out
 
 var state: WorldState
 var commands: WorldCommands
@@ -27,6 +30,15 @@ var paused := false
 var debug_cheats := false
 ## Show the main menu when the world scene starts (first launch; off for debug runs and after "Set sail").
 var show_menu := true
+var settings := GameSettings.new()
+## What this evening brought (the evening screen): started (ms), lit beacons, built pieces, gathered items,
+## journal pages, unlocks.
+var session: Dictionary = {}
+## Where the loaded world came from: 0 = its save, 1..3 = a backup (the world says so once).
+var restored_from := -1
+var autosave := true
+
+var _autosave_acc := 0.0
 
 var _tick_acc := 0.0
 
@@ -37,11 +49,19 @@ func _ready() -> void:
 	Net.events_received.connect(_emit_events)
 	debug_cheats = OS.has_feature("editor") or "--debug-cheats" in OS.get_cmdline_user_args()
 	show_menu = DisplayServer.get_name() != "headless"  # tests and servers never see the menu
+	settings.load_file()
+	settings.apply()
+	get_tree().auto_accept_quit = DisplayServer.get_name() == "headless"
+	reset_session()
 
 
 func _process(delta: float) -> void:
 	if state == null or not Net.is_authority() or (paused and not Net.is_online()):
 		return
+	_autosave_acc += delta
+	if autosave and _autosave_acc >= AUTOSAVE_S and not debug_cheats:
+		_autosave_acc = 0.0
+		save()
 	_tick_acc += delta
 	if _tick_acc >= TICK_S:
 		_apply(Net.local_player_id(), {"type": "tick", "dt_min": _tick_acc / 60.0})
@@ -52,6 +72,8 @@ func new_world(seed_value: int, mode: String = "", world_name: String = "", tuni
 	state = WorldState.new(Content.db, seed_value, mode)
 	state.name = world_name
 	state.tuning = tuning.duplicate()
+	restored_from = -1
+	reset_session()
 	_attach()
 	state.add_player(Net.local_player_id(), map.home["spawn"])
 	_emit_events(commands.init_world())
@@ -61,6 +83,8 @@ func load_world(dir: String) -> bool:
 	var s := SaveCodec.load_world(Content.db, dir)
 	if s == null:
 		return false
+	restored_from = SaveCodec.last_restored
+	reset_session()
 	state = s
 	_attach()
 	state.add_player(Net.local_player_id(), map.home["spawn"])
@@ -110,6 +134,7 @@ func _on_remote_command(pid: String, cmd: Dictionary) -> void:
 
 func _emit_events(events: Array) -> void:
 	for e: Dictionary in events:
+		_count(e)
 		world_event.emit(e)
 
 
@@ -121,13 +146,66 @@ func world_dir(s: WorldState = null) -> String:
 
 
 func save() -> Error:
-	if state == null:
+	if state == null or not Net.is_authority():
 		return ERR_UNCONFIGURED
-	return SaveCodec.save_world(state, world_dir())
+	var err := SaveCodec.save_world(state, world_dir())
+	saved.emit(err == OK)
+	return err
+
+
+func worlds() -> Array:
+	return SaveCodec.list_worlds(Content.db, WORLDS_DIR)
+
+
+func reset_session() -> void:
+	session = {"started": Time.get_ticks_msec(), "lit": [], "built": {}, "gathered": {}, "pages": [], "unlocks": []}
+
+
+## The evening's tally from the world's events (only the local player's doings).
+func _count(e: Dictionary) -> void:
+	if session.is_empty():
+		reset_session()
+	var me := String(e.get("player", "")) == Net.local_player_id()
+	match String(e.get("type", "")):
+		"beacon_lit":
+			(session["lit"] as Array).append(e["beacon"])
+			var u: Dictionary = e.get("unlocks", {})
+			for k: String in ["pieces", "recipes", "boats"]:
+				for id: String in u.get(k, []):
+					(session["unlocks"] as Array).append([k, id])
+		"piece_placed":
+			if me:
+				var b: Dictionary = session["built"]
+				b[e["piece"]] = int(b.get(e["piece"], 0)) + 1
+		"gathered", "station_collected", "crafted":
+			if me and String(e["type"]) == "gathered" and String(e.get("node", "")) != "":
+				var g: Dictionary = session["gathered"]
+				g[e["item"]] = int(g.get(e["item"], 0)) + int(e["n"])
+		"journal_page":
+			if me:
+				(session["pages"] as Array).append(e["page"])
+
+
+## The window's close button: give the world a chance to show the evening; a second press quits.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if state == null or quit_requested.get_connections().is_empty():
+			quit_now()
+		else:
+			quit_requested.emit()
+
+
+func quit_now() -> void:
+	if state != null:
+		save()
+	get_tree().quit()
 
 
 ## The most recently saved world ({"dir", "name", "day", "mode"}), {} if there is none.
 func last_world() -> Dictionary:
+	var all := worlds()
+	if not all.is_empty():
+		return all[0]
 	var best := {}
 	var best_t := -1
 	var d := DirAccess.open(WORLDS_DIR)

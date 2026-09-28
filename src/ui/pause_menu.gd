@@ -6,6 +6,8 @@ extends Control
 
 signal closed
 signal journal_requested
+signal settings_requested
+signal evening_requested
 
 var world
 var _info: Label
@@ -89,7 +91,11 @@ func _build() -> void:
 	v.add_child(sep)
 	for pair: Array in [["pause.resume", close_window], ["pause.journal", func() -> void:
 			close_window()
-			journal_requested.emit()], ["pause.save", _save], ["pause.save_menu", _save_menu], ["pause.quit", _quit]]:
+			journal_requested.emit()], ["pause.settings", func() -> void:
+			close_window()
+			settings_requested.emit()], ["pause.save", _save], ["pause.save_menu", _save_menu], ["pause.quit", func() -> void:
+			close_window()
+			evening_requested.emit()]]:
 		var b := Button.new()
 		b.text = tr(pair[0])
 		b.custom_minimum_size = Vector2(0, 42)
@@ -138,8 +144,7 @@ func _set_rule(rule: String, on: bool) -> void:
 
 
 func _save() -> void:
-	var err: Error = Game.save()
-	world.hud.toast(tr("toast.saved") if err == OK else tr("toast.save_failed"))
+	Game.save()  # the world toasts on Game.saved
 
 
 func _save_menu() -> void:
@@ -149,9 +154,6 @@ func _save_menu() -> void:
 	get_tree().reload_current_scene()
 
 
-func _quit() -> void:
-	Game.save()
-	get_tree().quit()
 
 
 func _process(_delta: float) -> void:

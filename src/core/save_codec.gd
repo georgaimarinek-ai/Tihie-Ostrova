@@ -5,6 +5,9 @@ extends RefCounted
 
 const BACKUPS := 3
 
+## Which file the last load_world() came from: 0 = world.json, 1..BACKUPS = a backup (the UI says so), -1 = none.
+static var last_restored := -1
+
 
 static func encode(state: WorldState) -> String:
 	return JSON.stringify(state.to_dict(), "\t", false)
@@ -40,14 +43,56 @@ static func save_world(state: WorldState, dir: String) -> Error:
 
 ## Loads world.json, falling back to the newest readable backup.
 static func load_world(db: ContentDB, dir: String) -> WorldState:
+	last_restored = -1
 	var candidates: Array[String] = [dir.path_join("world.json")]
 	for i in range(1, BACKUPS + 1):
 		candidates.append(dir.path_join("world.%d.json" % i))
-	for path in candidates:
+	for i in candidates.size():
+		var path := candidates[i]
 		if not FileAccess.file_exists(path):
 			continue
 		var s := decode(db, FileAccess.get_file_as_string(path))
 		if s != null:
+			last_restored = i
 			return s
 		push_warning("SaveCodec: %s is unreadable, trying a backup" % path)
 	return null
+
+
+## How many backups a world has on disk (the evening screen says "saved · 3 backups").
+static func backups(dir: String) -> int:
+	var n := 0
+	for i in range(1, BACKUPS + 1):
+		if FileAccess.file_exists(dir.path_join("world.%d.json" % i)):
+			n += 1
+	return n
+
+
+## Every saved world under `root` (a slot per folder), newest first:
+## [{"dir", "name", "day", "mode", "lit", "time": unix seconds}].
+static func list_worlds(db: ContentDB, root: String) -> Array:
+	var out: Array = []
+	var d := DirAccess.open(root)
+	if d == null:
+		return out
+	for sub in d.get_directories():
+		var dir := root.path_join(sub)
+		var f := dir.path_join("world.json")
+		var t := FileAccess.get_modified_time(f) if FileAccess.file_exists(f) else 0
+		var s := load_world(db, dir)
+		if s == null:
+			continue
+		out.append({"dir": dir, "name": s.name if s.name != "" else sub, "day": s.day, "mode": s.mode, "lit": s.lit.size(), "time": t})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["time"]) > int(b["time"]))
+	last_restored = -1
+	return out
+
+
+## Deletes a world slot (its folder and every backup).
+static func delete_world(dir: String) -> Error:
+	var d := DirAccess.open(dir)
+	if d == null:
+		return ERR_FILE_NOT_FOUND
+	for f in d.get_files():
+		d.remove(f)
+	return DirAccess.remove_absolute(dir)

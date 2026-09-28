@@ -166,3 +166,29 @@ func test_menu_tuning_and_journal(tree: SceneTree) -> void:
 	world.pause_menu.close_window()
 	check(not Game.paused, "and runs again")
 	_done(tree)
+
+
+func test_the_evening_by_the_stove(tree: SceneTree) -> void:
+	var world: Node3D = await _world(tree, 25, "quiet")
+	var pid := Net.local_player_id()
+	Game.reset_session()
+	Game._count({"type": "gathered", "player": pid, "node": "home:1", "item": "wood", "n": 5})
+	Game._count({"type": "gathered", "player": pid, "node": "home:2", "item": "wood", "n": 3})
+	Game._count({"type": "piece_placed", "player": pid, "piece": "bed", "uid": "p1"})
+	Game._count({"type": "beacon_lit", "player": pid, "beacon": "b01", "unlocks": db.unlocks_of("b01")})
+	Game.autosave = false
+	Game.quit_requested.emit()  # the window's close button
+	await frames(tree, 2)
+	check(world.evening.visible, "closing the window shows the evening first")
+	check(Game.paused, "time stands still meanwhile")
+	var rows: Array = world.evening.rows()
+	var text := str(rows)
+	check(text.find(Loc.beacon(db, "b01")) >= 0, "the beacon lit tonight")
+	check(text.find("8") >= 0, "wood 8 gathered")
+	check(text.find(Loc.name_of(db.pieces["bed"]["name"]).to_lower()) >= 0, "the bed built")
+	var next := Progress.next_beacon(db, Game.state)
+	check(String(world.evening.next_time(Vector3.ZERO)).find(Loc.beacon(db, next)) >= 0, "next time: the next beacon")
+	world.evening.close_window()
+	check(not Game.paused, "\"a little more\" goes back to the game")
+	Game.autosave = true
+	_done(tree)

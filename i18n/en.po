@@ -1037,7 +1037,7 @@ msgid "pause.save_menu"
 msgstr "Save and go to the menu"
 
 msgid "pause.quit"
-msgstr "Save and quit"
+msgstr "Until tomorrow…"
 
 msgid "menu.kicker"
 msgstr "The Pomor North · the White Sea"
@@ -1215,3 +1215,171 @@ msgstr "The Chud were never enemies: they left rather than fight. They left us t
 
 msgid "hint.combat"
 msgstr "LMB — strike (hold for heavy) · C — block · Ctrl — dodge · E — action"
+
+msgid "settings.title"
+msgstr "Settings"
+
+msgid "settings.graphics"
+msgstr "Graphics"
+
+msgid "settings.high"
+msgstr "High"
+
+msgid "settings.low"
+msgstr "Light"
+
+msgid "settings.quality_note"
+msgstr "High — volumetric fog (Forward+). Light — for weaker machines and the Steam Deck (Compatibility)."
+
+msgid "settings.restart"
+msgstr "The graphics change on the next start."
+
+msgid "settings.fullscreen"
+msgstr "Full screen"
+
+msgid "settings.sound"
+msgstr "Sound"
+
+msgid "settings.bus.Master"
+msgstr "Master"
+
+msgid "settings.bus.Music"
+msgstr "Music"
+
+msgid "settings.bus.Ambience"
+msgstr "Sea and wind"
+
+msgid "settings.bus.Sfx"
+msgstr "Actions"
+
+msgid "settings.language"
+msgstr "Language"
+
+msgid "settings.lang.ru"
+msgstr "Русский"
+
+msgid "settings.lang.en"
+msgstr "English"
+
+msgid "settings.keys"
+msgstr "Keys"
+
+msgid "settings.press"
+msgstr "press a key…"
+
+msgid "settings.done"
+msgstr "Done"
+
+msgid "key.move_forward"
+msgstr "Forward"
+
+msgid "key.move_back"
+msgstr "Back"
+
+msgid "key.move_left"
+msgstr "Left (turn)"
+
+msgid "key.move_right"
+msgstr "Right (turn)"
+
+msgid "key.jump"
+msgstr "Jump"
+
+msgid "key.sprint"
+msgstr "Run"
+
+msgid "key.interact"
+msgstr "Action"
+
+msgid "key.cycle"
+msgstr "Choose another"
+
+msgid "key.inventory"
+msgstr "Bag and crafting"
+
+msgid "key.build_menu"
+msgstr "Building"
+
+msgid "key.rotate"
+msgstr "Rotate a piece"
+
+msgid "key.map"
+msgstr "Sea chart"
+
+msgid "key.journal"
+msgstr "Journal of tales"
+
+msgid "key.block"
+msgstr "Block"
+
+msgid "key.dodge"
+msgstr "Dodge"
+
+msgid "evening.kicker"
+msgstr "Day %d · %s · %s"
+
+msgid "evening.title"
+msgstr "An evening by the stove"
+
+msgid "evening.min"
+msgstr "%d min"
+
+msgid "evening.hmin"
+msgstr "%d h %d min"
+
+msgid "evening.lit"
+msgstr "Beacon lit"
+
+msgid "evening.built"
+msgstr "Built"
+
+msgid "evening.gathered"
+msgstr "Gathered"
+
+msgid "evening.journal"
+msgstr "Into the journal"
+
+msgid "evening.quiet"
+msgstr "A quiet evening"
+
+msgid "evening.quiet_value"
+msgstr "the sea, the fog and the fire in the stove"
+
+msgid "evening.opened"
+msgstr "Opened"
+
+msgid "evening.next_title"
+msgstr "Next time"
+
+msgid "evening.next"
+msgstr "%s — %s %s. Bring the fuel: %s."
+
+msgid "evening.fuel_ready"
+msgstr "It's already in your bag."
+
+msgid "evening.saved"
+msgstr "Saved · backups: %d"
+
+msgid "evening.more"
+msgstr "A little more"
+
+msgid "evening.bye"
+msgstr "Until tomorrow"
+
+msgid "toast.restored"
+msgstr "The save was damaged — the world came back from backup %d."
+
+msgid "menu.worlds"
+msgstr "Saved worlds"
+
+msgid "menu.slot"
+msgstr "%s · day %d · %s · beacons %d"
+
+msgid "menu.delete"
+msgstr "Delete the world"
+
+msgid "menu.delete_sure"
+msgstr "Sure?"
+
+msgid "pause.settings"
+msgstr "Settings"

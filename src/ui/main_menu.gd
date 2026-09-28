@@ -14,6 +14,8 @@ var _mode := ""
 var _cards: Dictionary = {}  # mode -> PanelContainer
 var _checks: Dictionary = {}
 var _last: Dictionary = {}
+var _settings: SettingsWindow
+var _slots: VBoxContainer
 
 
 func _ready() -> void:
@@ -23,6 +25,7 @@ func _ready() -> void:
 	_mode = String(Content.db.raw["modes"]["default"])
 	_last = Game.last_world()
 	_build()
+	add_child(_settings)
 	_pick(_mode)
 
 
@@ -80,9 +83,8 @@ func _build() -> void:
 	row.add_theme_constant_override("separation", 10)
 	var settings := Button.new()
 	settings.text = tr("menu.settings")
-	settings.disabled = true  # phase 8
-	settings.tooltip_text = tr("menu.soon")
 	settings.custom_minimum_size = Vector2(185, 44)
+	settings.pressed.connect(func() -> void: _settings.open())
 	row.add_child(settings)
 	var quit := Button.new()
 	quit.text = tr("menu.quit")
@@ -90,6 +92,13 @@ func _build() -> void:
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	row.add_child(quit)
 	left.add_child(row)
+	# the saved worlds (slots): load or delete
+	_slots = VBoxContainer.new()
+	_slots.add_theme_constant_override("separation", 4)
+	left.add_child(_slots)
+	_fill_slots()
+	_settings = SettingsWindow.new()
+	_settings.name = "Settings"
 	# the new world
 	var panel := PanelContainer.new()
 	panel.name = "NewWorld"
@@ -176,6 +185,46 @@ func _build() -> void:
 	v.add_child(foot)
 
 
+func _fill_slots() -> void:
+	for c in _slots.get_children():
+		_slots.remove_child(c)
+		c.queue_free()
+	var all := Game.worlds()
+	if all.is_empty():
+		return
+	_slots.add_child(UiTheme.label(tr("menu.worlds").to_upper(), 13, UiTheme.BIRCH, "caps"))
+	for w: Dictionary in all.slice(0, 5):
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		var load := Button.new()
+		load.text = tr("menu.slot") % [w["name"], int(w["day"]), Loc.name_of(Content.db.modes[w["mode"]]["name"]), int(w["lit"])]
+		load.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		load.custom_minimum_size = Vector2(330, 36)
+		var dir: String = w["dir"]
+		load.pressed.connect(func() -> void: _load(dir))
+		row.add_child(load)
+		var del := Button.new()
+		del.text = "✕"
+		del.tooltip_text = tr("menu.delete")
+		del.custom_minimum_size = Vector2(44, 36)
+		del.pressed.connect(func() -> void:
+			if del.get_meta("armed", false):
+				SaveCodec.delete_world(dir)
+				_fill_slots()
+			else:
+				del.set_meta("armed", true)
+				del.text = tr("menu.delete_sure"))
+		row.add_child(del)
+		_slots.add_child(row)
+
+
+func _load(dir: String) -> void:
+	if Game.load_world(dir):
+		Game.show_menu = false
+		started.emit()
+		get_tree().reload_current_scene()
+
+
 func _pick(mode: String) -> void:
 	_mode = mode
 	for m: String in _cards:
@@ -220,10 +269,7 @@ func _start() -> void:
 
 
 func _continue() -> void:
-	if Game.load_world(String(_last["dir"])):
-		Game.show_menu = false
-		started.emit()
-		get_tree().reload_current_scene()
+	_load(String(_last["dir"]))
 
 
 ## A plain check box: a small square that fills fire-orange, the text beside it (the mockup's fine tuning).

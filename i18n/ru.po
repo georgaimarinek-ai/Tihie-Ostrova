@@ -1037,7 +1037,7 @@ msgid "pause.save_menu"
 msgstr "Сохранить и выйти в меню"
 
 msgid "pause.quit"
-msgstr "Сохранить и выйти из игры"
+msgstr "Выйти до завтра…"
 
 msgid "menu.kicker"
 msgstr "Поморский Север · Белое море"
@@ -1215,3 +1215,171 @@ msgstr "Чудь не враги: ушли, чтобы не воевать. Ос
 
 msgid "hint.combat"
 msgstr "ЛКМ — удар (удерживай — сильный) · C — блок · Ctrl — уклон · E — действие"
+
+msgid "settings.title"
+msgstr "Настройки"
+
+msgid "settings.graphics"
+msgstr "Графика"
+
+msgid "settings.high"
+msgstr "Высокая"
+
+msgid "settings.low"
+msgstr "Лёгкая"
+
+msgid "settings.quality_note"
+msgstr "Высокая — объёмный туман (Forward+). Лёгкая — для слабых машин и Steam Deck (Compatibility)."
+
+msgid "settings.restart"
+msgstr "Графика сменится при следующем запуске."
+
+msgid "settings.fullscreen"
+msgstr "Во весь экран"
+
+msgid "settings.sound"
+msgstr "Звук"
+
+msgid "settings.bus.Master"
+msgstr "Общая"
+
+msgid "settings.bus.Music"
+msgstr "Музыка"
+
+msgid "settings.bus.Ambience"
+msgstr "Море и ветер"
+
+msgid "settings.bus.Sfx"
+msgstr "Действия"
+
+msgid "settings.language"
+msgstr "Язык"
+
+msgid "settings.lang.ru"
+msgstr "Русский"
+
+msgid "settings.lang.en"
+msgstr "English"
+
+msgid "settings.keys"
+msgstr "Клавиши"
+
+msgid "settings.press"
+msgstr "нажми клавишу…"
+
+msgid "settings.done"
+msgstr "Готово"
+
+msgid "key.move_forward"
+msgstr "Вперёд"
+
+msgid "key.move_back"
+msgstr "Назад"
+
+msgid "key.move_left"
+msgstr "Влево (поворот)"
+
+msgid "key.move_right"
+msgstr "Вправо (поворот)"
+
+msgid "key.jump"
+msgstr "Прыжок"
+
+msgid "key.sprint"
+msgstr "Бег"
+
+msgid "key.interact"
+msgstr "Действие"
+
+msgid "key.cycle"
+msgstr "Выбрать другое"
+
+msgid "key.inventory"
+msgstr "Сумка и крафт"
+
+msgid "key.build_menu"
+msgstr "Стройка"
+
+msgid "key.rotate"
+msgstr "Повернуть деталь"
+
+msgid "key.map"
+msgstr "Лоция"
+
+msgid "key.journal"
+msgstr "Журнал сказаний"
+
+msgid "key.block"
+msgstr "Блок"
+
+msgid "key.dodge"
+msgstr "Уклон"
+
+msgid "evening.kicker"
+msgstr "День %d · %s · %s"
+
+msgid "evening.title"
+msgstr "Вечер у печи"
+
+msgid "evening.min"
+msgstr "%d мин"
+
+msgid "evening.hmin"
+msgstr "%d ч %d мин"
+
+msgid "evening.lit"
+msgstr "Зажжён маяк"
+
+msgid "evening.built"
+msgstr "Построено"
+
+msgid "evening.gathered"
+msgstr "Добыто"
+
+msgid "evening.journal"
+msgstr "В журнал"
+
+msgid "evening.quiet"
+msgstr "Тихий вечер"
+
+msgid "evening.quiet_value"
+msgstr "море, туман и огонь в печи"
+
+msgid "evening.opened"
+msgstr "Открылось"
+
+msgid "evening.next_title"
+msgstr "В следующий раз"
+
+msgid "evening.next"
+msgstr "%s — %s %s. Возьми топливо: %s."
+
+msgid "evening.fuel_ready"
+msgstr "Оно уже в сумке."
+
+msgid "evening.saved"
+msgstr "Сохранено · резервных копий: %d"
+
+msgid "evening.more"
+msgstr "Ещё немного"
+
+msgid "evening.bye"
+msgstr "Выйти до завтра"
+
+msgid "toast.restored"
+msgstr "Сохранение было повреждено — мир восстановлен из резервной копии %d."
+
+msgid "menu.worlds"
+msgstr "Сохранённые миры"
+
+msgid "menu.slot"
+msgstr "%s · день %d · %s · маяков %d"
+
+msgid "menu.delete"
+msgstr "Удалить мир"
+
+msgid "menu.delete_sure"
+msgstr "Точно?"
+
+msgid "pause.settings"
+msgstr "Настройки"

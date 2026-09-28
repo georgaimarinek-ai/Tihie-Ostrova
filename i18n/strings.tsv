@@ -343,7 +343,7 @@ pause.resume	Продолжить	Resume
 pause.journal	Журнал сказаний	Journal of tales
 pause.save	Сохранить	Save
 pause.save_menu	Сохранить и выйти в меню	Save and go to the menu
-pause.quit	Сохранить и выйти из игры	Save and quit
+pause.quit	Выйти до завтра…	Until tomorrow…
 menu.kicker	Поморский Север · Белое море	The Pomor North · the White Sea
 menu.title	Туманные острова	Fog Isles
 menu.about	Зажигай маяки, раздвигай Мгу, строй усадьбу. Отдых после работы, опасность по желанию.	Light the beacons, push back the Mga, build a homestead. Rest after work, danger if you want it.
@@ -403,3 +403,59 @@ tale.chud.4	Кто камень из круга унесёт, тот дорог�
 tale.chud.5	В копях тёплый воздух, будто кто-то дышит под землёй. (TODO: быличка автора)	The air in the mines is warm, as if someone breathes under the earth. (TODO: author's tale)
 tale.chud.6	Чудь не враги: ушли, чтобы не воевать. Оставили нам свои знаки. (TODO: быличка автора)	The Chud were never enemies: they left rather than fight. They left us their signs. (TODO: author's tale)
 hint.combat	ЛКМ — удар (удерживай — сильный) · C — блок · Ctrl — уклон · E — действие	LMB — strike (hold for heavy) · C — block · Ctrl — dodge · E — action
+settings.title	Настройки	Settings
+settings.graphics	Графика	Graphics
+settings.high	Высокая	High
+settings.low	Лёгкая	Light
+settings.quality_note	Высокая — объёмный туман (Forward+). Лёгкая — для слабых машин и Steam Deck (Compatibility).	High — volumetric fog (Forward+). Light — for weaker machines and the Steam Deck (Compatibility).
+settings.restart	Графика сменится при следующем запуске.	The graphics change on the next start.
+settings.fullscreen	Во весь экран	Full screen
+settings.sound	Звук	Sound
+settings.bus.Master	Общая	Master
+settings.bus.Music	Музыка	Music
+settings.bus.Ambience	Море и ветер	Sea and wind
+settings.bus.Sfx	Действия	Actions
+settings.language	Язык	Language
+settings.lang.ru	Русский	Русский
+settings.lang.en	English	English
+settings.keys	Клавиши	Keys
+settings.press	нажми клавишу…	press a key…
+settings.done	Готово	Done
+key.move_forward	Вперёд	Forward
+key.move_back	Назад	Back
+key.move_left	Влево (поворот)	Left (turn)
+key.move_right	Вправо (поворот)	Right (turn)
+key.jump	Прыжок	Jump
+key.sprint	Бег	Run
+key.interact	Действие	Action
+key.cycle	Выбрать другое	Choose another
+key.inventory	Сумка и крафт	Bag and crafting
+key.build_menu	Стройка	Building
+key.rotate	Повернуть деталь	Rotate a piece
+key.map	Лоция	Sea chart
+key.journal	Журнал сказаний	Journal of tales
+key.block	Блок	Block
+key.dodge	Уклон	Dodge
+evening.kicker	День %d · %s · %s	Day %d · %s · %s
+evening.title	Вечер у печи	An evening by the stove
+evening.min	%d мин	%d min
+evening.hmin	%d ч %d мин	%d h %d min
+evening.lit	Зажжён маяк	Beacon lit
+evening.built	Построено	Built
+evening.gathered	Добыто	Gathered
+evening.journal	В журнал	Into the journal
+evening.quiet	Тихий вечер	A quiet evening
+evening.quiet_value	море, туман и огонь в печи	the sea, the fog and the fire in the stove
+evening.opened	Открылось	Opened
+evening.next_title	В следующий раз	Next time
+evening.next	%s — %s %s. Возьми топливо: %s.	%s — %s %s. Bring the fuel: %s.
+evening.fuel_ready	Оно уже в сумке.	It's already in your bag.
+evening.saved	Сохранено · резервных копий: %d	Saved · backups: %d
+evening.more	Ещё немного	A little more
+evening.bye	Выйти до завтра	Until tomorrow
+toast.restored	Сохранение было повреждено — мир восстановлен из резервной копии %d.	The save was damaged — the world came back from backup %d.
+menu.worlds	Сохранённые миры	Saved worlds
+menu.slot	%s · день %d · %s · маяков %d	%s · day %d · %s · beacons %d
+menu.delete	Удалить мир	Delete the world
+menu.delete_sure	Точно?	Sure?
+pause.settings	Настройки	Settings
