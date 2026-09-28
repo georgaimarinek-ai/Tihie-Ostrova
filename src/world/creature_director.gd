@@ -106,7 +106,17 @@ func _process(delta: float) -> void:
 	var rid := db.region_at(Vector2(f.x, f.z))
 	night = Weather.night(db, rid, state.clock_min)
 	if not Net.is_authority():
-		return  # clients only draw what the host reports (phase 9: synchroniser)
+		# a co-op client draws the host's creatures where the host says they are (replayed "creatures")
+		var k := 1.0 - exp(-delta * 6.0)
+		for uid: String in views:
+			if state.creatures.has(uid):
+				var v: CreatureView = views[uid]
+				var to: Vector3 = state.creatures[uid]["pos"]
+				var step := to - v.position
+				v.position = Vector3(lerpf(v.position.x, to.x, k), v.position.y, lerpf(v.position.z, to.z, k))
+				if Vector2(step.x, step.z).length() > 0.05:
+					v.yaw = lerp_angle(v.yaw, atan2(-step.x, -step.z), k)
+		return
 	for v: CreatureView in views.values():
 		v.think(delta)
 	_sync_t -= delta

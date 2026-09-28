@@ -93,7 +93,7 @@ func _build() -> void:
 			close_window()
 			journal_requested.emit()], ["pause.settings", func() -> void:
 			close_window()
-			settings_requested.emit()], ["pause.save", _save], ["pause.save_menu", _save_menu], ["pause.quit", func() -> void:
+			settings_requested.emit()], ["pause.save", _save], ["coop.open", _toggle_host], ["pause.save_menu", _save_menu], ["pause.quit", func() -> void:
 			close_window()
 			evening_requested.emit()]]:
 		var b := Button.new()
@@ -108,6 +108,8 @@ func refresh() -> void:
 	_quiet = true
 	var mode_name := Loc.name_of(Content.db.modes[st.mode]["name"])
 	_info.text = tr("pause.info") % [st.name if st.name != "" else tr("menu.unnamed"), st.day, mode_name]
+	if Net.is_online():
+		_info.text += "\n" + tr("coop.status") % [", ".join(Net.addresses()) if Net.is_authority() else tr("coop.client"), Net.peers.size() + 1]
 	for b in _modes:
 		b.button_pressed = String(b.get_meta("mode")) == st.mode
 	var r := st.rules()
@@ -147,8 +149,26 @@ func _save() -> void:
 	Game.save()  # the world toasts on Game.saved
 
 
+## Open this world to friends (by IP, Net.PORT) or close it again.
+func _toggle_host() -> void:
+	if Net.is_online():
+		if Net.is_authority():
+			Net.leave()
+			world.hud.toast(tr("coop.closed"))
+		return
+	var err := Net.host()
+	if err == OK:
+		var ips := Net.addresses()
+		world.hud.toast(tr("coop.hosting") % [", ".join(ips) if not ips.is_empty() else "127.0.0.1", Net.PORT], "✦")
+	else:
+		world.hud.toast(tr("coop.host_failed"))
+	refresh()
+
+
 func _save_menu() -> void:
 	Game.save()
+	if Net.is_online():
+		Net.leave()
 	Game.paused = false
 	Game.show_menu = true
 	get_tree().reload_current_scene()

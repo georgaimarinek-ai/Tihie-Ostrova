@@ -350,7 +350,7 @@ menu.about	Зажигай маяки, раздвигай Мгу, строй ус
 menu.continue	Продолжить	Continue
 menu.continue_sub	Мир «%s» · день %d · %s	World “%s” · day %d · %s
 menu.new	Новый мир	New world
-menu.coop	Открыть мир друзьям · кооп позже	Open to friends · co-op later
+menu.coop	Играть с друзьями	Play with friends
 menu.settings	Настройки	Settings
 menu.soon	Скоро	Soon
 menu.quit	Выход	Quit
@@ -459,3 +459,15 @@ menu.slot	%s · день %d · %s · маяков %d	%s · day %d · %s · beaco
 menu.delete	Удалить мир	Delete the world
 menu.delete_sure	Точно?	Sure?
 pause.settings	Настройки	Settings
+coop.open	Открыть мир друзьям / закрыть	Open to friends / close
+coop.hosting	Мир открыт: адрес %s, порт %d	The world is open: address %s, port %d
+coop.host_failed	Не удалось открыть мир (порт занят?)	Could not open the world (is the port taken?)
+coop.closed	Мир закрыт для друзей.	The world is closed to friends.
+coop.status	Кооп: %s · игроков %d	Co-op: %s · players %d
+coop.client	ты в гостях	you're a guest
+coop.address	адрес друга, например 192.168.1.5	a friend's address, e.g. 192.168.1.5
+coop.join	Подключиться	Join
+coop.hint	Друг открывает свой мир в паузе (Esc → «Открыть мир друзьям») и называет адрес.	Your friend opens their world from the pause menu (Esc → "Open to friends") and tells you the address.
+coop.connecting	Подключение к %s…	Connecting to %s…
+coop.failed	Не удалось подключиться.	Could not connect.
+coop.joined	Присоединился: %s	Joined: %s

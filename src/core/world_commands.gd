@@ -18,7 +18,7 @@ const WORLD_LIMIT_M := 5000.0
 ## Commands only the host itself may issue; Game drops them when they arrive from a remote peer.
 const HIT_REACH_M := 4.5  # a creature's bite or swipe (guardians reach further)
 ## Only the host sends these: world time, debug, and what the host simulates (creatures, their hits, storms).
-const HOST_ONLY: Array[String] = ["tick", "debug", "spawn", "despawn", "creatures", "hurt", "capsize", "douse", "steal"]
+const HOST_ONLY: Array[String] = ["tick", "debug", "spawn", "despawn", "creatures", "hurt", "capsize", "douse", "steal", "join"]
 const ARENA_LANTERNS := 4  # around the Lodestar: the Mga is weak while all of them burn
 
 var db: ContentDB
@@ -123,6 +123,8 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _hurt(pid, cmd)
 		"attack":
 			return _attack(pid, cmd)
+		"join":
+			return _join(pid, cmd)
 		"douse":
 			return _douse(pid, cmd)
 		"steal":
@@ -1006,6 +1008,18 @@ func _debug(pid: String, cmd: Dictionary) -> Dictionary:
 
 
 # ---------------------------------------------------------------- life of the world (phase 6)
+
+## Host-only: a co-op friend joins (docs/04_TECH_SPEC.md §7). New players start on foot at the home pier;
+## someone who played here before comes back as they were.
+func _join(_pid: String, cmd: Dictionary) -> Dictionary:
+	var who := String(cmd.get("player", ""))
+	if not who.begins_with("p") or not who.trim_prefix("p").is_valid_int():
+		return _fail("unknown_player")
+	var fresh := not state.players.has(who)
+	var at: Vector3 = map.home["spawn"] if map != null else Vector3.ZERO
+	state.add_player(who, at)
+	return _ok([{"type": "player_joined", "player": who, "fresh": fresh}])
+
 
 ## A gift to a spirit (docs/01_GDD.md §11, creatures.json → gift): kalitki by the domovoy's bed (every
 ## balance.spirits.domovoy_gift_days), cloudberries on a stump of a big forested island for the leshy (his

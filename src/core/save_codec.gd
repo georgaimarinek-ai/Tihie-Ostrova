@@ -10,7 +10,20 @@ static var last_restored := -1
 
 
 static func encode(state: WorldState) -> String:
-	return JSON.stringify(state.to_dict(), "\t", false)
+	return JSON.stringify(state.to_dict(), "\t", false, true)  # full precision: co-op copies must match exactly
+
+
+## The world for a joining co-op client: binary, so every double arrives bit for bit (JSON text doesn't
+## round-trip the last digit, and the copies must stay identical).
+static func snapshot(state: WorldState) -> PackedByteArray:
+	return var_to_bytes(state.to_dict())
+
+
+static func from_snapshot(db: ContentDB, bytes: PackedByteArray) -> WorldState:
+	var d: Variant = bytes_to_var(bytes)
+	if typeof(d) != TYPE_DICTIONARY:
+		return null
+	return WorldState.from_dict(db, d)
 
 
 static func decode(db: ContentDB, text: String) -> WorldState:

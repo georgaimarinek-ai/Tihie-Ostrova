@@ -57,6 +57,7 @@ var pause_menu: PauseMenu
 var menu: MainMenu
 var evening: EveningWindow
 var settings_win: SettingsWindow
+var others: Dictionary = {}  # co-op: player id -> Node3D (the other players, drawn from WorldState)
 var trials: Dictionary = {}  # beacon id -> Trial, built while its island is near
 var trail := PackedVector2Array()  # where the player has been (the chart's dotted path)
 var mark := Vector2.INF  # the chart's mark: the compass follows it until you get there
@@ -186,6 +187,9 @@ func _ready() -> void:
 	layer.add_child(settings_win)
 	settings_win.closed.connect(func() -> void: player.busy = false)
 	Game.quit_requested.connect(_on_quit_requested)
+	Game.left_world.connect(func() -> void:
+		Game.show_menu = true  # the host is gone: back to the menu
+		get_tree().reload_current_scene())
 	Game.saved.connect(func(ok: bool) -> void:
 		if not evening.visible:
 			hud.toast(tr("toast.saved") if ok else tr("toast.save_failed")))
@@ -314,6 +318,7 @@ func _process(delta: float) -> void:
 	_update_vitals()
 	_update_beacons()
 	_update_trials(delta)
+	_update_others(delta)
 	_update_trail(focus)
 	_update_audio(focus)
 	_update_hud()
@@ -888,6 +893,54 @@ func _update_trials(delta: float) -> void:
 		t.tick(delta)  # finished trials keep animating (lit lanterns flicker, bells settle)
 
 
+## Co-op: the other players and the boats they sail, from WorldState (their "move" commands, replayed on every
+## copy of the world), eased so they don't jump. A boat someone else steers is kinematic here.
+func _update_others(delta: float) -> void:
+	if not Net.is_online() and others.is_empty():
+		return
+	var k := 1.0 - exp(-delta * 8.0)
+	for pid: String in state.players:
+		if pid == _pid:
+			continue
+		var p: Dictionary = state.players[pid]
+		var here := Net.peers.has(pid)
+		var n: Node3D = others.get(pid)
+		if n == null and here:
+			n = ModelLibrary.instance("player", "pomor")
+			var tag := Label3D.new()
+			tag.text = pid
+			tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			tag.position = Vector3(0, 2.3, 0)
+			tag.font_size = 48
+			tag.outline_size = 8
+			n.add_child(tag)
+			add_child(n)
+			n.global_position = p["pos"]
+			others[pid] = n
+		if n == null:
+			continue
+		n.visible = here and String(p["aboard"]) == ""
+		var to: Vector3 = p["pos"]
+		var move := to - n.global_position
+		n.global_position = n.global_position.lerp(to, k)
+		if Vector2(move.x, move.z).length() > 0.05:
+			n.rotation.y = lerp_angle(n.rotation.y, atan2(-move.x, -move.z), k)
+	for uid: String in boats:
+		var b: Boat = boats[uid]
+		if b == my_boat or not state.boats.has(uid):
+			continue
+		var steered := false
+		for pid: String in state.players:
+			if pid != _pid and String(state.players[pid]["aboard"]) == uid:
+				steered = true
+		b.freeze = steered
+		if steered:
+			var row: Dictionary = state.boats[uid]
+			var bp: Vector3 = row["pos"]
+			b.global_position = b.global_position.lerp(Vector3(bp.x, b.global_position.y, bp.z), k)
+			b.rotation.y = lerp_angle(b.rotation.y, float(row["yaw"]), k)
+
+
 ## The dotted path on the chart: a point every TRAIL_STEP_M metres.
 func _update_trail(focus: Vector3) -> void:
 	var p := Vector2(focus.x, focus.z)
@@ -1222,6 +1275,12 @@ func _on_world_event(e: Dictionary) -> void:
 		"respawn":
 			if mine:
 				_respawn(e)
+		"boat_added":
+			if not boats.has(String(e["uid"])):
+				_spawn_boat(String(e["uid"]))
+		"player_joined":
+			if String(e["player"]) != _pid:
+				hud.toast(tr("coop.joined") % String(e["player"]), "✦")
 		"journal_page":
 			if mine:
 				hud.toast(tr("toast.journal") % String(journal.page(String(e["page"]))["title"]), "J")

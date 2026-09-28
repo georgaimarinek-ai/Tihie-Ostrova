@@ -6,6 +6,8 @@ signal world_event(event: Dictionary)
 signal command_failed(cmd: Dictionary, error: String)
 signal saved(ok: bool)
 signal quit_requested  # the window's close button: the world shows the evening screen first
+signal joined  # a co-op client got the host's world (the world scene starts)
+signal left_world  # a co-op client lost the host
 
 const INPUT_ACTIONS := {
 	"move_forward": [KEY_W, KEY_UP], "move_back": [KEY_S, KEY_DOWN],
@@ -46,7 +48,13 @@ var _tick_acc := 0.0
 func _ready() -> void:
 	_register_input()
 	Net.command_received.connect(_on_remote_command)
-	Net.events_received.connect(_emit_events)
+	Net.applied_received.connect(_on_applied)
+	Net.snapshot_received.connect(_on_snapshot)
+	Net.failed_received.connect(func(cmd: Dictionary, error: String) -> void: command_failed.emit(cmd, error))
+	Net.peer_joined.connect(_on_peer_joined)
+	Net.server_lost.connect(func() -> void:
+		state = null
+		left_world.emit())
 	debug_cheats = OS.has_feature("editor") or "--debug-cheats" in OS.get_cmdline_user_args()
 	show_menu = DisplayServer.get_name() != "headless"  # tests and servers never see the menu
 	settings.load_file()
@@ -115,21 +123,62 @@ func check(cmd: Dictionary) -> Dictionary:
 	return commands.apply(Net.local_player_id(), c)
 
 
+## The host applies a command; if it passes, every client replays it on its copy of the world (the rules are
+## deterministic, so every copy stays the same) and hears the same events from its own replay.
 func _apply(pid: String, cmd: Dictionary) -> Dictionary:
 	var res := commands.apply(pid, cmd)
 	if res["ok"]:
+		if not cmd.get("dry", false):
+			Net.broadcast_applied(pid, cmd)
 		_emit_events(res["events"])
-		Net.broadcast_events(res["events"])
 	elif pid == Net.local_player_id():
 		command_failed.emit(cmd, res["error"])
+	else:
+		Net.send_failed(pid, cmd, res["error"])
 	return res
 
 
+## A client's command at the host: only through the rules; world time, creatures and debug are the host's own.
 func _on_remote_command(pid: String, cmd: Dictionary) -> void:
-	if String(cmd.get("type", "")) in WorldCommands.HOST_ONLY:
+	if state == null:
 		return
-	state.add_player(pid, map.home["spawn"])
+	if String(cmd.get("type", "")) in WorldCommands.HOST_ONLY:
+		Net.send_failed(pid, cmd, "unknown_command")
+		return
 	_apply(pid, cmd)
+
+
+## A friend connects: the host adds their player ("join", replayed everywhere) and sends them the world.
+func _on_peer_joined(pid: String) -> void:
+	if not Net.is_authority() or state == null:
+		return
+	_apply(Net.local_player_id(), {"type": "join", "player": pid})
+	Net.send_snapshot(pid, SaveCodec.snapshot(state))
+
+
+## A client: the host's world arrives once; islands are built here from the seeds.
+func _on_snapshot(bytes: PackedByteArray) -> void:
+	var s := SaveCodec.from_snapshot(Content.db, bytes)
+	if s == null:
+		Net.leave()
+		return
+	state = s
+	_attach()
+	commands.allow_debug = true  # the host already checked what it sends; the copy only replays it
+	reset_session()
+	show_menu = false
+	joined.emit()
+
+
+## A client replays what the host applied. A refusal here would mean the copies drifted apart.
+func _on_applied(pid: String, cmd: Dictionary) -> void:
+	if state == null or Net.is_authority():
+		return
+	var res := commands.apply(pid, cmd)
+	if res["ok"]:
+		_emit_events(res["events"])
+	else:
+		push_warning("co-op: the copy refused %s from %s: %s" % [cmd.get("type", ""), pid, res["error"]])
 
 
 func _emit_events(events: Array) -> void:

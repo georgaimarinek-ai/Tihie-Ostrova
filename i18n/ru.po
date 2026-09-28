@@ -1058,7 +1058,7 @@ msgid "menu.new"
 msgstr "Новый мир"
 
 msgid "menu.coop"
-msgstr "Открыть мир друзьям · кооп позже"
+msgstr "Играть с друзьями"
 
 msgid "menu.settings"
 msgstr "Настройки"
@@ -1383,3 +1383,39 @@ msgstr "Точно?"
 
 msgid "pause.settings"
 msgstr "Настройки"
+
+msgid "coop.open"
+msgstr "Открыть мир друзьям / закрыть"
+
+msgid "coop.hosting"
+msgstr "Мир открыт: адрес %s, порт %d"
+
+msgid "coop.host_failed"
+msgstr "Не удалось открыть мир (порт занят?)"
+
+msgid "coop.closed"
+msgstr "Мир закрыт для друзей."
+
+msgid "coop.status"
+msgstr "Кооп: %s · игроков %d"
+
+msgid "coop.client"
+msgstr "ты в гостях"
+
+msgid "coop.address"
+msgstr "адрес друга, например 192.168.1.5"
+
+msgid "coop.join"
+msgstr "Подключиться"
+
+msgid "coop.hint"
+msgstr "Друг открывает свой мир в паузе (Esc → «Открыть мир друзьям») и называет адрес."
+
+msgid "coop.connecting"
+msgstr "Подключение к %s…"
+
+msgid "coop.failed"
+msgstr "Не удалось подключиться."
+
+msgid "coop.joined"
+msgstr "Присоединился: %s"

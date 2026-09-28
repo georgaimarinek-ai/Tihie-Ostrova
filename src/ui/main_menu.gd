@@ -16,6 +16,9 @@ var _checks: Dictionary = {}
 var _last: Dictionary = {}
 var _settings: SettingsWindow
 var _slots: VBoxContainer
+var _join_row: HBoxContainer
+var _join_ip: LineEdit
+var _join_status: Label
 
 
 func _ready() -> void:
@@ -69,7 +72,9 @@ func _build() -> void:
 		cont.text = "%s\n%s" % [tr("menu.continue"), tr("menu.continue_sub") % [_last["name"], int(_last["day"]), Loc.name_of(Content.db.modes[_last["mode"]]["name"])]]
 		cont.pressed.connect(_continue)
 		left.add_child(cont)
-	for pair: Array in [["menu.new", func() -> void: _name.grab_focus(), true], ["menu.coop", Callable(), false]]:
+	for pair: Array in [["menu.new", func() -> void: _name.grab_focus(), true], ["menu.coop", func() -> void:
+			_join_row.visible = not _join_row.visible
+			_join_status.visible = _join_row.visible, true]]:
 		var b := Button.new()
 		b.text = tr(pair[0])
 		b.custom_minimum_size = Vector2(380, 50)
@@ -79,6 +84,28 @@ func _build() -> void:
 		if (pair[1] as Callable).is_valid():
 			b.pressed.connect(pair[1])
 		left.add_child(b)
+	# co-op: join a friend's world by address (hosting is from the pause menu of a running world)
+	_join_row = HBoxContainer.new()
+	_join_row.visible = false
+	_join_row.add_theme_constant_override("separation", 8)
+	_join_ip = LineEdit.new()
+	_join_ip.placeholder_text = tr("coop.address")
+	_join_ip.text = "127.0.0.1"
+	_join_ip.custom_minimum_size = Vector2(230, 40)
+	_join_row.add_child(_join_ip)
+	var go_join := Button.new()
+	go_join.text = tr("coop.join")
+	go_join.custom_minimum_size = Vector2(140, 40)
+	go_join.pressed.connect(_join)
+	_join_row.add_child(go_join)
+	left.add_child(_join_row)
+	_join_status = UiTheme.label(tr("coop.hint"), 14, UiTheme.MUTED)
+	_join_status.visible = false
+	_join_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_join_status.custom_minimum_size = Vector2(380, 0)
+	left.add_child(_join_status)
+	Game.joined.connect(func() -> void: get_tree().reload_current_scene())
+	Net.connection_failed.connect(func() -> void: _join_status.text = tr("coop.failed"))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	var settings := Button.new()
@@ -216,6 +243,19 @@ func _fill_slots() -> void:
 				del.text = tr("menu.delete_sure"))
 		row.add_child(del)
 		_slots.add_child(row)
+
+
+func _join() -> void:
+	var addr := _join_ip.text.strip_edges()
+	var port := Net.PORT
+	if addr.contains(":"):
+		port = int(addr.get_slice(":", 1))
+		addr = addr.get_slice(":", 0)
+	Net.leave()
+	if Net.join(addr, port) == OK:
+		_join_status.text = tr("coop.connecting") % addr
+	else:
+		_join_status.text = tr("coop.failed")
 
 
 func _load(dir: String) -> void:

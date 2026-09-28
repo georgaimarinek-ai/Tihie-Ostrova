@@ -1058,7 +1058,7 @@ msgid "menu.new"
 msgstr "New world"
 
 msgid "menu.coop"
-msgstr "Open to friends · co-op later"
+msgstr "Play with friends"
 
 msgid "menu.settings"
 msgstr "Settings"
@@ -1383,3 +1383,39 @@ msgstr "Sure?"
 
 msgid "pause.settings"
 msgstr "Settings"
+
+msgid "coop.open"
+msgstr "Open to friends / close"
+
+msgid "coop.hosting"
+msgstr "The world is open: address %s, port %d"
+
+msgid "coop.host_failed"
+msgstr "Could not open the world (is the port taken?)"
+
+msgid "coop.closed"
+msgstr "The world is closed to friends."
+
+msgid "coop.status"
+msgstr "Co-op: %s · players %d"
+
+msgid "coop.client"
+msgstr "you're a guest"
+
+msgid "coop.address"
+msgstr "a friend's address, e.g. 192.168.1.5"
+
+msgid "coop.join"
+msgstr "Join"
+
+msgid "coop.hint"
+msgstr "Your friend opens their world from the pause menu (Esc → \"Open to friends\") and tells you the address."
+
+msgid "coop.connecting"
+msgstr "Connecting to %s…"
+
+msgid "coop.failed"
+msgstr "Could not connect."
+
+msgid "coop.joined"
+msgstr "Joined: %s"

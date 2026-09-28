@@ -177,6 +177,8 @@ reference/sketch/        браузерный набросок, эталон о�
 
 ## 7. Кооператив (готовность с первого дня)
 
+> **Как сделано на этапе 9:** репликация команд вместо синхронизатора. Хост применяет команду и рассылает её (`Net.broadcast_applied`), клиенты повторяют её на копии (`Game._on_applied`); снимок мира при подключении двоичный (`SaveCodec.snapshot`); позиции — те же `move`, рисуются с догоном (`World._update_others`), существа — по `creatures`. Тест `test_coop.test_two_instances_on_one_machine` запускает второй экземпляр Godot (`tests/coop_client.gd`) и сравнивает MD5 от `SaveCodec.encode`.
+
 - `Net` (автозагрузка) задаёт API: `is_authority()`, `local_player_id()` = `"p<peer_id>"`, `host()`, `join()`, `send_command()`, `broadcast_events()`. Сейчас это соло, API зафиксирован.
 - **Подключение клиента:**
   1. хост отправляет `SaveCodec.encode(state)`;
