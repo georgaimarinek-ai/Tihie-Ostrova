@@ -26,6 +26,7 @@ var occluders: Array = []
 
 var _target := Vector3.ZERO
 var _cine: Dictionary = {}
+var _shake := 0.0
 
 
 func _ready() -> void:
@@ -71,6 +72,18 @@ func _process(delta: float) -> void:
 	_target = _target.lerp(view_target(), 1.0 - exp(-delta * 6.0))
 	if not global_position.is_equal_approx(_target):
 		look_at(_target)
+	if _shake > 0.0:
+		h_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+		v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+		_shake = maxf(0.0, _shake - delta)
+		if _shake == 0.0:
+			h_offset = 0.0
+			v_offset = 0.0
+
+
+## A short shake (a hit taken).
+func shake(amount: float) -> void:
+	_shake = maxf(_shake, amount)
 
 
 ## Jump straight to the resting position (after a teleport or on load).

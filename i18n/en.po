@@ -765,3 +765,453 @@ msgstr "the reflectors"
 
 msgid "trial.finale"
 msgstr "all trials in a row"
+
+msgid "cmd.already_done"
+msgstr "This beacon is already done."
+
+msgid "cmd.friendly"
+msgstr "Spirits and peaceful animals are never harmed."
+
+msgid "cmd.no_ammo"
+msgstr "No arrows."
+
+msgid "cmd.unknown_creature"
+msgstr "Nothing like that lives here."
+
+msgid "cmd.no_gift"
+msgstr "This spirit takes no gifts."
+
+msgid "cmd.no_domovoy"
+msgstr "No domovoy yet: he wants a stove, a bed and comfort 5."
+
+msgid "cmd.not_hungry"
+msgstr "The gift is already taken."
+
+msgid "cmd.not_now"
+msgstr "Not now: come at the right hour."
+
+msgid "cmd.unknown_site"
+msgstr "There are no ruins here."
+
+msgid "cmd.explored"
+msgstr "These ruins are already explored."
+
+msgid "cmd.unknown_rule"
+msgstr "This rule can't be tuned."
+
+msgid "cmd.bad_value"
+msgstr "No such value."
+
+msgid "cmd.no_storm"
+msgstr "There's no storm."
+
+msgid "cmd.no_harm"
+msgstr "Nothing harms anyone in a Quiet world."
+
+msgid "cmd.nothing"
+msgstr "There's nothing here."
+
+msgid "cmd.clear"
+msgstr "The fog is too thin here."
+
+msgid "cmd.daylight"
+msgstr "They don't come out by day."
+
+msgid "cmd.fight_only"
+msgstr "A guardian comes only to a fight."
+
+msgid "cmd.not_in_this_region"
+msgstr "None of those in these parts."
+
+msgid "act.right_boat"
+msgstr "Right the boat"
+
+msgid "act.whale"
+msgstr "Moor by the whale and rest at the chapel"
+
+msgid "act.offer"
+msgstr "Leave %s for %s"
+
+msgid "act.wants"
+msgstr "%s waits for a gift: %s"
+
+msgid "act.bow"
+msgstr "Bow to %s"
+
+msgid "act.loot_grave"
+msgstr "Take your things from the grave marker"
+
+msgid "act.explore_circle"
+msgstr "Look over the stone circle"
+
+msgid "act.explore_mine"
+msgstr "Look into the Chud mine"
+
+msgid "act.fight_guardian"
+msgstr "Challenge %s"
+
+msgid "act.defend_fire"
+msgstr "Light it and hold the fire (%d s)"
+
+msgid "target.wisp"
+msgstr "The wisp"
+
+msgid "goal.capsized"
+msgstr "The boat capsized. It floats: right it (E)."
+
+msgid "goal.saga_guardian"
+msgstr "%s guards this beacon. Challenge the guardian at the tower."
+
+msgid "goal.saga_defense"
+msgstr "The beacon kindles for %d s and creatures will come for the fire. Fuel needed: %s."
+
+msgid "goal.fight_guardian"
+msgstr "Guardian fight. LMB strikes (hold for heavy), C blocks, Ctrl dodges."
+
+msgid "goal.fight_defense"
+msgstr "Hold the fire until it catches. A torch in hand keeps creatures off."
+
+msgid "ui.steam"
+msgstr "Bath steam"
+
+msgid "ui.weary"
+msgstr "Weary"
+
+msgid "ui.cold"
+msgstr "Cold"
+
+msgid "ui.cold_hint"
+msgstr "coat or fire"
+
+msgid "ui.wisp"
+msgstr "Leshy's wisp"
+
+msgid "fight.fire"
+msgstr "The beacon's fire"
+
+msgid "fight.hold"
+msgstr "Hold for %s more"
+
+msgid "fight.phase"
+msgstr "Phase %d of %d"
+
+msgid "fight.lanterns"
+msgstr "lanterns %d/%d"
+
+msgid "fight.kicker"
+msgstr "Fight at the beacon"
+
+msgid "fight.start_guardian"
+msgstr "The guardian comes out of the fog."
+
+msgid "fight.start_defense"
+msgstr "The fire kindles. Creatures come for the light."
+
+msgid "toast.respawn_none"
+msgstr "You are back on the shore where you landed."
+
+msgid "toast.respawn_respawn_keep"
+msgstr "You wake at home with all your things. Weary 3 min."
+
+msgid "toast.respawn_grave"
+msgstr "You wake at home. Your things wait at the grave marker."
+
+msgid "toast.journal"
+msgstr "A new page in the journal (J): %s"
+
+msgid "toast.offered_domovoy"
+msgstr "The domovoy took the kalitki: the home is cosier."
+
+msgid "toast.offered_leshy"
+msgstr "The leshy took the gift. Follow the green wisp."
+
+msgid "toast.offered_vodyanoy"
+msgstr "The vodyanoy took the first fish: better bites till evening."
+
+msgid "toast.whale"
+msgstr "A night by the chapel on the whale's back. Rested."
+
+msgid "toast.explored"
+msgstr "Chud ruins: finds and a tale"
+
+msgid "toast.capsized"
+msgstr "The storm capsized the boat!"
+
+msgid "toast.fight_won"
+msgstr "The fight is won."
+
+msgid "toast.fight_lost"
+msgstr "The fire went out. The fuel is safe — try again."
+
+msgid "toast.mode"
+msgstr "Mode: %s"
+
+msgid "toast.tidied"
+msgstr "The domovoy tidied a chest."
+
+msgid "toast.stolen"
+msgstr "A gull made off with: %s"
+
+msgid "toast.bannik_angry"
+msgstr "After midnight the steam is the bannik's. No blessing today."
+
+msgid "toast.saga_done_guardian"
+msgstr "The guardian is beaten. Light the beacon."
+
+msgid "toast.saga_done_defense"
+msgstr "The fire held!"
+
+msgid "toast.phase"
+msgstr "%s: phase %d"
+
+msgid "toast.warns"
+msgstr "%s warns you: back off"
+
+msgid "toast.no_stamina"
+msgstr "Not enough stamina."
+
+msgid "toast.saved"
+msgstr "World saved."
+
+msgid "toast.save_failed"
+msgstr "Could not save."
+
+msgid "journal.kicker"
+msgstr "Tales and finds"
+
+msgid "journal.title"
+msgstr "Journal of tales"
+
+msgid "journal.close"
+msgstr "Close · J"
+
+msgid "journal.spirits"
+msgstr "Spirits and wonders"
+
+msgid "journal.beasts"
+msgstr "Beasts"
+
+msgid "journal.fog"
+msgstr "The Mga"
+
+msgid "journal.guardians"
+msgstr "Beacon guardians"
+
+msgid "journal.count"
+msgstr "Found %d of %d"
+
+msgid "journal.day"
+msgstr "day %d"
+
+msgid "journal.empty"
+msgstr "Empty for now"
+
+msgid "journal.empty_text"
+msgstr "Meet beasts and spirits, look over the Chud ruins — the pages will come."
+
+msgid "journal.chud_circle"
+msgstr "A Chud stone circle"
+
+msgid "journal.chud_mine"
+msgstr "A Chud mine"
+
+msgid "pause.title"
+msgstr "Paused"
+
+msgid "pause.info"
+msgstr "World “%s” · day %d · %s"
+
+msgid "pause.mode_note"
+msgstr "The mode can change at any time except in a fight. Progress stays."
+
+msgid "pause.resume"
+msgstr "Resume"
+
+msgid "pause.journal"
+msgstr "Journal of tales"
+
+msgid "pause.save"
+msgstr "Save"
+
+msgid "pause.save_menu"
+msgstr "Save and go to the menu"
+
+msgid "pause.quit"
+msgstr "Save and quit"
+
+msgid "menu.kicker"
+msgstr "The Pomor North · the White Sea"
+
+msgid "menu.title"
+msgstr "Fog Isles"
+
+msgid "menu.about"
+msgstr "Light the beacons, push back the Mga, build a homestead. Rest after work, danger if you want it."
+
+msgid "menu.continue"
+msgstr "Continue"
+
+msgid "menu.continue_sub"
+msgstr "World “%s” · day %d · %s"
+
+msgid "menu.new"
+msgstr "New world"
+
+msgid "menu.coop"
+msgstr "Open to friends · co-op later"
+
+msgid "menu.settings"
+msgstr "Settings"
+
+msgid "menu.soon"
+msgstr "Soon"
+
+msgid "menu.quit"
+msgstr "Quit"
+
+msgid "menu.new_title"
+msgstr "New world"
+
+msgid "menu.later"
+msgstr "all of it can change later"
+
+msgid "menu.name"
+msgstr "Name"
+
+msgid "menu.default_name"
+msgstr "Home Bay"
+
+msgid "menu.seed"
+msgstr "World seed"
+
+msgid "menu.random"
+msgstr "random"
+
+msgid "menu.danger"
+msgstr "Danger"
+
+msgid "menu.default"
+msgstr "default"
+
+msgid "menu.tuning"
+msgstr "Fine tuning"
+
+msgid "menu.note"
+msgstr "The mode changes from the pause menu at any time except in a fight. Progress stays."
+
+msgid "menu.sail"
+msgstr "Set sail"
+
+msgid "menu.unnamed"
+msgstr "unnamed"
+
+msgid "tuning.storms"
+msgstr "Storms capsize boats"
+
+msgid "tuning.cold"
+msgstr "The cold of the Frozen Sea"
+
+msgid "tuning.durability"
+msgstr "Tool wear"
+
+msgid "tuning.night_raids"
+msgstr "Night raids (Saga only)"
+
+msgid "tale.hare"
+msgstr "The Pomor hare is a shy beast: it tangles its tracks and sits breathless under a tussock in the fog. They say whoever sees the first hare in spring has an easy road. (TODO: author's tale)"
+
+msgid "tale.fox"
+msgstr "The fox walks the edge of the fog and listens for the axe. The old folk said a fox by the house means guests are coming. (TODO: author's tale)"
+
+msgid "tale.seal"
+msgstr "The seal hauls out on the rocks and watches the boat for a long, long time. Pomors never touched seals on their own skerries — bad luck. Here you can only watch her. (TODO: author's tale)"
+
+msgid "tale.gull"
+msgstr "The gull is a thief: where there's a fish rack, there's a gull. But gulls over the water mean land is near. (TODO: author's tale)"
+
+msgid "tale.reindeer"
+msgstr "The wild reindeer comes down to the water at sunset and leaves if you speak loudly. (TODO: author's tale)"
+
+msgid "tale.wolf"
+msgstr "At night the wolf circles the fire but never steps inside. Walk with a torch and he won't touch you. (TODO: author's tale)"
+
+msgid "tale.bear"
+msgstr "The master of the woods first rears up and roars — that's his warning. Walk away and he won't follow. (TODO: author's tale)"
+
+msgid "tale.polar_bear"
+msgstr "The oshkuy, the white bear, walks the ice of the Frozen Sea and remembers everyone who entered his grounds. (TODO: author's tale)"
+
+msgid "tale.mglyak"
+msgstr "The mistling is a tuft of fog with eyes. Its touch puts out fire, and it backs away from fire. (TODO: author's tale)"
+
+msgid "tale.kikimora"
+msgstr "The bog kikimora sits in the sedge and throws mud at travellers to trip them. (TODO: author's tale)"
+
+msgid "tale.morok"
+msgstr "The glamour lights a false fire in the fog that looks like a beacon and leads boats onto rocks. Trust the compass, not the light. (TODO: author's tale)"
+
+msgid "tale.fog_wolf"
+msgstr "Fog wolves hunt in a pack and in silence. You only hear the moss crunch. (TODO: author's tale)"
+
+msgid "tale.ice_mglyak"
+msgstr "The frost mistling breathes cold: after its breath your hands can't hold the spear. (TODO: author's tale)"
+
+msgid "tale.domovoy"
+msgstr "The domovoy lives behind the stove when the house is warm and at peace. Leave him kalitki and your chests stay tidy and the house cosy. (TODO: author's tale)"
+
+msgid "tale.bannik"
+msgstr "The bannik lives in the bathhouse. The third steam is his: don't steam after midnight, don't anger the master. (TODO: author's tale)"
+
+msgid "tale.leshy"
+msgstr "The leshy leads you round the woods in the fog. Leave cloudberries on a stump and his green wisp leads you to the path. (TODO: author's tale)"
+
+msgid "tale.vodyanoy"
+msgstr "The vodyanoy sits by the water, his beard in weed. Give him the first fish of the day and the bites last till evening. (TODO: author's tale)"
+
+msgid "tale.sirin"
+msgstr "At dawn Sirin, the bird-maiden, sings on the rocks. Whoever hears her song never forgets it — and the sea takes up her tune. (TODO: author's tale)"
+
+msgid "tale.ryba_kit"
+msgstr "The Miracle Whale surfaces on calm nights with a tiny chapel on its back. Whoever moors there rests until dawn. (TODO: author's tale)"
+
+msgid "tale.chud"
+msgstr "The White-Eyed Chud went under the earth when strangers came. Only their mines and stone circles remain. (TODO: author's tale)"
+
+msgid "tale.likho"
+msgstr "One-Eyed Likho sleeps in a cave on the Summer Shore. It has one eye — you can slip past on the side without one. (TODO: author's tale)"
+
+msgid "tale.karachun"
+msgstr "Karachun, the frost spirit, walks the Frozen Sea by night and puts out lanterns. He fears fire. (TODO: author's tale)"
+
+msgid "tale.siverko"
+msgstr "Siverko is the north wind. He blows you off the ledges and lashes you with ice needles. (TODO: author's tale)"
+
+msgid "tale.bolotnitsa"
+msgstr "The Bog Maiden drags you into the mire and calls the kikimoras. Fire burns her. (TODO: author's tale)"
+
+msgid "tale.hozyain_guby"
+msgstr "The Master of the Bay rises from the sea by the shore rocks and drives waves onto the land. (TODO: author's tale)"
+
+msgid "tale.mga"
+msgstr "The Mga is the heart of the fog. It swallows lights and breaks into mistlings. It weakens while every lantern around burns. (TODO: author's tale)"
+
+msgid "tale.chud.1"
+msgstr "A sign is cut into the stone: a circle and three lines. Under it, a handful of mica. (TODO: author's tale)"
+
+msgid "tale.chud.2"
+msgstr "They say the Chud went into these mines singing, and the song can be heard on a quiet night. (TODO: author's tale)"
+
+msgid "tale.chud.3"
+msgstr "Old iron in the earth never rusts — the Chud way. (TODO: author's tale)"
+
+msgid "tale.chud.4"
+msgstr "Whoever takes a stone from the circle loses the way home. The stones stay put. (TODO: author's tale)"
+
+msgid "tale.chud.5"
+msgstr "The air in the mines is warm, as if someone breathes under the earth. (TODO: author's tale)"
+
+msgid "tale.chud.6"
+msgstr "The Chud were never enemies: they left rather than fight. They left us their signs. (TODO: author's tale)"
+
+msgid "hint.combat"
+msgstr "LMB — strike (hold for heavy) · C — block · Ctrl — dodge · E — action"

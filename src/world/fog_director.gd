@@ -7,6 +7,8 @@ extends Node
 
 const GROW_S := 3.5
 const BLEND_M := 150.0  # palette blend width across a region border
+const NIGHT_FOG := Color("1a2230")  # what the fog darkens to at night where the chapter itself isn't a night
+const NIGHT_SKY := Color("070b14")
 
 var db: ContentDB
 var state: WorldState
@@ -44,6 +46,8 @@ func _process(delta: float) -> void:
 	var lin := fog_col.srgb_to_linear()
 	RenderingServer.global_shader_parameter_set("fog_color", Vector4(lin.r, lin.g, lin.b, 1.0))
 	boost = lerpf(boost, boost_target, 1.0 - exp(-delta * 0.8))
+	if environment != null:
+		environment.ambient_light_energy = 1.1 * (1.0 - 0.55 * float(palette["night"]))
 	var dens := float(palette["density"]) * boost
 	var rid := db.region_at(p)
 	if not db.region_open(rid, state.lit):
@@ -93,12 +97,23 @@ func palette_at(p: Vector2) -> Dictionary:
 func _chapter(rid: String) -> Dictionary:
 	var r: Dictionary = db.regions[rid]
 	var c: Dictionary = r["chapter"]
-	return {
+	var out := {
 		"fog": Color(c["fog"]), "zenith": Color(c["zenith"]), "sun": Color(c["sun"]),
 		"sun_energy": float(c["sun_energy"]), "sun_elevation": float(c["sun_elevation"]),
 		"sea_deep": Color(c["sea_deep"]), "sea_shallow": Color(c["sea_shallow"]),
 		"night": float(c["night"]), "aurora": float(c["aurora"]), "density": float(r["fog"]["density"]),
 	}
+	# day and night (docs/01_GDD.md §4.3): the region's share of night darkens what its chapter doesn't already
+	var cycle := Weather.night(db, rid, state.clock_min) if state != null else 0.0
+	var extra := maxf(0.0, cycle - float(c["night"]))
+	if extra > 0.0:
+		out["fog"] = (out["fog"] as Color).lerp(NIGHT_FOG, extra * 0.8)
+		out["zenith"] = (out["zenith"] as Color).lerp(NIGHT_SKY, extra * 0.9)
+		out["sea_deep"] = (out["sea_deep"] as Color).darkened(extra * 0.5)
+		out["sea_shallow"] = (out["sea_shallow"] as Color).darkened(extra * 0.5)
+		out["sun_energy"] = float(out["sun_energy"]) * (1.0 - 0.8 * extra)
+		out["night"] = maxf(float(c["night"]), cycle)
+	return out
 
 
 func _mix(a: Dictionary, b: Dictionary, k: float) -> Dictionary:

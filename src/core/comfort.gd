@@ -6,7 +6,8 @@ extends RefCounted
 
 
 ## {"total": int, "parts": [{"id", "comfort"}], "max": int} for a point (usually a bed).
-static func at(db: ContentDB, state: WorldState, pos: Vector3) -> Dictionary:
+## A fed domovoy living at a bed within the radius adds balance.spirits.domovoy_comfort_bonus ("domovoy" part).
+static func at(db: ContentDB, state: WorldState, pos: Vector3, with_spirits: bool = true) -> Dictionary:
 	var r: Dictionary = db.balance["rested"]
 	var radius := float(r["radius_m"])
 	var best := {}
@@ -15,6 +16,10 @@ static func at(db: ContentDB, state: WorldState, pos: Vector3) -> Dictionary:
 		if not p.has("comfort") or (pc["pos"] as Vector3).distance_to(pos) > radius:
 			continue
 		best[pc["id"]] = int(p["comfort"])
+	if with_spirits and Creatures.domovoy_fed(db, state):
+		var home := Creatures.domovoy_home(db, state)
+		if home != "" and (state.pieces[home]["pos"] as Vector3).distance_to(pos) <= radius:
+			best["domovoy"] = int(db.balance["spirits"]["domovoy_comfort_bonus"])
 	var parts: Array = []
 	var total := 0
 	var ids := best.keys()

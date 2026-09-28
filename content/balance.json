@@ -8,7 +8,41 @@
     "sprint_cost_per_s": 10,
     "swim_cost_per_s": 6,
     "carry_slots": 24,
-    "food_slots": 3
+    "food_slots": 3,
+    "hp_regen_per_s": 1,
+    "hp_regen_after_hurt_s": 6
+  },
+  "weary": {
+    "note": "The Weary debuff after a death (modes.json death_debuff_min): stamina comes back slower.",
+    "stamina_regen_factor": 0.5
+  },
+  "cold": {
+    "note": "Cold regions (regions.json cold): Tale (mild) - no stamina regen without warmth; Saga (full) - health drains. Warmth: a wool coat in the bag, fire in hand, bath steam, or a fire piece (fog_radius) within fire_m.",
+    "fire_m": 6,
+    "hp_per_s": 0.5
+  },
+  "combat": {
+    "note": "docs/03_BALANCE.md §6. Light hit = weapon damage for weapon stamina; heavy = heavy_k x damage for heavy_stamina_k x stamina. A block takes off the shield's armor.block (block_bare without one) and costs block_stamina; a dodge takes no damage for dodge_s. Bare hands: fist_damage, reach_bare.",
+    "heavy_k": 2.0,
+    "heavy_stamina_k": 2.0,
+    "block_bare": 4,
+    "block_stamina": 10,
+    "dodge_stamina": 15,
+    "dodge_s": 0.45,
+    "fist_damage": 4,
+    "reach_bare": 1.8,
+    "light_vs_fog": 1.5
+  },
+  "spirits": {
+    "note": "docs/01_GDD.md §11. The domovoy moves in at domovoy_comfort; a gift of kalitki every domovoy_gift_days days keeps domovoy_comfort_bonus. The bannik's rule kept (no steam after midnight) makes the steam last bannik_steam_bonus longer. Leshy's wisp leads for leshy_guide_s; the vodyanoy's first fish gives vodyanoy_bite_bonus more bites for the day; resting on the miracle whale gives whale_rested_min; a Chud ruin gives chud_finds once.",
+    "domovoy_comfort": 5,
+    "domovoy_comfort_bonus": 2,
+    "domovoy_gift_days": 3,
+    "bannik_steam_bonus": 0.5,
+    "leshy_guide_s": 60,
+    "vodyanoy_bite_bonus": 0.3,
+    "whale_rested_min": 10,
+    "chud_finds": { "mica": 2, "iron": 1 }
   },
   "day": {
     "length_min": 30,

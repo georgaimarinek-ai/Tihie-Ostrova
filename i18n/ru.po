@@ -765,3 +765,453 @@ msgstr "отражатели"
 
 msgid "trial.finale"
 msgstr "все испытания подряд"
+
+msgid "cmd.already_done"
+msgstr "Этот маяк уже пройден."
+
+msgid "cmd.friendly"
+msgstr "Духов и мирных зверей не трогают."
+
+msgid "cmd.no_ammo"
+msgstr "Нет стрел."
+
+msgid "cmd.unknown_creature"
+msgstr "Такого здесь не водится."
+
+msgid "cmd.no_gift"
+msgstr "Этому духу дары не нужны."
+
+msgid "cmd.no_domovoy"
+msgstr "Домовой ещё не поселился: нужны печь, полати и уют от 5."
+
+msgid "cmd.not_hungry"
+msgstr "Дар уже принят."
+
+msgid "cmd.not_now"
+msgstr "Не время: приходи в свой час."
+
+msgid "cmd.unknown_site"
+msgstr "Здесь нет руин."
+
+msgid "cmd.explored"
+msgstr "Руины уже осмотрены."
+
+msgid "cmd.unknown_rule"
+msgstr "Это правило не настраивается."
+
+msgid "cmd.bad_value"
+msgstr "Нет такого значения."
+
+msgid "cmd.no_storm"
+msgstr "Шторма нет."
+
+msgid "cmd.no_harm"
+msgstr "В Тихом мире никто не ранит."
+
+msgid "cmd.nothing"
+msgstr "Тут пусто."
+
+msgid "cmd.clear"
+msgstr "Туман здесь слишком редок."
+
+msgid "cmd.daylight"
+msgstr "Днём твари не выходят."
+
+msgid "cmd.fight_only"
+msgstr "Страж приходит только на бой."
+
+msgid "cmd.not_in_this_region"
+msgstr "В этих краях такие не водятся."
+
+msgid "act.right_boat"
+msgstr "Перевернуть лодку"
+
+msgid "act.whale"
+msgstr "Пристать к рыбе-киту и отдохнуть у часовенки"
+
+msgid "act.offer"
+msgstr "Оставить: %s — %s"
+
+msgid "act.wants"
+msgstr "%s ждёт дара: %s"
+
+msgid "act.bow"
+msgstr "Поклониться: %s"
+
+msgid "act.loot_grave"
+msgstr "Забрать вещи у кресток-знака"
+
+msgid "act.explore_circle"
+msgstr "Осмотреть каменный круг"
+
+msgid "act.explore_mine"
+msgstr "Заглянуть в копи чуди"
+
+msgid "act.fight_guardian"
+msgstr "Вызвать на бой: %s"
+
+msgid "act.defend_fire"
+msgstr "Зажечь и удержать огонь (%d с)"
+
+msgid "target.wisp"
+msgstr "За огоньком"
+
+msgid "goal.capsized"
+msgstr "Лодку опрокинуло. Лодка на плаву: переверни её (E)."
+
+msgid "goal.saga_guardian"
+msgstr "Этот маяк стережёт %s. Вызови стража на бой у вышки."
+
+msgid "goal.saga_defense"
+msgstr "Маяк разгорается %d с, твари пойдут на огонь. Нужно топливо: %s."
+
+msgid "goal.fight_guardian"
+msgstr "Бой со стражем. ЛКМ — удар (удерживай — сильный), C — блок, Ctrl — уклон."
+
+msgid "goal.fight_defense"
+msgstr "Удержи огонь, пока он не разгорится. Факел в руке отгоняет тварей."
+
+msgid "ui.steam"
+msgstr "Банный пар"
+
+msgid "ui.weary"
+msgstr "Усталость"
+
+msgid "ui.cold"
+msgstr "Холод"
+
+msgid "ui.cold_hint"
+msgstr "нужен зипун или огонь"
+
+msgid "ui.wisp"
+msgstr "Огонёк лешего"
+
+msgid "fight.fire"
+msgstr "Огонь маяка"
+
+msgid "fight.hold"
+msgstr "Держать ещё %s"
+
+msgid "fight.phase"
+msgstr "Фаза %d из %d"
+
+msgid "fight.lanterns"
+msgstr "фонари %d/%d"
+
+msgid "fight.kicker"
+msgstr "Бой у маяка"
+
+msgid "fight.start_guardian"
+msgstr "Страж вышел из тумана."
+
+msgid "fight.start_defense"
+msgstr "Огонь разгорается. Твари идут на свет."
+
+msgid "toast.respawn_none"
+msgstr "Ты снова на берегу, где сошёл с лодки."
+
+msgid "toast.respawn_respawn_keep"
+msgstr "Проснулся дома, все вещи при тебе. Усталость 3 мин."
+
+msgid "toast.respawn_grave"
+msgstr "Проснулся дома. Вещи ждут у кресток-знака."
+
+msgid "toast.journal"
+msgstr "Новая страница в журнале (J): %s"
+
+msgid "toast.offered_domovoy"
+msgstr "Домовой принял калитки: в доме уютнее."
+
+msgid "toast.offered_leshy"
+msgstr "Леший принял дар. Иди за зелёным огоньком."
+
+msgid "toast.offered_vodyanoy"
+msgstr "Водяной принял первую рыбу: клёв лучше до вечера."
+
+msgid "toast.whale"
+msgstr "Ночь у часовенки на спине рыбы-кита. Отдых."
+
+msgid "toast.explored"
+msgstr "Руины чуди: находки и быличка"
+
+msgid "toast.capsized"
+msgstr "Шторм опрокинул лодку!"
+
+msgid "toast.fight_won"
+msgstr "Бой выигран."
+
+msgid "toast.fight_lost"
+msgstr "Огонь погас. Топливо цело — попробуй ещё."
+
+msgid "toast.mode"
+msgstr "Режим: %s"
+
+msgid "toast.tidied"
+msgstr "Домовой прибрал сундук."
+
+msgid "toast.stolen"
+msgstr "Чайка утащила: %s"
+
+msgid "toast.bannik_angry"
+msgstr "После полуночи пар — банника. Сегодня без его милости."
+
+msgid "toast.saga_done_guardian"
+msgstr "Страж побеждён. Зажги маяк."
+
+msgid "toast.saga_done_defense"
+msgstr "Огонь удержан!"
+
+msgid "toast.phase"
+msgstr "%s: фаза %d"
+
+msgid "toast.warns"
+msgstr "%s предупреждает: отойди"
+
+msgid "toast.no_stamina"
+msgstr "Не хватает выносливости."
+
+msgid "toast.saved"
+msgstr "Мир сохранён."
+
+msgid "toast.save_failed"
+msgstr "Не удалось сохранить."
+
+msgid "journal.kicker"
+msgstr "Былички и находки"
+
+msgid "journal.title"
+msgstr "Журнал сказаний"
+
+msgid "journal.close"
+msgstr "Закрыть · J"
+
+msgid "journal.spirits"
+msgstr "Духи и дива"
+
+msgid "journal.beasts"
+msgstr "Звери"
+
+msgid "journal.fog"
+msgstr "Мга"
+
+msgid "journal.guardians"
+msgstr "Стражи маяков"
+
+msgid "journal.count"
+msgstr "Найдено %d из %d"
+
+msgid "journal.day"
+msgstr "день %d"
+
+msgid "journal.empty"
+msgstr "Пока пусто"
+
+msgid "journal.empty_text"
+msgstr "Встречай зверей и духов, осматривай руины чуди — страницы появятся сами."
+
+msgid "journal.chud_circle"
+msgstr "Каменный круг чуди"
+
+msgid "journal.chud_mine"
+msgstr "Копи чуди"
+
+msgid "pause.title"
+msgstr "Пауза"
+
+msgid "pause.info"
+msgstr "Мир «%s» · день %d · %s"
+
+msgid "pause.mode_note"
+msgstr "Режим меняется в любой момент, кроме боя. Прогресс остаётся."
+
+msgid "pause.resume"
+msgstr "Продолжить"
+
+msgid "pause.journal"
+msgstr "Журнал сказаний"
+
+msgid "pause.save"
+msgstr "Сохранить"
+
+msgid "pause.save_menu"
+msgstr "Сохранить и выйти в меню"
+
+msgid "pause.quit"
+msgstr "Сохранить и выйти из игры"
+
+msgid "menu.kicker"
+msgstr "Поморский Север · Белое море"
+
+msgid "menu.title"
+msgstr "Туманные острова"
+
+msgid "menu.about"
+msgstr "Зажигай маяки, раздвигай Мгу, строй усадьбу. Отдых после работы, опасность по желанию."
+
+msgid "menu.continue"
+msgstr "Продолжить"
+
+msgid "menu.continue_sub"
+msgstr "Мир «%s» · день %d · %s"
+
+msgid "menu.new"
+msgstr "Новый мир"
+
+msgid "menu.coop"
+msgstr "Открыть мир друзьям · кооп позже"
+
+msgid "menu.settings"
+msgstr "Настройки"
+
+msgid "menu.soon"
+msgstr "Скоро"
+
+msgid "menu.quit"
+msgstr "Выход"
+
+msgid "menu.new_title"
+msgstr "Новый мир"
+
+msgid "menu.later"
+msgstr "всё можно поменять потом"
+
+msgid "menu.name"
+msgstr "Название"
+
+msgid "menu.default_name"
+msgstr "Родная губа"
+
+msgid "menu.seed"
+msgstr "Зерно мира"
+
+msgid "menu.random"
+msgstr "случайное"
+
+msgid "menu.danger"
+msgstr "Опасность"
+
+msgid "menu.default"
+msgstr "по умолчанию"
+
+msgid "menu.tuning"
+msgstr "Тонкая настройка"
+
+msgid "menu.note"
+msgstr "Режим меняется в паузе в любой момент, кроме боя. Прогресс остаётся."
+
+msgid "menu.sail"
+msgstr "Отчалить"
+
+msgid "menu.unnamed"
+msgstr "без имени"
+
+msgid "tuning.storms"
+msgstr "Шторма переворачивают лодку"
+
+msgid "tuning.cold"
+msgstr "Холод Студёного моря"
+
+msgid "tuning.durability"
+msgstr "Износ инструментов"
+
+msgid "tuning.night_raids"
+msgstr "Ночные набеги (только Сага)"
+
+msgid "tale.hare"
+msgstr "Заяц на Поморье — зверь пугливый: след путает, петляет, а в туман сидит под кочкой и не дышит. Говорят, кто первого зайца весной увидит — тому лёгкая дорога. (TODO: быличка автора)"
+
+msgid "tale.fox"
+msgstr "Лиса ходит краем тумана и слушает, где стучит топор. Старики говорили: лиса у избы — к гостям. (TODO: быличка автора)"
+
+msgid "tale.seal"
+msgstr "Нерпа выходит на камни и смотрит на лодку долго-долго. Поморы нерпу не трогали на своих лудах — к беде. Здесь её можно только смотреть. (TODO: быличка автора)"
+
+msgid "tale.gull"
+msgstr "Чайка — птица вороватая: где вешала с рыбой, там и она. Зато чайки над водой — к берегу близко. (TODO: быличка автора)"
+
+msgid "tale.reindeer"
+msgstr "Дикий олень выходит к воде на закате и уходит, если заговоришь громко. (TODO: быличка автора)"
+
+msgid "tale.wolf"
+msgstr "Волк ночью обходит огонь кругом, но в круг не ступает. С факелом иди — не тронет. (TODO: быличка автора)"
+
+msgid "tale.bear"
+msgstr "Хозяин леса сперва встаёт на дыбы и ревёт — это он предупреждает. Уйди — и он не пойдёт следом. (TODO: быличка автора)"
+
+msgid "tale.polar_bear"
+msgstr "Ошкуй, белый медведь, ходит по льдам Студёного моря и помнит каждого, кто зашёл в его угодья. (TODO: быличка автора)"
+
+msgid "tale.mglyak"
+msgstr "Мгляк — клок тумана с глазами. Касанием гасит огонь, а от огня пятится. (TODO: быличка автора)"
+
+msgid "tale.kikimora"
+msgstr "Кикимора болотная сидит в осоке и бросает тиной в путника, чтобы тот оступился. (TODO: быличка автора)"
+
+msgid "tale.morok"
+msgstr "Морок зажигает в тумане ложный огонь, похожий на маяк, и ведёт лодку на камни. Смотри на компас, а не на свет. (TODO: быличка автора)"
+
+msgid "tale.fog_wolf"
+msgstr "Туманные волки ходят стаей и молча. Слышно только, как хрустит мох. (TODO: быличка автора)"
+
+msgid "tale.ice_mglyak"
+msgstr "Ледяной мгляк дышит стужей: от его дыхания руки не держат рогатину. (TODO: быличка автора)"
+
+msgid "tale.domovoy"
+msgstr "Домовой живёт за печью, если в доме тепло и лад. Оставь ему калитки — и в сундуке будет порядок, а в избе уют. (TODO: быличка автора)"
+
+msgid "tale.bannik"
+msgstr "Банник живёт в бане. Третий пар — его: после полуночи не парься, не гневи хозяина. (TODO: быличка автора)"
+
+msgid "tale.leshy"
+msgstr "Леший водит по лесу в тумане. Оставишь морошку на пне — выведет зелёным огоньком к тропе. (TODO: быличка автора)"
+
+msgid "tale.vodyanoy"
+msgstr "Водяной сидит у воды, борода в тине. Первую рыбу дня отдай ему — и клёв будет до вечера. (TODO: быличка автора)"
+
+msgid "tale.sirin"
+msgstr "На рассвете на скалах поёт Сирин, птица-дева. Кто услышит её песню, тот её не забудет — и море запоёт её мотив. (TODO: быличка автора)"
+
+msgid "tale.ryba_kit"
+msgstr "Чудо-юдо рыба-кит всплывает тихой ночью, и на спине у него часовенка. Кто причалит — отдохнёт до рассвета. (TODO: быличка автора)"
+
+msgid "tale.chud"
+msgstr "Чудь белоглазая ушла под землю, когда пришли чужие. Остались только копи да каменные круги. (TODO: быличка автора)"
+
+msgid "tale.likho"
+msgstr "Лихо одноглазое спит в пещере на Летнем берегу. Глаз у него один — с той стороны, где глаза нет, его можно обойти. (TODO: быличка автора)"
+
+msgid "tale.karachun"
+msgstr "Карачун, дух стужи, ходит ночами по Студёному морю и гасит фонари. Огня он боится. (TODO: быличка автора)"
+
+msgid "tale.siverko"
+msgstr "Сиверко — северный ветер. Дует так, что с уступов сносит, и сечёт ледяными иглами. (TODO: быличка автора)"
+
+msgid "tale.bolotnitsa"
+msgstr "Болотница тянет в трясину и зовёт кикимор. Огонь её жжёт. (TODO: быличка автора)"
+
+msgid "tale.hozyain_guby"
+msgstr "Хозяин губы поднимается из моря у прибрежных камней и гонит волну на берег. (TODO: быличка автора)"
+
+msgid "tale.mga"
+msgstr "Мга — сердце тумана. Глотает огни и рассыпается мгляками. Слабеет, когда вокруг горят все фонари. (TODO: быличка автора)"
+
+msgid "tale.chud.1"
+msgstr "На камне выбит знак: круг и три черты. Под камнем — горсть слюды. (TODO: быличка автора)"
+
+msgid "tale.chud.2"
+msgstr "Говорят, чудь ушла в эти копи с песней, и песню ту слышно в тихую ночь. (TODO: быличка автора)"
+
+msgid "tale.chud.3"
+msgstr "Старое железо в земле не ржавеет — чудской уклад. (TODO: быличка автора)"
+
+msgid "tale.chud.4"
+msgstr "Кто камень из круга унесёт, тот дорогу домой потеряет. Камни на месте. (TODO: быличка автора)"
+
+msgid "tale.chud.5"
+msgstr "В копях тёплый воздух, будто кто-то дышит под землёй. (TODO: быличка автора)"
+
+msgid "tale.chud.6"
+msgstr "Чудь не враги: ушли, чтобы не воевать. Оставили нам свои знаки. (TODO: быличка автора)"
+
+msgid "hint.combat"
+msgstr "ЛКМ — удар (удерживай — сильный) · C — блок · Ctrl — уклон · E — действие"

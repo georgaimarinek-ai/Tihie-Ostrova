@@ -56,6 +56,8 @@ static func build(category: String, id: String) -> Node3D:
 			return pomor()
 		"pieces":
 			return piece(id)
+		"creatures":
+			return CreatureShapes.build(id)
 		"props":
 			match id:
 				"izba":

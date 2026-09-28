@@ -234,6 +234,24 @@ func sfx(kind: String, arg: int = 0) -> void:
 				play("pluck%d" % up[i], t + 0.3 + i * 0.28, -12.0)
 		"deny":
 			play("pluck50", t, -18.0, "Sfx", 0.9)
+		"thud":
+			play("thud", t, -10.0, "Sfx", 0.8 + randf() * 0.2)
+		"growl":
+			# a beast's warning: two low thuds and a low dissonant pluck
+			play("thud", t, -8.0, "Sfx", 0.55)
+			play("thud", t + 0.25, -10.0, "Sfx", 0.5)
+			play("pluck38", t + 0.1, -14.0, "Sfx", 0.9)
+		"hit":
+			play("chop", t, -9.0, "Sfx", 1.2 + randf() * 0.2)
+		"hurt":
+			play("thud", t, -8.0, "Sfx", 1.1)
+			play("pluck41", t + 0.05, -16.0, "Sfx")
+		"whoosh":
+			play("whoosh", t, -9.0, "Sfx", 0.8 + randf() * 0.3)
+		"sirin":
+			# Sirin's motif: a high falling phrase A–G–F–D
+			for i in 4:
+				play("bell%d" % [81, 79, 77, 74][i], t + i * 0.55, -16.0)
 
 
 func _has(n: String) -> bool:
@@ -271,11 +289,11 @@ func _synthesise() -> void:
 	for m in SCALE:
 		plucks[m] = true
 		plucks[m - 12] = true
-	for m in [50, 55, 57, 60, 62, 77, 79, 81, 84, 86, 88]:
+	for m in [38, 41, 50, 55, 57, 60, 62, 77, 79, 81, 84, 86, 88]:
 		plucks[m] = true
 	for m: int in plucks:
 		_store("pluck%d" % m, to_wav(Synth.pluck(rng, m, 2.4, RATE), RATE, false))
-	for m in [69, 72, 74, 76, 77, 81, 84, 86, 93, 96, 98]:
+	for m in [69, 72, 74, 76, 77, 79, 81, 84, 86, 93, 96, 98]:
 		_store("bell%d" % m, to_wav(Synth.bell(m, 3.4, RATE), RATE, false))
 	for i in CHORDS.size():
 		_store("pad%d" % i, to_wav(Synth.pad(CHORDS[i], 9.0, LOW_RATE), LOW_RATE, false))

@@ -26,11 +26,21 @@ static func is_rested(state: WorldState, pid: String) -> bool:
 	return float(state.players[pid]["rested_until"]) > state.clock_min
 
 
-## Stamina per second: the base, +50 % rested (balance.rested.stamina_regen_bonus), more in the steam of a bath.
+## "Weary" after a death (modes.json death_debuff_min): stamina comes back slower.
+static func is_weary(state: WorldState, pid: String) -> bool:
+	return float(state.players[pid]["weary_until"]) > state.clock_min
+
+
+## Stamina per second: the base, +50 % rested (balance.rested.stamina_regen_bonus), more in the steam of a bath,
+## half while weary, none at all in the cold without warmth (Tale and Saga, docs/01_GDD.md §6).
 static func stamina_regen(db: ContentDB, state: WorldState, pid: String) -> float:
+	if Creatures.is_cold(db, state, pid):
+		return 0.0
 	var k := 1.0
 	if is_rested(state, pid):
 		k += float(db.balance["rested"]["stamina_regen_bonus"])
 	if float(state.players[pid]["steam_until"]) > state.clock_min:
 		k += float(db.balance["steam"]["stamina_regen_bonus"])
+	if is_weary(state, pid):
+		k *= float(db.balance["weary"]["stamina_regen_factor"])
 	return float(db.balance["player"]["stamina_regen_per_s"]) * k

@@ -33,6 +33,11 @@ var bars_top: ColorRect
 var bars_bottom: ColorRect
 var footer: Label
 var in_cinema := false
+var boss_panel: PanelContainer
+var boss_title: Label
+var boss_bar: ProgressBar
+var boss_sub: Label
+var hurt_flash: ColorRect
 
 var _banner_t := 0.0
 
@@ -154,6 +159,36 @@ func _ready() -> void:
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer.visible = false
 	add_child(footer)
+	# the guardian's bar (Saga fights)
+	boss_panel = PanelContainer.new()
+	boss_panel.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.08, 0.1, 0.12, 0.82), 8, 12))
+	boss_panel.visible = false
+	var bv := VBoxContainer.new()
+	bv.add_theme_constant_override("separation", 4)
+	boss_title = UiTheme.label("", 14, UiTheme.FIRE, "caps")
+	boss_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bv.add_child(boss_title)
+	boss_bar = ProgressBar.new()
+	boss_bar.show_percentage = false
+	boss_bar.custom_minimum_size = Vector2(440, 12)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = UiTheme.RED
+	fill.set_corner_radius_all(3)
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(1, 1, 1, 0.12)
+	back.set_corner_radius_all(3)
+	boss_bar.add_theme_stylebox_override("fill", fill)
+	boss_bar.add_theme_stylebox_override("background", back)
+	bv.add_child(boss_bar)
+	boss_sub = UiTheme.label("", 14, UiTheme.TEXT2)
+	boss_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bv.add_child(boss_sub)
+	boss_panel.add_child(bv)
+	add_child(boss_panel)
+	hurt_flash = ColorRect.new()
+	hurt_flash.color = Color(0.6, 0.05, 0.02, 0.0)
+	hurt_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(hurt_flash)
 	# the banner ("Beacon lit", "Unlocked:")
 	banner = PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.18, 0.2, 0.22, 0.88), 14, 28, Color(1, 0.6, 0.25, 0.35)))
@@ -167,6 +202,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_layout()
+	hurt_flash.color.a = maxf(0.0, hurt_flash.color.a - delta * 1.2)
 	for t: Control in toasts.get_children():
 		var age: float = t.get_meta("age", 0.0) + delta
 		t.set_meta("age", age)
@@ -197,6 +233,9 @@ func _layout() -> void:
 	hint_label.position = Vector2(w * 0.5 - hint_label.size.x * 0.5, h - 30)
 	toasts.position = Vector2(w - 40 - toasts.size.x, 150)
 	banner.position = Vector2(w * 0.5 - banner.size.x * 0.5, 104 if in_cinema else 100)
+	boss_panel.position = Vector2(w * 0.5 - boss_panel.size.x * 0.5, 100)
+	hurt_flash.position = Vector2.ZERO
+	hurt_flash.size = Vector2(w, h)
 	bars_top.position = Vector2.ZERO
 	bars_top.size = Vector2(w, 64)
 	bars_bottom.position = Vector2(0, h - 64)
@@ -209,7 +248,7 @@ func _layout() -> void:
 func cinematic(on: bool, footer_text: String = "") -> void:
 	in_cinema = on
 	for c in get_children():
-		if c == banner or c == bars_top or c == bars_bottom or c == footer:
+		if c == banner or c == bars_top or c == bars_bottom or c == footer or c == hurt_flash:
 			continue
 		(c as CanvasItem).visible = not on if c != action_button else false
 	bars_top.visible = on
@@ -297,13 +336,15 @@ func set_hotbar(slots: Array, chosen: int, show: bool) -> void:
 			icon.set_item(id, n)
 
 
-## Food and rest in the top-right corner: [{"id", "left_min"}], rested minutes (0 = not rested).
-func set_buffs(food: Array, rested_min: float) -> void:
-	var want := food.size() + (1 if rested_min > 0.0 else 0)
-	if buffs.get_child_count() != want or buffs.get_meta("sig", "") != str(food.map(func(f: Dictionary) -> String: return f["id"])) + str(rested_min > 0.0):
+## Food and states in the top-right corner: food [{"id", "left_min"}]; states [{"label", "text", "warn": bool}]
+## (Rested, Bath steam, Weary, Cold, the leshy's wisp…).
+func set_buffs(food: Array, states: Array) -> void:
+	var sig := str(food.map(func(f: Dictionary) -> String: return f["id"])) + str(states.map(func(st: Dictionary) -> String: return String(st["label"]) + str(st.get("warn", false))))
+	if buffs.get_meta("sig", "") != sig:
 		for c in buffs.get_children():
+			buffs.remove_child(c)
 			c.queue_free()
-		buffs.set_meta("sig", str(food.map(func(f: Dictionary) -> String: return f["id"])) + str(rested_min > 0.0))
+		buffs.set_meta("sig", sig)
 		for f: Dictionary in food:
 			var v := VBoxContainer.new()
 			v.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -321,11 +362,12 @@ func set_buffs(food: Array, rested_min: float) -> void:
 			t.add_child(UiTheme.label("", 12, UiTheme.TEXT, "bold"))
 			v.add_child(t)
 			buffs.add_child(v)
-		if rested_min > 0.0:
+		for st: Dictionary in states:
 			var p := PanelContainer.new()
-			p.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.2, 0.22, 0.24, 0.9), 10, 12))
+			var warn := bool(st.get("warn", false))
+			p.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.32, 0.12, 0.1, 0.9) if warn else Color(0.2, 0.22, 0.24, 0.9), 10, 12))
 			var v := VBoxContainer.new()
-			var a := UiTheme.label(tr("ui.rested").to_upper(), 12, UiTheme.BIRCH, "caps")
+			var a := UiTheme.label(String(st["label"]).to_upper(), 12, Color("ffb0a0") if warn else UiTheme.BIRCH, "caps")
 			a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			v.add_child(a)
 			var b := UiTheme.label("", 15, UiTheme.TEXT, "bold")
@@ -336,9 +378,27 @@ func set_buffs(food: Array, rested_min: float) -> void:
 	for i in food.size():
 		var lbl := (buffs.get_child(i).get_child(1) as PanelContainer).get_child(0) as Label
 		lbl.text = ItemInfo.clock(float(food[i]["left_min"]))
-	if rested_min > 0.0 and buffs.get_child_count() > food.size():
-		var box := buffs.get_child(food.size()).get_child(0) as VBoxContainer
-		(box.get_child(1) as Label).text = "%d %s" % [ceili(rested_min), tr("unit.min").to_upper()]
+	for j in states.size():
+		if buffs.get_child_count() > food.size() + j:
+			var box := buffs.get_child(food.size() + j).get_child(0) as VBoxContainer
+			(box.get_child(1) as Label).text = String(states[j].get("text", ""))
+
+
+## The guardian's (or the kindling fire's) bar under the compass: title, value of max, a line under it.
+## An empty title hides it.
+func set_boss(title: String, value: float = 0.0, top: float = 1.0, sub: String = "") -> void:
+	boss_panel.visible = title != "" and not in_cinema
+	if title == "":
+		return
+	boss_title.text = title.to_upper()
+	boss_bar.max_value = top
+	boss_bar.value = value
+	boss_sub.text = sub
+
+
+## A hit: the screen's edge flashes red.
+func hurt() -> void:
+	hurt_flash.color.a = 0.45
 
 
 ## The light in hand: item and minutes left (-1 = forever), or "" to hide.

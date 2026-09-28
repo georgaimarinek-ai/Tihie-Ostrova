@@ -330,6 +330,58 @@ func path_point(bid: String, t: float, side: float) -> Vector3:
 	return Vector3(base.x, isl.height_at(base.x, base.y), base.y)
 
 
+## A big forested island (the leshy's): 55 m or more across the radius and a dozen trees or more.
+func forested(island_id: String) -> bool:
+	var isl: IslandGen = by_id[island_id]
+	if isl.radius < 55.0:
+		return false
+	var trees := 0
+	for n: Dictionary in nodes(island_id):
+		if String(n["kind"]) in ["pine", "birch", "larch"]:
+			trees += 1
+	return trees >= 12
+
+
+## Ruins of the White-Eyed Chud (docs/01_GDD.md §11): a stone circle beside the path of every beacon island
+## and a mine on the two biggest islets of each region the Chud belongs to (regions.json → creatures).
+## [{"id", "kind": "circle" | "mine", "pos": Vector3, "island"}], deterministic, cached.
+func chud_sites() -> Array:
+	if _nodes.has("chud"):
+		return _nodes["chud"]
+	var out: Array = []
+	for rid in ContentDB.REGION_ORDER:
+		if not (db.regions[rid]["creatures"] as Array).has("chud"):
+			continue
+		var islets: Array[IslandGen] = []
+		for isl: IslandGen in islands:
+			if db.region_at(isl.center) != rid:
+				continue
+			if kind_of[isl.id] == "beacon":
+				out.append({"id": "chud_" + isl.id, "kind": "circle", "pos": path_point(isl.id, 0.5, 9.0), "island": isl.id})
+			elif kind_of[isl.id] == "islet":
+				islets.append(isl)
+		islets.sort_custom(func(a: IslandGen, b: IslandGen) -> bool: return a.radius > b.radius if a.radius != b.radius else a.id < b.id)
+		for isl: IslandGen in islets.slice(0, 2):
+			var c: Vector2 = isl.center
+			out.append({"id": "chud_" + isl.id, "kind": "mine", "pos": Vector3(c.x, isl.height_at(c.x, c.y), c.y), "island": isl.id})
+	_nodes["chud"] = out
+	return out
+
+
+## Likho's cave (Saga, optional): on the third-biggest islet of the Summer Shore, the two bigger ones being
+## Chud mines. Vector3.INF if there is no such islet.
+func likho_cave() -> Vector3:
+	var islets: Array[IslandGen] = []
+	for isl: IslandGen in islands:
+		if kind_of[isl.id] == "islet" and db.region_at(isl.center) == "r2":
+			islets.append(isl)
+	islets.sort_custom(func(a: IslandGen, b: IslandGen) -> bool: return a.radius > b.radius if a.radius != b.radius else a.id < b.id)
+	if islets.size() < 3:
+		return Vector3.INF
+	var c: Vector2 = islets[2].center
+	return Vector3(c.x, islets[2].height_at(c.x, c.y), c.y)
+
+
 ## The coastline of an island as a closed polygon (48 points, where the land meets the water): the chart
 ## draws islands with it. Cached.
 func outline(island_id: String) -> PackedVector2Array:

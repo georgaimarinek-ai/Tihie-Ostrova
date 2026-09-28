@@ -36,6 +36,7 @@ var world_state: WorldState
 var wall := ""  # "" | "locked" | "boat": what the sea says here
 var wall_time := 0.0  # seconds spent inside the wall
 var pushed := false  # the current has taken over the helm
+var capsized := false  # WorldState boats[uid].capsized: keel up, no sail, no helm until righted
 
 var _points: Array[Vector3] = []
 var _turn := 0.0
@@ -108,8 +109,8 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 	var v_fwd := vel.dot(fwd)
 	var v_side := vel.dot(right)
 	speed = v_fwd
-	var helm := steer
-	var sail := throttle
+	var helm := 0.0 if capsized else steer
+	var sail := 0.0 if capsized else throttle
 	_update_wall(st.step, Vector2(xf.origin.x, xf.origin.z))
 	if pushed:
 		# the current turns the bow home and carries the boat out of the Mga, gently
@@ -149,7 +150,9 @@ func _process(delta: float) -> void:
 		s.rotation.y = lerp_angle(s.rotation.y, sail_yaw, 1.0 - exp(-delta * 1.5))
 		s.scale.z = 0.7 + 0.3 * sin(Sea.time * 1.3) + minf(1.0, absf(speed) / 9.0) * 0.4
 	if model != null:
-		model.rotation.z = lerpf(model.rotation.z, -_turn * 0.06, 1.0 - exp(-delta * 3.0))
+		var roll := 2.75 if capsized else -_turn * 0.06  # a capsized hull floats keel up
+		model.rotation.z = lerpf(model.rotation.z, roll, 1.0 - exp(-delta * (1.5 if capsized else 3.0)))
+		model.position.y = lerpf(model.position.y, 0.9 if capsized else 0.0, 1.0 - exp(-delta * 1.5))
 
 
 ## Time inside the wall grows while the sea says no and melts away outside; after lock_push_s the

@@ -31,11 +31,14 @@ src/core/                чистая логика: RefCounted, без узло�
   progress.gd weather.gd следующий маяк и слои музыки; ветер из зерна и часов мира
   building.gd comfort.gd сетка стройки и опоры; уют у кровати
   sea_wall.gd            стена закрытого региона: где море говорит «ещё рано»
+  creatures.gd           кто где живёт и кто может навредить (духи — никогда), условия духов, холод
 src/autoload/            Content, Net, Game
 src/world/               узлы мира: World, FogDirector, Sea, Boat, CameraRig, IslandStreamer/IslandView,
                          BeaconView, HomeView, AudioDirector (+ Synth), ModelLibrary + Placeholders, BuildMode,
-                         trials/ (Trial: Carry, Climb, Bells, Lanterns, Mirror, Finale)
-src/ui/                  Hud, CompassBar, WindDial, StatBars, UiTheme, Loc, CraftWindow, StorageWindow, MapWindow
+                         trials/ (Trial: Carry, Climb, Bells, Lanterns, Mirror, Finale), CreatureDirector +
+                         CreatureView + CreatureShapes, SitesView (кресты, чудь, пещера Лиха), WeatherView, Combat
+src/ui/                  Hud, CompassBar, WindDial, StatBars, UiTheme, Loc, CraftWindow, StorageWindow, MapWindow,
+                         MainMenu, PauseMenu, JournalWindow
 src/shaders/             fog_clear.gdshaderinc, water, terrain, prop, sky, flame, glow, smoke, ghost
 src/scenes/world.tscn    игра (главная сцена); main.tscn — срез этапа 0 и дымовой тест
 i18n/                    strings.tsv (ключ, ru, en) → ru.po, en.po (tools/gen_i18n.py)
@@ -66,11 +69,18 @@ reference/sketch/        браузерный набросок, эталон о�
 | `craft` | recipe, times | открыт рецепт, станция в 6 м, есть входы, есть место | `crafted` |
 | `place` | piece, pos, rot, [dry] | открыта деталь, есть стоимость, игрок в 10 м, место свободно, есть опора (`Building.check`: земля или соседняя деталь; причал — от берега над водой). `dry: true` — только проверка, мир не меняется. Кровать ставит точку возрождения | `piece_placed` |
 | `remove` | uid | игрок в 10 м, сундук пуст и очередь станции пуста (`not_empty`), есть место под возврат (100%) | `piece_removed` |
-| `begin_fight` | beacon | только Сага, не идёт другой бой | `fight_started` |
+| `begin_fight` | beacon | только Сага, регион открыт, маяк не пройден, игрок на острове; оборона — топливо в сумке (сгорит, только если огонь удержан); страж — выходит сам (`creature_spawned`) | `fight_started` |
+| `attack` | target, [heavy, weapon] | не дружелюбное существо (духов и зверей бить нельзя), оружие в сумке, в досягаемости; лук тратит стрелу; огонь в руке и сполоховая рогатина ×1,5 по тварям; Мга ×2 при 4 фонарях арены. Павший страж проходит испытание | `creature_hit`, `guardian_phase`, `creature_died`, `trial_done`, `fight_ended` |
+| `arena_lantern` | i | бой с Мгой, огонь в руке | `arena_lantern` |
+| `offer` | spirit | дар из `creatures.json → gift` в сумке: домовой у своих полатей раз в 3 дня, леший на большом лесном острове, водяной у воды Летнего и Терского берега раз в день | `offered`, `journal_page` |
+| `meet` | creature | существо есть в этом режиме и регионе; рыба-кит — тихая ночь Студёного моря («Отдых»), Сирин — рассвет | `met`, `journal_page` |
+| `explore` | site | руины чуди (`WorldMap.chud_sites`) в 6 м, ещё не осмотрены | `explored`, `journal_page` |
+| `set_tuning` | rule, value | storms/cold/durability/night_raids с допустимым значением, не во время боя | `tuning_changed` |
+| `right_boat` | boat | лодка опрокинута, игрок в ней или в 16 м | `boat_righted` |
 | `complete_trial` | beacon, kind | регион открыт; kind = trial (Тихий/Сказание) или guardian/defense (Сага, только во время боя). С картой хост проверяет, что видит сам: игрок на острове маяка; `carry` — огонь в руке и игрок у вышки (12 м); `climb` — игрок на высоте площадки (`CLIMB_TOP_M` = 9 м над вершиной) | `trial_done` |
 | `light_beacon` | beacon | не зажжён, регион открыт, испытание пройдено, игрок в 12 м, есть топливо | `beacon_lit` (+ `unlocks`), `region_opened` |
 | `set_mode` | mode | не идёт бой | `mode_changed` |
-| `die` | — | генерирует хост. Правила смерти по режиму | `respawn` (+ `grave`) |
+| `die` | — | генерирует хост. Правила смерти по режиму: Тихий — на место последней высадки, Сказание — дома со всеми вещами, Сага — вещи в кресток-знаке; «Усталость»; бой заканчивается проигрышем без траты топлива | `respawn` (+ `grave`), `fight_ended` |
 | `loot_grave` | uid | игрок в 6 м | `grave_looted` |
 | `move` | pos, [boat_pos, boat_yaw] | координаты конечны и в пределах мира; лодку двигает тот, кто в ней | — (позиции идут синхронизатором) |
 | `board` | boat | лодка есть, игрок не в лодке, до лодки ≤ 16 м | `boarded` |
@@ -84,7 +94,12 @@ reference/sketch/        браузерный набросок, эталон о�
 | `store` / `take` | container (uid сундука или лодки), item, qty | сундук в 4 м или своя лодка (в ней или в 16 м), есть место | `stored` / `taken` |
 | `unload` | boat, chest | сундук в 30 м от лодки; трюм целиком в сундук, что не влезло — остаётся | `unloaded` |
 | `light` | item ("" — погасить) | предмет со свойством `light`; факел сгорает (1 шт. на 5 мин), фонарь тратит `fuel` | `light_changed` |
-| `tick` | dt_min ≤ 1 | **только хост**: идут часы мира, смена дня, догорает свет (фонарь сам берёт ворвань), истекает еда, станции готовят | `day_changed`, `light_changed`, `food_gone`, `station_done` |
+| `tick` | dt_min ≤ 1 | **только хост**: идут часы мира, смена дня, догорает свет (фонарь сам берёт ворвань), истекает еда, станции готовят, возвращается здоровье, холод Саги отнимает его, домовой прибирает сундук, оборона огня кончается победой | `day_changed`, `light_changed`, `food_gone`, `station_done`, `respawn`, `domovoy_tidied`, `trial_done`, `beacon_lit` |
+| `spawn` / `despawn` | id, pos, [fight] / uid | **только хост**: `Creatures.spawn_block` — режим, регион, туман гуще `fog_min` и ночь или тёмный остров; страж — только в бою | `creature_spawned` / `creature_gone` |
+| `creatures` | pos: {uid: [x, y, z]} | **только хост**: где существа (для проверки досягаемости) | — |
+| `hurt` | player, source, [k] | **только хост**: источник не дружелюбный (иначе `friendly`), не Тихий (`no_harm`), в досягаемости; уклон — 0, блок — минус щит; мгляк, Карачун и Мга гасят свет; при 0 — смерть по режиму | `hurt`, `light_changed`, `respawn` |
+| `douse` / `steal` | source, [uid] | **только хост**: тварь обороны бьёт огонь (0 — бой проигран) / чайка тащит с вешал | `fire_doused`, `fight_ended` / `stolen` |
+| `capsize` | boat | **только хост**: шторм выше класса лодки и правило `storms = capsize` | `boat_capsized` |
 | `debug` | give, trial, pos, clock_min | **только хост** и только при `allow_debug` (скриншоты, автоматизация) | `gathered`, `trial_done` |
 
 С картой (`WorldCommands.map`) `gather` дополнительно проверяет, что узел существует, даёт этот предмет и игрок рядом. Новый мир: `WorldCommands.init_world()` ставит карбас у причала дома и сажает в него игроков.
@@ -145,6 +160,14 @@ reference/sketch/        браузерный набросок, эталон о�
 - **Испытания** — узлы `Trial` на острове маяка (`src/world/trials/`), строятся, когда остров ближе 420 м (только если правила режима `beacon == "trial"`), и убираются, когда он далеко. Каждое ставит свой реквизит вдоль тропы (`WorldMap.path_point`), отвечает на «что делает E», даёт строку цели и точку компаса. Засчитывается испытание **только** командой `complete_trial`; части финала (`FinaleTrial`: фонари → колокола → отражатели → уступы) докладывают финалу, а команду шлёт последняя.
 - **Зажжение** (`GDD §5.4`): «Зажечь маяк» у вышки (≤ 10,5 м) шлёт `light_beacon`. Событие `beacon_lit` рядом с игроком запускает момент: чёрные полосы, камера (`CameraRig.play_shot`) отлетает поперёк солнца (`World.moment_offset`), через 1 с огонь занимается и просвет растёт 3,5 с (`FogDirector.mark_lit_after`), подъём музыки, баннер «Маяк зажжён · N из 12» с открытым (иконки деталей, предметов, лодок) и новым слоем музыки, внизу — где мерцает следующий огонёк; через 8 с камера возвращается. Маяк, зажжённый далеко (кооп), просто разгорается с тостом.
 - **Лоция** (`MapWindow`, M): бумага там, где туман уже показал море (дом, просветы зажжённых маяков, пройденный путь), острова по береговой линии (`WorldMap.outline`), зажжённые маяки, следующий — огоньком в тумане, дом, поморские кресты, путь точками, границы регионов, масштаб, роза ветров; справа легенда и «Дальше». Метка на карте — локальная, компас ведёт к ней до 25 м. Путь пока живёт только в сессии.
+
+## 6.2 Жизнь мира и Сага (этапы 6–7)
+
+- **Время:** `Weather.day_phase` (0 — полночь), `Weather.night(регион)` по `balance.day.night_share`, `Weather.storm` (0…`storm_max`) — чистые функции зерна и часов: все пиры видят одно и то же без синхронизации.
+- **Существа:** `WorldState.creatures` (uid → id, pos, hp, fight) — часть мира; вид — `CreatureView` на каждом пире. Решает хост (`CreatureDirector`): кто приходит (`spawn` с проверкой правил), как ведёт себя (бегство, предупреждение, ночная охота, страх света, приёмы стражей), куда бьёт (`hurt`). Позиции уходят пачкой `creatures` дважды в секунду; перед ударом — позиция этого существа.
+- **Бой** на пире игрока: `Combat` шлёт `attack` и стойку в `move` (`stance`: block/dodge); урон считает хост.
+- **Меню и пауза:** `Game.new_world(зерно, режим, имя, тонкая настройка)`; `Game.save()` → `user://worlds/<имя>`, `Game.last_world()` для «Продолжить». Пауза в соло останавливает часы (`Game.paused`).
+- **Сохранение v4:** имя мира, здоровье игроков, место высадки, опрокинутые лодки, память духов, существа, текущий бой; миграция v3→v4.
 
 ## 7. Кооператив (готовность с первого дня)
 

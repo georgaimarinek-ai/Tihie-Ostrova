@@ -25,6 +25,15 @@ var busy := false  # gathering: stand still
 var light_id := ""  # "", "torch", "iron_lantern", "spolokh_lantern"
 var hp := 100.0
 var hp_max := 100.0
+## Combat (Tale and Saga): a block slows you, a dodge dashes you out of harm; gusts push, the mire slows.
+var blocking := false
+var dodge_s := 0.45
+var push_v := Vector3.ZERO
+var _dodge_t := 0.0
+var _dodge_dir := Vector3.ZERO
+var _slow_t := 0.0
+var _slow_k := 1.0
+var _swing_heavy := false
 
 var _speed := 0.0
 var _step := 0.0
@@ -122,6 +131,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		stamina = minf(stamina_max, stamina + stamina_regen * delta)
 	var want := fwd * (RUN if sprint else WALK) * (0.6 if fwd < 0.0 else 1.0)
+	if blocking:
+		want *= 0.4
+	if _slow_t > 0.0:
+		_slow_t -= delta
+		want *= _slow_k
 	_speed = lerpf(_speed, want, 1.0 - exp(-delta * 8.0))
 	var yaw := cam.foot_yaw if cam != null else 0.0
 	var dir := Vector3(-sin(yaw), 0.0, -cos(yaw)) * signf(_speed)
@@ -139,6 +153,11 @@ func _physics_process(delta: float) -> void:
 			else:
 				hv = Vector3.ZERO
 				_speed = 0.0
+	if _dodge_t > 0.0:
+		_dodge_t -= delta
+		hv = _dodge_dir * 11.0
+	hv += push_v
+	push_v = push_v.lerp(Vector3.ZERO, 1.0 - exp(-delta * 3.0))
 	velocity.x = hv.x
 	velocity.z = hv.z
 	if is_on_floor():
@@ -211,6 +230,39 @@ func _process(_delta: float) -> void:
 ## Swing the tool for a moment (gathering feedback).
 func work(seconds: float = 0.6) -> void:
 	_work = seconds
+
+
+## "" | "block" | "dodge": sent to the host with "move" so its creatures' hits land right.
+func stance() -> String:
+	if _dodge_t > 0.0:
+		return "dodge"
+	return "block" if blocking else ""
+
+
+## A quick dash (Ctrl) the way you face; costs stamina.
+func dodge(cost: float) -> bool:
+	if _dodge_t > 0.0 or stamina < cost or busy:
+		return false
+	stamina -= cost
+	_dodge_t = dodge_s
+	var yaw := model.rotation.y
+	_dodge_dir = Vector3(-sin(yaw), 0, -cos(yaw))
+	return true
+
+
+## A strike: the arm swings (heavy = a slower, bigger one).
+func swing(heavy: bool) -> void:
+	_swing_heavy = heavy
+	_work = 0.55 if heavy else 0.3
+
+
+func push(v: Vector3) -> void:
+	push_v += Vector3(v.x, 0.0, v.z)
+
+
+func slow(k: float, seconds: float) -> void:
+	_slow_k = k
+	_slow_t = seconds
 
 
 ## The light in hand clears the fog (items.json → light.fog_radius); without one a little circle remains.

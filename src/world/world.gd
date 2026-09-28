@@ -48,6 +48,13 @@ var craft: CraftWindow
 var storage: StorageWindow
 var build: BuildMode
 var chart: MapWindow
+var creatures: CreatureDirector
+var sites: SitesView
+var weather: WeatherView
+var combat: Combat
+var journal: JournalWindow
+var pause_menu: PauseMenu
+var menu: MainMenu
 var trials: Dictionary = {}  # beacon id -> Trial, built while its island is near
 var trail := PackedVector2Array()  # where the player has been (the chart's dotted path)
 var mark := Vector2.INF  # the chart's mark: the compass follows it until you get there
@@ -78,6 +85,8 @@ func _ready() -> void:
 	if _args.has("locale"):
 		TranslationServer.set_locale(String(_args["locale"]))
 	db = ContentDB.shared()
+	if not _args.is_empty() and not _args.has("menu"):
+		Game.show_menu = false  # debug and automation runs start straight in the world
 	if Game.state == null:
 		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon"]:
 			if _args.has(k):
@@ -143,6 +152,27 @@ func _ready() -> void:
 	build = BuildMode.new()
 	add_child(build)
 	build.setup(db, state, map, player, cam, _pid, layer)
+	weather = WeatherView.new()
+	add_child(weather)
+	weather.setup(self)
+	creatures = CreatureDirector.new()
+	add_child(creatures)
+	creatures.setup(self)
+	sites = SitesView.new()
+	add_child(sites)
+	sites.setup(self)
+	combat = Combat.new()
+	add_child(combat)
+	combat.setup(self)
+	journal = JournalWindow.new()
+	journal.db = db
+	journal.state = state
+	layer.add_child(journal)
+	journal.closed.connect(func() -> void: player.busy = false)
+	pause_menu = PauseMenu.new()
+	layer.add_child(pause_menu)
+	pause_menu.closed.connect(func() -> void: player.busy = false)
+	pause_menu.journal_requested.connect(_open_journal)
 	chart = MapWindow.new()
 	layer.add_child(chart)
 	chart.closed.connect(func() -> void: player.busy = false)
@@ -156,6 +186,10 @@ func _ready() -> void:
 	add_child(_bobber)
 	_debug_setup()
 	_attach_player()
+	if Game.show_menu:
+		menu = MainMenu.new()
+		layer.add_child(menu)
+		player.busy = true
 	streamer.build_around(_focus())
 	cam.snap()
 
@@ -276,7 +310,7 @@ func _send_move() -> void:
 		Game.submit({"type": "move", "pos": [bp.x, bp.y, bp.z], "boat_pos": [bp.x, 0.0, bp.z], "boat_yaw": my_boat.rotation.y})
 	else:
 		var p := player.global_position
-		Game.submit({"type": "move", "pos": [p.x, p.y, p.z]})
+		Game.submit({"type": "move", "pos": [p.x, p.y, p.z], "stance": player.stance()})
 
 
 ## On foot on an island whose beacon is still dark the Mga is 2.3 times thicker; at home a little thicker.
@@ -347,10 +381,15 @@ func _action() -> Dictionary:
 	if cam.in_shot():
 		return {}
 	if my_boat != null:
+		if my_boat.capsized:
+			return {"label": tr("act.right_boat"), "run": func() -> void: Game.submit({"type": "right_boat", "boat": my_boat.uid})}
 		if not _fishing.is_empty():
 			if float(_fishing["bite"]) > 0.0:
 				return {"label": tr("act.hook"), "run": _hook}
 			return {"label": tr("act.reel") % [int(_fishing["caught"]), int(_fishing["want"])], "run": _stop_fishing}
+		var whale := creatures.action(my_boat.global_position, true)
+		if not whale.is_empty():
+			return whale
 		if not _landing.is_empty():
 			return {"label": tr("act.land"), "run": _disembark}
 		if _can_fish():
@@ -366,6 +405,11 @@ func _action() -> Dictionary:
 	var beacon_act := _beacon_action()
 	if not beacon_act.is_empty():
 		return beacon_act
+	var life := sites.action(player.global_position)
+	if life.is_empty():
+		life = creatures.action(player.global_position, false)
+	if not life.is_empty():
+		return life
 	var inv := state.inv(_pid)
 	if not _near_node.is_empty():
 		var items: Array = _near_node["items"]
@@ -420,8 +464,26 @@ func _do_action() -> void:
 		(a["run"] as Callable).call()
 
 
+## Anything that takes the keys and the mouse from the world.
+func ui_open() -> bool:
+	return craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or build.active \
+			or (menu != null and menu.visible)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if craft.visible or storage.visible or chart.visible or cam.in_shot():
+	if craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or cam.in_shot():
+		return
+	if menu != null and menu.visible:
+		return
+	if event.is_action_pressed("pause") and not build.active:
+		_send_move()
+		pause_menu.open(self)
+		player.busy = true
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("journal") and not build.active:
+		_open_journal()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("map") and not build.active:
 		_open_chart()
@@ -542,8 +604,10 @@ func _beacon_action() -> Dictionary:
 		if not a.is_empty():
 			return a
 	var bid := _beacon_at(p)
-	if bid == "" or state.lit.has(bid) or not state.trials_done.has(bid):
+	if bid == "" or state.lit.has(bid):
 		return {}
+	if not state.trials_done.has(bid):
+		return _saga_action(bid)
 	var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
 	if state.inv(_pid).has_bag(fuel):
 		return {"label": tr("act.light_beacon"), "run": _light_beacon.bind(bid)}
@@ -559,9 +623,31 @@ func _beacon_at(p: Vector3) -> String:
 	return ""
 
 
+## Saga at the tower: start the guardian's fight, or the fire defence (with the fuel in the bag).
+func _saga_action(bid: String) -> Dictionary:
+	if String(state.rules()["beacon"]) == "trial" or state.busy_beacon != "" or not db.region_open(db.beacons[bid]["region"], state.lit):
+		return {}
+	var start := func() -> void:
+		_send_move()
+		Game.submit({"type": "begin_fight", "beacon": bid})
+	if String(db.beacons[bid]["saga"]["type"]) == "guardian":
+		var boss: String = Game.commands.guardian_of(bid)
+		return {"label": tr("act.fight_guardian") % Loc.name_of(db.creatures[boss]["name"]), "run": start}
+	var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
+	if not state.inv(_pid).has_bag(fuel):
+		var need := tr("act.need_fuel") % ItemInfo.bag_text(db, fuel)
+		return {"label": need, "run": func() -> void: hud.toast(need)}
+	return {"label": tr("act.defend_fire") % int(db.beacons[bid]["saga"]["seconds"]), "run": start}
+
+
 func _light_beacon(bid: String) -> void:
 	_send_move()
 	Game.submit({"type": "light_beacon", "beacon": bid})
+
+
+func _open_journal() -> void:
+	journal.open(db, state)
+	player.busy = true
 
 
 ## The chart (M): what the fog has shown so far.
@@ -647,6 +733,8 @@ func _cast_point() -> Vector3:
 func _start_fishing() -> void:
 	var cp := _cast_point()
 	var per := Gathering.unit_seconds(db, state.inv(_pid), "raw_fish")
+	if Creatures.vodyanoy_boon(state):
+		per /= 1.0 + float(db.balance["spirits"]["vodyanoy_bite_bonus"])  # the first fish went to the vodyanoy
 	_fishing = {"spot": map.fish_spot(Vector2(cp.x, cp.z)), "pos": cp, "t": 0.0, "next": per * randf_range(0.6, 1.3), "bite": 0.0, "caught": 0, "want": WorldCommands.GATHER_MAX, "per": per}
 	_bobber.visible = true
 	player.busy = true
@@ -718,7 +806,7 @@ func _make_bobber() -> Node3D:
 ## Food and rest set the limits: the player node carries them for movement and the HUD.
 func _update_vitals() -> void:
 	player.hp_max = Vitals.max_hp(db, state, _pid)
-	player.hp = minf(player.hp_max, maxf(player.hp, float(db.balance["player"]["hp"])))
+	player.hp = float(state.players[_pid]["hp"])
 	player.stamina_max = Vitals.max_stamina(db, state, _pid)
 	player.stamina = minf(player.stamina, player.stamina_max)
 	player.stamina_regen = Vitals.stamina_regen(db, state, _pid)
@@ -726,8 +814,10 @@ func _update_vitals() -> void:
 
 func _update_beacons() -> void:
 	var next := Progress.next_beacon(db, state)
+	var night := float(director.palette.get("night", 0.0))
 	for bid: String in beacons:
 		(beacons[bid] as BeaconView).set_hint(bid == next)
+		(beacons[bid] as BeaconView).night = night
 	# the warm reflection of the nearest burning beacon on the water
 	var best := Vector4.ZERO
 	var best_d := INF
@@ -790,7 +880,8 @@ func _update_audio(focus: Vector3) -> void:
 # ---------------------------------------------------------------- HUD
 
 func _update_hud() -> void:
-	hud.visible = not craft.visible and not storage.visible and not build.active and not chart.visible
+	hud.visible = not craft.visible and not storage.visible and not build.active and not chart.visible \
+			and not journal.visible and not pause_menu.visible and (menu == null or not menu.visible)
 	if hud.in_cinema:
 		return  # the beacon moment: only the banner and the black bars
 	var p := Vector2(cam.global_position.x, cam.global_position.z)
@@ -803,6 +894,9 @@ func _update_hud() -> void:
 	if mark != Vector2.INF:
 		goal["target"] = Vector3(mark.x, 0.0, mark.y)
 		goal["label"] = tr("target.mark")
+	if Creatures.leshy_guiding(state) and creatures.leshy_goal != Vector3.INF and on_foot():
+		goal["target"] = creatures.leshy_goal
+		goal["label"] = tr("target.wisp")
 	var fwd := -cam.global_transform.basis.z
 	var cam_bearing := atan2(fwd.x, -fwd.z)
 	if goal.has("target") and not cam.in_shot():
@@ -817,7 +911,8 @@ func _update_hud() -> void:
 	var food: Array = []
 	for f: Dictionary in state.players[_pid]["food"]:
 		food.append({"id": f["id"], "left_min": float(f["until"]) - state.clock_min})
-	hud.set_buffs(food, maxf(0.0, float(state.players[_pid]["rested_until"]) - state.clock_min))
+	hud.set_buffs(food, _states())
+	_update_fight_bar()
 	hud.set_hotbar(state.inv(_pid).slots.slice(0, 8), _hot, on_foot() and not craft.visible)
 	var light: Dictionary = state.players[_pid].get("light", {})
 	if on_foot() and not light.is_empty():
@@ -846,7 +941,72 @@ func _update_hud() -> void:
 		hud.set_hint(tr("hint.boat"))
 	else:
 		hud.set_boat({})
-		hud.set_hint(tr("hint.fishing") if not _fishing.is_empty() else tr("hint.foot"))
+		var hint := tr("hint.foot")
+		if not _fishing.is_empty():
+			hint = tr("hint.fishing")
+		elif creatures.hostile_near(player.global_position, 25.0):
+			hint = tr("hint.combat")
+		hud.set_hint(hint)
+
+
+## The states in the top-right corner besides food: Rested, Bath steam, Weary, Cold, the leshy's wisp.
+func _states() -> Array:
+	var p: Dictionary = state.players[_pid]
+	var out: Array = []
+	var left := func(until: float) -> String: return "%d %s" % [ceili(until - state.clock_min), tr("unit.min").to_upper()]
+	if float(p["rested_until"]) > state.clock_min:
+		out.append({"label": tr("ui.rested"), "text": left.call(float(p["rested_until"]))})
+	if float(p["steam_until"]) > state.clock_min:
+		out.append({"label": tr("ui.steam"), "text": left.call(float(p["steam_until"]))})
+	if Vitals.is_weary(state, _pid):
+		out.append({"label": tr("ui.weary"), "text": left.call(float(p["weary_until"])), "warn": true})
+	if Creatures.is_cold(db, state, _pid):
+		out.append({"label": tr("ui.cold"), "text": tr("ui.cold_hint"), "warn": true})
+	if Creatures.leshy_guiding(state):
+		out.append({"label": tr("ui.wisp"), "text": ""})
+	return out
+
+
+## Saga fights: the guardian's health and phase, or the kindling fire and the time left.
+func _update_fight_bar() -> void:
+	if state.fight.is_empty():
+		hud.set_boss("")
+		return
+	if String(state.fight["kind"]) == "defense":
+		var left := maxf(0.0, (float(state.fight["until"]) - state.clock_min) * 60.0)
+		hud.set_boss(tr("fight.fire"), float(state.fight["fire"]), 100.0, tr("fight.hold") % ItemInfo.clock(left / 60.0))
+		return
+	var boss: Dictionary = state.creatures.get(String(state.fight.get("boss", "")), {})
+	if boss.is_empty():
+		hud.set_boss("")
+		return
+	var info: Dictionary = db.creatures[boss["id"]]
+	var sub := tr("fight.phase") % [int(state.fight.get("phase", 1)), int(info.get("phases", 1))]
+	if String(boss["id"]) == "mga":
+		sub += " · " + tr("fight.lanterns") % [(state.fight.get("lanterns", []) as Array).size(), WorldCommands.ARENA_LANTERNS]
+	hud.set_boss(Loc.name_of(info["name"]), float(boss["hp"]), float(info["hp"]), sub)
+
+
+## Death by the mode's rules (docs/01_GDD.md §6): a fade, then wake where the host says.
+func _respawn(e: Dictionary) -> void:
+	var at := WorldState._to_v3(e["at"])
+	if not _fishing.is_empty():
+		_stop_fishing()
+	_channel = {}
+	var tw := create_tween()
+	tw.tween_property(_fade, "color:a", 1.0, 0.5)
+	tw.tween_callback(func() -> void:
+		if my_boat != null:
+			my_boat = null
+		_attach_player()
+		player.place(Vector3(at.x, map.ground_at(at.x, at.z) + 0.2, at.z), player.model.rotation.y)
+		player.stamina = player.stamina_max
+		streamer.build_around(player.global_position)
+		cam.snap())
+	tw.tween_interval(0.6)
+	tw.tween_property(_fade, "color:a", 0.0, 1.2)
+	var key := "toast.respawn_" + String(e["death"])
+	hud.toast(tr(key), "✦")
 
 
 ## What the player should do now and where the compass points: {"text", "target": Vector3, "label"}.
@@ -857,6 +1017,8 @@ func _goal() -> Dictionary:
 		var bv: BeaconView = beacons[next]
 		beacon_goal = {"target": bv.fire_pos, "label": tr("target.beacon") % Loc.beacon(db, next)}
 	if my_boat != null:
+		if my_boat.capsized:
+			return {"text": tr("goal.capsized")}
 		if my_boat.wall != "":
 			var g := beacon_goal.duplicate()
 			var bp := Vector2(my_boat.global_position.x, my_boat.global_position.z)
@@ -900,7 +1062,12 @@ func _beacon_goal(bid: String, boat_goal: Dictionary) -> Dictionary:
 		tower["text"] = tr("goal.light") if state.inv(_pid).has_bag(fuel) else tr("goal.fuel") % ItemInfo.bag_text(db, fuel)
 		return tower
 	if Game.commands != null and String(Game.commands.rules()["beacon"]) != "trial":
-		tower["text"] = tr("goal.saga_later")
+		if state.busy_beacon == bid:
+			tower["text"] = tr("goal.fight_" + String(state.fight.get("kind", "guardian")))
+		elif String(db.beacons[bid]["saga"]["type"]) == "guardian":
+			tower["text"] = tr("goal.saga_guardian") % Loc.name_of(db.creatures[Game.commands.guardian_of(bid)]["name"])
+		else:
+			tower["text"] = tr("goal.saga_defense") % [int(db.beacons[bid]["saga"]["seconds"]), ItemInfo.bag_text(db, ContentDB.bag(db.beacons[bid]["fuel"]))]
 		return tower
 	var t: Trial = trials.get(bid)
 	if t == null:
@@ -1016,10 +1183,60 @@ func _on_world_event(e: Dictionary) -> void:
 		"region_opened":
 			if _moment == "":  # during the moment the banner says it
 				hud.toast(tr("toast.region_opened") % Loc.region(db, String(e["region"])))
+		"respawn":
+			if mine:
+				_respawn(e)
+		"journal_page":
+			if mine:
+				hud.toast(tr("toast.journal") % String(journal.page(String(e["page"]))["title"]), "J")
+		"offered":
+			if mine:
+				hud.toast(tr("toast.offered_" + String(e["spirit"])), "✦")
+				audio.sfx("lantern", 1)
+		"met":
+			if mine and e.get("rested", false):
+				hud.toast(tr("toast.whale"), "✦")
+				var tw := create_tween()
+				tw.tween_property(_fade, "color:a", 0.9, 0.8)
+				tw.tween_interval(0.8)
+				tw.tween_property(_fade, "color:a", 0.0, 1.2)
+			if mine and String(e["creature"]) == "sirin":
+				audio.sfx("sirin")
+		"explored":
+			if mine:
+				hud.toast(tr("toast.explored"), ItemInfo.bag_text(db, e["items"]))
+		"boat_capsized":
+			hud.toast(tr("toast.capsized"), "!")
+			audio.sfx("thud")
+		"boat_righted":
+			audio.sfx("board")
+		"fight_started":
+			var kind := String(e["kind"])
+			hud.toast(tr("fight.start_" + kind), "!")
+			audio.sfx("growl")
+		"fight_ended":
+			hud.toast(tr("toast.fight_won") if e.get("won", false) else tr("toast.fight_lost"), "!")
+		"fire_doused":
+			audio.sfx("hurt")
+		"creature_died":
+			if mine and not (e["drops"] as Dictionary).is_empty():
+				hud.toast(Loc.name_of(db.creatures[e["id"]]["name"]), ItemInfo.bag_text(db, e["drops"]))
+		"mode_changed":
+			hud.toast(tr("toast.mode") % Loc.name_of(db.modes[e["to"]]["name"]))
+		"domovoy_tidied":
+			hud.toast(tr("toast.tidied"), "✦")
+		"stolen":
+			hud.toast(tr("toast.stolen") % Loc.item(db, e["item"]))
+		"steamed":
+			if mine and String(e.get("bannik", "")) == "angry":
+				hud.toast(tr("toast.bannik_angry"), "!")
 		"trial_done":
 			if mine:
 				var kind := String(db.beacons[e["beacon"]]["trial"])
-				hud.toast(tr("toast.trial_done") % Loc.name_of(db.trial_types[kind]), "✓")
+				if String(e["kind"]) != "trial":
+					hud.toast(tr("toast.saga_done_" + String(e["kind"])), "✓")
+				else:
+					hud.toast(tr("toast.trial_done") % Loc.name_of(db.trial_types[kind]), "✓")
 				audio.sfx("lantern", 2)
 		"gathered":
 			streamer.refresh_node(String(e["node"]))
@@ -1067,10 +1284,14 @@ func _on_world_event(e: Dictionary) -> void:
 	craft.refresh()
 	storage.refresh()
 	build.refresh()
+	journal.refresh()
 
 
-func _on_command_failed(_cmd: Dictionary, error: String) -> void:
+func _on_command_failed(cmd: Dictionary, error: String) -> void:
 	if error in ["bad_pos"]:
+		return
+	# what the host simulates (creatures, their hits, storms) and quiet background commands never toast
+	if String(cmd.get("type", "")) in WorldCommands.HOST_ONLY or String(cmd.get("type", "")) in ["meet", "move"]:
 		return
 	hud.toast(tr("cmd." + error))
 	audio.sfx("deny")
@@ -1108,6 +1329,11 @@ func _debug_setup() -> void:
 	if _args.has("lit"):
 		for bid: String in String(_args["lit"]).split(","):
 			_debug_light(bid, true)
+	if _args.has("time"):
+		# the time of day, 0..1 (0 = midnight): moves the world clock forward to it
+		var len := float(db.balance["day"]["length_min"])
+		var want := fposmod(float(_args["time"]) - 0.25, 1.0) * len
+		Game.submit({"type": "debug", "clock_min": state.clock_min - fposmod(state.clock_min, len) + want})
 	if _args.has("give"):
 		var give := {}
 		for pair: String in String(_args["give"]).split(","):
@@ -1199,6 +1425,29 @@ func _debug_place() -> void:
 		build.debug_aim = player.global_position + fwd * 5.0 + Vector3(fwd.z, 0, -fwd.x) * 2.0
 	if _args.has("chart"):
 		_open_chart()
+	if _args.has("journal"):
+		for id: String in String(_args["journal"]).split(","):
+			if id != "true":
+				Game.submit({"type": "debug", "journal": id})
+		_open_journal()
+	if _args.has("pause"):
+		pause_menu.open(self)
+	if _args.has("creature"):
+		# debug: creatures in front of the player (through the same "spawn" the host sends, as a fight spawn
+		# when a fight is on, else ambient: the host may still say no)
+		var n := 0
+		for id: String in String(_args["creature"]).split(","):
+			var yaw := player.model.rotation.y + (n - 0.5) * 0.7
+			var at := _focus() + Vector3(-sin(yaw), 0, -cos(yaw)) * (7.0 + n * 2.0)
+			at.y = map.ground_at(at.x, at.z)
+			Game.submit({"type": "debug", "spawn": id, "pos": [at.x, at.y, at.z]})
+			n += 1
+	if _args.has("fight") and on_foot():
+		var bid := String(_args["fight"])
+		Game.submit({"type": "debug", "give": ContentDB.bag(db.beacons[bid]["fuel"])})
+		Game.submit({"type": "begin_fight", "beacon": bid})
+	if _args.has("hurt"):
+		Game.submit({"type": "debug", "hp": float(_args["hurt"])})
 	if _args.has("craft") and on_foot():
 		_open_craft()
 		if String(_args["craft"]) != "true":

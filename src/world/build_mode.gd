@@ -416,7 +416,8 @@ func _refresh_comfort() -> void:
 	_comfort_bar.max_value = float(cf["max"])
 	_comfort_bar.value = float(cf["total"])
 	for part: Dictionary in cf["parts"]:
-		_comfort_list.add_child(UiTheme.label("%s +%d" % [Loc.name_of(db.pieces[part["id"]]["name"]), int(part["comfort"])], 15, UiTheme.TEXT2))
+		var src: Dictionary = db.pieces.get(part["id"], db.creatures.get(part["id"], {}))  # a fed domovoy counts too
+		_comfort_list.add_child(UiTheme.label("%s +%d" % [Loc.name_of(src.get("name", part["id"])), int(part["comfort"])], 15, UiTheme.TEXT2))
 	if bed == "":
 		_comfort_rest.text = tr("build.no_bed")
 	else:

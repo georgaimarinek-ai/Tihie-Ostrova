@@ -253,3 +253,153 @@ trial.bells	колокола	the bells
 trial.lanterns	путевые фонари	path lanterns
 trial.mirror	отражатели	the reflectors
 trial.finale	все испытания подряд	all trials in a row
+cmd.already_done	Этот маяк уже пройден.	This beacon is already done.
+cmd.friendly	Духов и мирных зверей не трогают.	Spirits and peaceful animals are never harmed.
+cmd.no_ammo	Нет стрел.	No arrows.
+cmd.unknown_creature	Такого здесь не водится.	Nothing like that lives here.
+cmd.no_gift	Этому духу дары не нужны.	This spirit takes no gifts.
+cmd.no_domovoy	Домовой ещё не поселился: нужны печь, полати и уют от 5.	No domovoy yet: he wants a stove, a bed and comfort 5.
+cmd.not_hungry	Дар уже принят.	The gift is already taken.
+cmd.not_now	Не время: приходи в свой час.	Not now: come at the right hour.
+cmd.unknown_site	Здесь нет руин.	There are no ruins here.
+cmd.explored	Руины уже осмотрены.	These ruins are already explored.
+cmd.unknown_rule	Это правило не настраивается.	This rule can't be tuned.
+cmd.bad_value	Нет такого значения.	No such value.
+cmd.no_storm	Шторма нет.	There's no storm.
+cmd.no_harm	В Тихом мире никто не ранит.	Nothing harms anyone in a Quiet world.
+cmd.nothing	Тут пусто.	There's nothing here.
+cmd.clear	Туман здесь слишком редок.	The fog is too thin here.
+cmd.daylight	Днём твари не выходят.	They don't come out by day.
+cmd.fight_only	Страж приходит только на бой.	A guardian comes only to a fight.
+cmd.not_in_this_region	В этих краях такие не водятся.	None of those in these parts.
+act.right_boat	Перевернуть лодку	Right the boat
+act.whale	Пристать к рыбе-киту и отдохнуть у часовенки	Moor by the whale and rest at the chapel
+act.offer	Оставить: %s — %s	Leave %s for %s
+act.wants	%s ждёт дара: %s	%s waits for a gift: %s
+act.bow	Поклониться: %s	Bow to %s
+act.loot_grave	Забрать вещи у кресток-знака	Take your things from the grave marker
+act.explore_circle	Осмотреть каменный круг	Look over the stone circle
+act.explore_mine	Заглянуть в копи чуди	Look into the Chud mine
+act.fight_guardian	Вызвать на бой: %s	Challenge %s
+act.defend_fire	Зажечь и удержать огонь (%d с)	Light it and hold the fire (%d s)
+target.wisp	За огоньком	The wisp
+goal.capsized	Лодку опрокинуло. Лодка на плаву: переверни её (E).	The boat capsized. It floats: right it (E).
+goal.saga_guardian	Этот маяк стережёт %s. Вызови стража на бой у вышки.	%s guards this beacon. Challenge the guardian at the tower.
+goal.saga_defense	Маяк разгорается %d с, твари пойдут на огонь. Нужно топливо: %s.	The beacon kindles for %d s and creatures will come for the fire. Fuel needed: %s.
+goal.fight_guardian	Бой со стражем. ЛКМ — удар (удерживай — сильный), C — блок, Ctrl — уклон.	Guardian fight. LMB strikes (hold for heavy), C blocks, Ctrl dodges.
+goal.fight_defense	Удержи огонь, пока он не разгорится. Факел в руке отгоняет тварей.	Hold the fire until it catches. A torch in hand keeps creatures off.
+ui.steam	Банный пар	Bath steam
+ui.weary	Усталость	Weary
+ui.cold	Холод	Cold
+ui.cold_hint	нужен зипун или огонь	coat or fire
+ui.wisp	Огонёк лешего	Leshy's wisp
+fight.fire	Огонь маяка	The beacon's fire
+fight.hold	Держать ещё %s	Hold for %s more
+fight.phase	Фаза %d из %d	Phase %d of %d
+fight.lanterns	фонари %d/%d	lanterns %d/%d
+fight.kicker	Бой у маяка	Fight at the beacon
+fight.start_guardian	Страж вышел из тумана.	The guardian comes out of the fog.
+fight.start_defense	Огонь разгорается. Твари идут на свет.	The fire kindles. Creatures come for the light.
+toast.respawn_none	Ты снова на берегу, где сошёл с лодки.	You are back on the shore where you landed.
+toast.respawn_respawn_keep	Проснулся дома, все вещи при тебе. Усталость 3 мин.	You wake at home with all your things. Weary 3 min.
+toast.respawn_grave	Проснулся дома. Вещи ждут у кресток-знака.	You wake at home. Your things wait at the grave marker.
+toast.journal	Новая страница в журнале (J): %s	A new page in the journal (J): %s
+toast.offered_domovoy	Домовой принял калитки: в доме уютнее.	The domovoy took the kalitki: the home is cosier.
+toast.offered_leshy	Леший принял дар. Иди за зелёным огоньком.	The leshy took the gift. Follow the green wisp.
+toast.offered_vodyanoy	Водяной принял первую рыбу: клёв лучше до вечера.	The vodyanoy took the first fish: better bites till evening.
+toast.whale	Ночь у часовенки на спине рыбы-кита. Отдых.	A night by the chapel on the whale's back. Rested.
+toast.explored	Руины чуди: находки и быличка	Chud ruins: finds and a tale
+toast.capsized	Шторм опрокинул лодку!	The storm capsized the boat!
+toast.fight_won	Бой выигран.	The fight is won.
+toast.fight_lost	Огонь погас. Топливо цело — попробуй ещё.	The fire went out. The fuel is safe — try again.
+toast.mode	Режим: %s	Mode: %s
+toast.tidied	Домовой прибрал сундук.	The domovoy tidied a chest.
+toast.stolen	Чайка утащила: %s	A gull made off with: %s
+toast.bannik_angry	После полуночи пар — банника. Сегодня без его милости.	After midnight the steam is the bannik's. No blessing today.
+toast.saga_done_guardian	Страж побеждён. Зажги маяк.	The guardian is beaten. Light the beacon.
+toast.saga_done_defense	Огонь удержан!	The fire held!
+toast.phase	%s: фаза %d	%s: phase %d
+toast.warns	%s предупреждает: отойди	%s warns you: back off
+toast.no_stamina	Не хватает выносливости.	Not enough stamina.
+toast.saved	Мир сохранён.	World saved.
+toast.save_failed	Не удалось сохранить.	Could not save.
+journal.kicker	Былички и находки	Tales and finds
+journal.title	Журнал сказаний	Journal of tales
+journal.close	Закрыть · J	Close · J
+journal.spirits	Духи и дива	Spirits and wonders
+journal.beasts	Звери	Beasts
+journal.fog	Мга	The Mga
+journal.guardians	Стражи маяков	Beacon guardians
+journal.count	Найдено %d из %d	Found %d of %d
+journal.day	день %d	day %d
+journal.empty	Пока пусто	Empty for now
+journal.empty_text	Встречай зверей и духов, осматривай руины чуди — страницы появятся сами.	Meet beasts and spirits, look over the Chud ruins — the pages will come.
+journal.chud_circle	Каменный круг чуди	A Chud stone circle
+journal.chud_mine	Копи чуди	A Chud mine
+pause.title	Пауза	Paused
+pause.info	Мир «%s» · день %d · %s	World “%s” · day %d · %s
+pause.mode_note	Режим меняется в любой момент, кроме боя. Прогресс остаётся.	The mode can change at any time except in a fight. Progress stays.
+pause.resume	Продолжить	Resume
+pause.journal	Журнал сказаний	Journal of tales
+pause.save	Сохранить	Save
+pause.save_menu	Сохранить и выйти в меню	Save and go to the menu
+pause.quit	Сохранить и выйти из игры	Save and quit
+menu.kicker	Поморский Север · Белое море	The Pomor North · the White Sea
+menu.title	Туманные острова	Fog Isles
+menu.about	Зажигай маяки, раздвигай Мгу, строй усадьбу. Отдых после работы, опасность по желанию.	Light the beacons, push back the Mga, build a homestead. Rest after work, danger if you want it.
+menu.continue	Продолжить	Continue
+menu.continue_sub	Мир «%s» · день %d · %s	World “%s” · day %d · %s
+menu.new	Новый мир	New world
+menu.coop	Открыть мир друзьям · кооп позже	Open to friends · co-op later
+menu.settings	Настройки	Settings
+menu.soon	Скоро	Soon
+menu.quit	Выход	Quit
+menu.new_title	Новый мир	New world
+menu.later	всё можно поменять потом	all of it can change later
+menu.name	Название	Name
+menu.default_name	Родная губа	Home Bay
+menu.seed	Зерно мира	World seed
+menu.random	случайное	random
+menu.danger	Опасность	Danger
+menu.default	по умолчанию	default
+menu.tuning	Тонкая настройка	Fine tuning
+menu.note	Режим меняется в паузе в любой момент, кроме боя. Прогресс остаётся.	The mode changes from the pause menu at any time except in a fight. Progress stays.
+menu.sail	Отчалить	Set sail
+menu.unnamed	без имени	unnamed
+tuning.storms	Шторма переворачивают лодку	Storms capsize boats
+tuning.cold	Холод Студёного моря	The cold of the Frozen Sea
+tuning.durability	Износ инструментов	Tool wear
+tuning.night_raids	Ночные набеги (только Сага)	Night raids (Saga only)
+tale.hare	Заяц на Поморье — зверь пугливый: след путает, петляет, а в туман сидит под кочкой и не дышит. Говорят, кто первого зайца весной увидит — тому лёгкая дорога. (TODO: быличка автора)	The Pomor hare is a shy beast: it tangles its tracks and sits breathless under a tussock in the fog. They say whoever sees the first hare in spring has an easy road. (TODO: author's tale)
+tale.fox	Лиса ходит краем тумана и слушает, где стучит топор. Старики говорили: лиса у избы — к гостям. (TODO: быличка автора)	The fox walks the edge of the fog and listens for the axe. The old folk said a fox by the house means guests are coming. (TODO: author's tale)
+tale.seal	Нерпа выходит на камни и смотрит на лодку долго-долго. Поморы нерпу не трогали на своих лудах — к беде. Здесь её можно только смотреть. (TODO: быличка автора)	The seal hauls out on the rocks and watches the boat for a long, long time. Pomors never touched seals on their own skerries — bad luck. Here you can only watch her. (TODO: author's tale)
+tale.gull	Чайка — птица вороватая: где вешала с рыбой, там и она. Зато чайки над водой — к берегу близко. (TODO: быличка автора)	The gull is a thief: where there's a fish rack, there's a gull. But gulls over the water mean land is near. (TODO: author's tale)
+tale.reindeer	Дикий олень выходит к воде на закате и уходит, если заговоришь громко. (TODO: быличка автора)	The wild reindeer comes down to the water at sunset and leaves if you speak loudly. (TODO: author's tale)
+tale.wolf	Волк ночью обходит огонь кругом, но в круг не ступает. С факелом иди — не тронет. (TODO: быличка автора)	At night the wolf circles the fire but never steps inside. Walk with a torch and he won't touch you. (TODO: author's tale)
+tale.bear	Хозяин леса сперва встаёт на дыбы и ревёт — это он предупреждает. Уйди — и он не пойдёт следом. (TODO: быличка автора)	The master of the woods first rears up and roars — that's his warning. Walk away and he won't follow. (TODO: author's tale)
+tale.polar_bear	Ошкуй, белый медведь, ходит по льдам Студёного моря и помнит каждого, кто зашёл в его угодья. (TODO: быличка автора)	The oshkuy, the white bear, walks the ice of the Frozen Sea and remembers everyone who entered his grounds. (TODO: author's tale)
+tale.mglyak	Мгляк — клок тумана с глазами. Касанием гасит огонь, а от огня пятится. (TODO: быличка автора)	The mistling is a tuft of fog with eyes. Its touch puts out fire, and it backs away from fire. (TODO: author's tale)
+tale.kikimora	Кикимора болотная сидит в осоке и бросает тиной в путника, чтобы тот оступился. (TODO: быличка автора)	The bog kikimora sits in the sedge and throws mud at travellers to trip them. (TODO: author's tale)
+tale.morok	Морок зажигает в тумане ложный огонь, похожий на маяк, и ведёт лодку на камни. Смотри на компас, а не на свет. (TODO: быличка автора)	The glamour lights a false fire in the fog that looks like a beacon and leads boats onto rocks. Trust the compass, not the light. (TODO: author's tale)
+tale.fog_wolf	Туманные волки ходят стаей и молча. Слышно только, как хрустит мох. (TODO: быличка автора)	Fog wolves hunt in a pack and in silence. You only hear the moss crunch. (TODO: author's tale)
+tale.ice_mglyak	Ледяной мгляк дышит стужей: от его дыхания руки не держат рогатину. (TODO: быличка автора)	The frost mistling breathes cold: after its breath your hands can't hold the spear. (TODO: author's tale)
+tale.domovoy	Домовой живёт за печью, если в доме тепло и лад. Оставь ему калитки — и в сундуке будет порядок, а в избе уют. (TODO: быличка автора)	The domovoy lives behind the stove when the house is warm and at peace. Leave him kalitki and your chests stay tidy and the house cosy. (TODO: author's tale)
+tale.bannik	Банник живёт в бане. Третий пар — его: после полуночи не парься, не гневи хозяина. (TODO: быличка автора)	The bannik lives in the bathhouse. The third steam is his: don't steam after midnight, don't anger the master. (TODO: author's tale)
+tale.leshy	Леший водит по лесу в тумане. Оставишь морошку на пне — выведет зелёным огоньком к тропе. (TODO: быличка автора)	The leshy leads you round the woods in the fog. Leave cloudberries on a stump and his green wisp leads you to the path. (TODO: author's tale)
+tale.vodyanoy	Водяной сидит у воды, борода в тине. Первую рыбу дня отдай ему — и клёв будет до вечера. (TODO: быличка автора)	The vodyanoy sits by the water, his beard in weed. Give him the first fish of the day and the bites last till evening. (TODO: author's tale)
+tale.sirin	На рассвете на скалах поёт Сирин, птица-дева. Кто услышит её песню, тот её не забудет — и море запоёт её мотив. (TODO: быличка автора)	At dawn Sirin, the bird-maiden, sings on the rocks. Whoever hears her song never forgets it — and the sea takes up her tune. (TODO: author's tale)
+tale.ryba_kit	Чудо-юдо рыба-кит всплывает тихой ночью, и на спине у него часовенка. Кто причалит — отдохнёт до рассвета. (TODO: быличка автора)	The Miracle Whale surfaces on calm nights with a tiny chapel on its back. Whoever moors there rests until dawn. (TODO: author's tale)
+tale.chud	Чудь белоглазая ушла под землю, когда пришли чужие. Остались только копи да каменные круги. (TODO: быличка автора)	The White-Eyed Chud went under the earth when strangers came. Only their mines and stone circles remain. (TODO: author's tale)
+tale.likho	Лихо одноглазое спит в пещере на Летнем берегу. Глаз у него один — с той стороны, где глаза нет, его можно обойти. (TODO: быличка автора)	One-Eyed Likho sleeps in a cave on the Summer Shore. It has one eye — you can slip past on the side without one. (TODO: author's tale)
+tale.karachun	Карачун, дух стужи, ходит ночами по Студёному морю и гасит фонари. Огня он боится. (TODO: быличка автора)	Karachun, the frost spirit, walks the Frozen Sea by night and puts out lanterns. He fears fire. (TODO: author's tale)
+tale.siverko	Сиверко — северный ветер. Дует так, что с уступов сносит, и сечёт ледяными иглами. (TODO: быличка автора)	Siverko is the north wind. He blows you off the ledges and lashes you with ice needles. (TODO: author's tale)
+tale.bolotnitsa	Болотница тянет в трясину и зовёт кикимор. Огонь её жжёт. (TODO: быличка автора)	The Bog Maiden drags you into the mire and calls the kikimoras. Fire burns her. (TODO: author's tale)
+tale.hozyain_guby	Хозяин губы поднимается из моря у прибрежных камней и гонит волну на берег. (TODO: быличка автора)	The Master of the Bay rises from the sea by the shore rocks and drives waves onto the land. (TODO: author's tale)
+tale.mga	Мга — сердце тумана. Глотает огни и рассыпается мгляками. Слабеет, когда вокруг горят все фонари. (TODO: быличка автора)	The Mga is the heart of the fog. It swallows lights and breaks into mistlings. It weakens while every lantern around burns. (TODO: author's tale)
+tale.chud.1	На камне выбит знак: круг и три черты. Под камнем — горсть слюды. (TODO: быличка автора)	A sign is cut into the stone: a circle and three lines. Under it, a handful of mica. (TODO: author's tale)
+tale.chud.2	Говорят, чудь ушла в эти копи с песней, и песню ту слышно в тихую ночь. (TODO: быличка автора)	They say the Chud went into these mines singing, and the song can be heard on a quiet night. (TODO: author's tale)
+tale.chud.3	Старое железо в земле не ржавеет — чудской уклад. (TODO: быличка автора)	Old iron in the earth never rusts — the Chud way. (TODO: author's tale)
+tale.chud.4	Кто камень из круга унесёт, тот дорогу домой потеряет. Камни на месте. (TODO: быличка автора)	Whoever takes a stone from the circle loses the way home. The stones stay put. (TODO: author's tale)
+tale.chud.5	В копях тёплый воздух, будто кто-то дышит под землёй. (TODO: быличка автора)	The air in the mines is warm, as if someone breathes under the earth. (TODO: author's tale)
+tale.chud.6	Чудь не враги: ушли, чтобы не воевать. Оставили нам свои знаки. (TODO: быличка автора)	The Chud were never enemies: they left rather than fight. They left us their signs. (TODO: author's tale)
+hint.combat	ЛКМ — удар (удерживай — сильный) · C — блок · Ctrl — уклон · E — действие	LMB — strike (hold for heavy) · C — block · Ctrl — dodge · E — action
