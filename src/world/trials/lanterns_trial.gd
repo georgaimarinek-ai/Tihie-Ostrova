@@ -34,6 +34,7 @@ func build() -> void:
 		glass.position = Vector3(0.62, 1.8, 0)
 		root.add_child(glass)
 		var light := OmniLight3D.new()
+		light.add_to_group("budget_light")
 		light.light_color = Color("ffa84a")
 		light.omni_range = 18.0
 		light.light_energy = 0.0

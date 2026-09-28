@@ -4,7 +4,7 @@ extends RefCounted
 ## Godot's JSON parser returns every number as float: read numbers through the typed getters
 ## (qty(), bag()) or cast with int().
 
-const FILES: Array[String] = ["items", "recipes", "buildables", "boats", "regions", "beacons", "creatures", "modes", "balance"]
+const FILES: Array[String] = ["items", "recipes", "buildables", "boats", "regions", "beacons", "creatures", "modes", "balance", "achievements"]
 const REGION_ORDER: Array[String] = ["r1", "r2", "r3", "r4"]
 
 static var _shared: ContentDB
@@ -20,6 +20,7 @@ var beacon_order: Array[String] = []
 var creatures: Dictionary = {}
 var modes: Dictionary = {}
 var balance: Dictionary = {}
+var achievements: Dictionary = {}
 var trial_types: Dictionary = {}
 var home: Dictionary = {}
 
@@ -59,6 +60,7 @@ func load_dir(dir: String = "res://content") -> Error:
 	creatures = _index(raw["creatures"]["creatures"])
 	modes = _index(raw["modes"]["modes"])
 	balance = raw["balance"]
+	achievements = _index(raw["achievements"]["achievements"])
 	return OK
 
 

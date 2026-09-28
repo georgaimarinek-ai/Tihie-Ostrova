@@ -272,3 +272,10 @@ reference/sketch/        браузерный набросок, эталон о�
 
 - Пресеты экспорта Windows и Linux (этап 10). Steam Deck — Linux-сборка с «лёгкой» графикой по умолчанию.
 - Номер версии в `project.godot → config/version`, история в `CHANGELOG.md`.
+
+## 13. Выпуск (этап 10)
+
+- **Экспорт:** `export_presets.cfg` — «Windows», «Linux» и «… Demo» (фича `demo`: `SeaWall.demo`, только Тихая губа). `content/*.json` включены фильтром, `tests/`, `tools/`, `docs/`, `reference/` исключены. Сборки — `build/` (в .gitignore); нужны шаблоны экспорта Godot 4.7.2.
+- **Steam:** `SteamBridge` включается, только если есть синглтон `Steam` (GodotSteam GDExtension) — App ID в настройке проекта `steam/app_id` (по умолчанию 480, тестовый). Достижения — `content/achievements.json` (`Achievements.earned_by`), копятся в `user://achievements.cfg` и уходят в Steam при запуске; лобби «только друзья» несёт адрес и порт хоста (транспорт остаётся ENet). Облачные сохранения — Steam Auto-Cloud без кода: корень `WinAppDataRoaming`/`LinuxHome`, путь `Godot/app_userdata/<имя проекта>/worlds`, шаблон `*.json`.
+- **Производительность:** `World.light_budget()` (8 ближайших `OmniLight3D`), `--bench` печатает мс/кадр, вызовы отрисовки и объекты дома, в море и на b01.
+

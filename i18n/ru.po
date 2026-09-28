@@ -1419,3 +1419,18 @@ msgstr "Не удалось подключиться."
 
 msgid "coop.joined"
 msgstr "Присоединился: %s"
+
+msgid "act.build_boat"
+msgstr "Построить: %s"
+
+msgid "act.boat_needs"
+msgstr "%s: не хватает %s"
+
+msgid "toast.boat_built"
+msgstr "На воде новая лодка: %s"
+
+msgid "toast.achievement"
+msgstr "Достижение: %s"
+
+msgid "goal.wall_demo"
+msgstr "Здесь кончается демо: дальше Летний берег и весь Поморский Север — в полной игре."

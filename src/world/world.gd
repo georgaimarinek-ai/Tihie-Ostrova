@@ -26,6 +26,7 @@ const MOMENT_S := 8.0
 const KINDLE_AT := 1.0
 const BANNER_AT := 2.0
 const TRAIL_STEP_M := 25.0
+const LIGHT_BUDGET := 8  # docs/04_TECH_SPEC.md §11: no more OmniLight3D than this near the camera
 const TOOL_VERB := {"axe": "act.chop", "knife": "act.cut", "pick": "act.mine", "shovel": "act.dig", "hand": "act.take", "rod": "act.fish"}
 
 var db: ContentDB
@@ -81,6 +82,8 @@ var _hot := 0  # chosen hotbar place
 var _near_use := ""  # a bed, a sauna stove or a chest within reach
 var _fade: ColorRect
 var _moment := ""  # the beacon in its lighting moment
+var _budget_t := 0.0
+var _bench: Dictionary = {}
 
 
 func _ready() -> void:
@@ -106,6 +109,7 @@ func _ready() -> void:
 	director.state = state
 	director.environment = env
 	director.sun = sun
+	director.volumetric = FogDirector.wants_volumetric()
 	add_child(director)
 	sea = Sea.new()
 	sea.director = director
@@ -187,6 +191,8 @@ func _ready() -> void:
 	layer.add_child(settings_win)
 	settings_win.closed.connect(func() -> void: player.busy = false)
 	Game.quit_requested.connect(_on_quit_requested)
+	Game.achieved.connect(func(id: String) -> void:
+		hud.toast(tr("toast.achievement") % Loc.name_of(db.achievements[id]["name"]), "★"))
 	Game.left_world.connect(func() -> void:
 		Game.show_menu = true  # the host is gone: back to the menu
 		get_tree().reload_current_scene())
@@ -319,6 +325,10 @@ func _process(delta: float) -> void:
 	_update_beacons()
 	_update_trials(delta)
 	_update_others(delta)
+	_budget_t -= delta
+	if _budget_t <= 0.0:
+		_budget_t = 0.5
+		light_budget()
 	_update_trail(focus)
 	_update_audio(focus)
 	_update_hud()
@@ -460,6 +470,10 @@ func _action() -> Dictionary:
 				Game.submit({"type": "steam", "uid": _near_use})}
 		if info.has("storage"):
 			return {"label": tr("act.station") % Loc.name_of(info["name"]), "run": _open_storage.bind(_near_use)}
+	if _near_station != "" and String(state.pieces[_near_station]["id"]) == "boatyard":
+		var yard := _boatyard_action(_near_station)
+		if not yard.is_empty():
+			return yard
 	if _near_station != "":
 		var pc: Dictionary = state.pieces[_near_station]
 		var out: Dictionary = pc.get("out", {})
@@ -613,13 +627,40 @@ func _disembark() -> void:
 	audio.sfx("land")
 
 
+## Board the nearest boat within reach (the last one, or a new shnyaka or koch from the boatyard).
 func _board() -> void:
 	_send_move()
-	var res := Game.submit({"type": "board", "boat": last_boat.uid})
+	var best: Boat = last_boat
+	var best_d := INF
+	for b: Boat in boats.values():
+		var d := b.global_position.distance_to(player.global_position)
+		if d < best_d and d < WorldCommands.BOARD_REACH_M and not b.capsized:
+			best = b
+			best_d = d
+	last_boat = best
+	var res := Game.submit({"type": "board", "boat": best.uid})
 	if res.get("ok", false):
 		_attach_player()
 		cam.look_yaw = 0.0
 		audio.sfx("board")
+
+
+## The boatyard: build the best boat that's open (koch, then shnyaka), or say what it still needs.
+func _boatyard_action(uid: String) -> Dictionary:
+	for type: String in ["koch", "shnyaka"]:
+		var b: Dictionary = db.boats[type]
+		if not db.is_unlocked(String(b["unlock"]), state.lit):
+			continue
+		var name := Loc.name_of(b["name"])
+		var cost := ContentDB.bag(b["cost"])
+		var inv := state.inv(_pid)
+		if inv.has_bag(cost):
+			return {"label": tr("act.build_boat") % name, "run": func() -> void:
+				_send_move()
+				Game.submit({"type": "build_boat", "boat": type, "uid": uid})}
+		var need := tr("act.boat_needs") % [name, ItemInfo.bag_text(db, inv.missing(cost))]
+		return {"label": need, "run": func() -> void: hud.toast(need)}
+	return {}
 
 
 ## E by a trial's props, or at the tower once the trial is passed: "Light the beacon" (or what fuel is missing).
@@ -893,6 +934,63 @@ func _update_trials(delta: float) -> void:
 		t.tick(delta)  # finished trials keep animating (lit lanterns flicker, bells settle)
 
 
+## The light budget (docs/04_TECH_SPEC.md §11): only the LIGHT_BUDGET real lights nearest the camera shine; the
+## rest are left to their emissive flames and glows, which read the same through the fog at a distance.
+## Returns how many are on.
+func light_budget() -> int:
+	var c := cam.global_position
+	var lights: Array = []
+	for n in get_tree().get_nodes_in_group("budget_light"):
+		var l := n as OmniLight3D
+		if l != null and l.is_inside_tree():
+			lights.append([l.global_position.distance_squared_to(c), l])
+	lights.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	var on := 0
+	for i in lights.size():
+		var l: OmniLight3D = lights[i][1]
+		l.visible = i < LIGHT_BUDGET
+		if l.visible:
+			on += 1
+	return on
+
+
+## --bench: frame time, draw calls and objects at a few places (home, at sea, a beacon island) — the numbers
+## docs/04_TECH_SPEC.md §11 is checked against.
+func _bench_frame() -> void:
+	if _bench.is_empty():
+		_bench = {"stage": 0, "frames": 0, "t": 0.0, "draws": 0.0, "objects": 0.0, "rows": []}
+	var places := [["home", Vector3.ZERO], ["sea", Vector3(150, 0, -420)], ["b01", Vector3.INF]]
+	var b := _bench
+	b["frames"] = int(b["frames"]) + 1
+	var now := Time.get_ticks_usec()
+	if int(b["frames"]) > 60:  # settle, then measure 120 frames
+		b["t"] = float(b["t"]) + (Time.get_ticks_usec() - int(b.get("last", Time.get_ticks_usec()))) / 1000000.0
+		b["draws"] = float(b["draws"]) + Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		b["objects"] = float(b["objects"]) + Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)
+	b["last"] = now
+	if int(b["frames"]) < 180:
+		return
+	var n := 120.0
+	(b["rows"] as Array).append("%s: %.1f ms/frame, %d draw calls, %d objects, %d lights on" % [places[int(b["stage"])][0], float(b["t"]) / n * 1000.0, roundi(float(b["draws"]) / n), roundi(float(b["objects"]) / n), light_budget()])
+	b["stage"] = int(b["stage"]) + 1
+	b["frames"] = 0
+	b["t"] = 0.0
+	b["draws"] = 0.0
+	b["objects"] = 0.0
+	if int(b["stage"]) >= places.size():
+		for r: String in b["rows"]:
+			print("BENCH ", r)
+		get_tree().quit(0)
+		return
+	var to: Vector3 = places[int(b["stage"])][1]
+	if my_boat != null and to != Vector3.INF:
+		my_boat.global_position = Vector3(to.x, 0.0, to.z)
+		streamer.build_around(my_boat.global_position)
+	elif to == Vector3.INF:
+		_args["at-beacon"] = "b01"
+		_debug_place()
+
+
 ## Co-op: the other players and the boats they sail, from WorldState (their "move" commands, replayed on every
 ## copy of the world), eased so they don't jump. A boat someone else steers is kinematic here.
 func _update_others(delta: float) -> void:
@@ -1112,7 +1210,7 @@ func _goal() -> Dictionary:
 			var g := beacon_goal.duplicate()
 			var bp := Vector2(my_boat.global_position.x, my_boat.global_position.z)
 			var need := Loc.name_of(db.boats[SeaWall.boat_needed(db, bp)]["name"])
-			g["text"] = tr("goal.wall_locked") if my_boat.wall == "locked" else tr("goal.wall_boat") % need
+			g["text"] = tr("goal.wall_" + my_boat.wall) if my_boat.wall != "boat" else tr("goal.wall_boat") % need
 			return g
 		if next == "":
 			return {"text": tr("goal.free")}
@@ -1278,6 +1376,12 @@ func _on_world_event(e: Dictionary) -> void:
 		"boat_added":
 			if not boats.has(String(e["uid"])):
 				_spawn_boat(String(e["uid"]))
+			if mine:
+				hud.toast(tr("toast.boat_built") % Loc.name_of(db.boats[e["boat"]]["name"]), "⛵")
+				audio.sfx("swell")
+		"boarded", "disembarked":
+			if mine and Net.is_client():
+				_attach_player()  # a co-op client hears it when the host's answer comes back
 		"player_joined":
 			if String(e["player"]) != _pid:
 				hud.toast(tr("coop.joined") % String(e["player"]), "✦")
@@ -1616,6 +1720,8 @@ func _debug_frame() -> void:
 		var next := Progress.next_beacon(db, state)
 		if next != "":
 			_debug_light(next, false)
+	if _args.has("bench"):
+		_bench_frame()
 	if _args.has("smoke") and _frame >= 60:
 		print("SMOKE OK: frames=%d islands=%d boats=%d on_foot=%s lit=%s" % [_frame, streamer.views.size(), boats.size(), on_foot(), str(state.lit.keys())])
 		get_tree().quit(0)

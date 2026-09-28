@@ -6,11 +6,16 @@ extends RefCounted
 ## a gentle current turns the boat towards home. No damage and no death — just the sea saying "not yet".
 
 const BOAT_ORDER: Array[String] = ["karbas", "shnyaka", "koch"]
+## The Steam Next Fest demo (export feature "demo"): only the Quiet Bay and its three beacons; the rest of the
+## sea is a wall like a closed region.
+static var demo := false
 
 
-## "" (free to sail), "locked" (the region is closed) or "boat" (it needs a stronger boat).
+## "" (free to sail), "locked" (the region is closed), "boat" (it needs a stronger boat) or "demo" (the demo ends).
 static func blocked(db: ContentDB, state: WorldState, pos: Vector2, boat_type: String) -> String:
 	var rid := db.region_at(pos)
+	if demo and rid != "r1":
+		return "demo"
 	if not db.region_open(rid, state.lit):
 		return "locked"
 	var need := String(db.regions[rid]["boat_required"])

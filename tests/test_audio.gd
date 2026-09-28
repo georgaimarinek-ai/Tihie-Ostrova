@@ -48,3 +48,30 @@ func test_music_layer_samples_exist_for_every_note() -> void:
 	# every note the scheduler asks for must be synthesised (AudioDirector._synthesise lists)
 	for m in AudioDirector.SCALE:
 		check(m >= 50 and m <= 88, "scale note %d in range" % m)
+
+
+func test_music_stems_play_together() -> void:
+	var stems := AudioDirector.build_stems(4.0)
+	eq(stems.size(), AudioDirector.STEMS.size(), "a stem per layer")
+	var size := -1
+	for layer: String in AudioDirector.STEMS:
+		var w: AudioStreamWAV = stems[layer]
+		eq(w.loop_mode, AudioStreamWAV.LOOP_FORWARD, layer + " loops")
+		if size < 0:
+			size = w.data.size()
+		eq(w.data.size(), size, layer + " is as long as the others (they stay in sync)")
+		var loud := false
+		for i in range(0, w.data.size(), 64):
+			if absi(w.data.decode_s16(i)) > 500:
+				loud = true
+				break
+		check(loud, layer + " is not silent")
+	var sync := AudioStreamSynchronized.new()
+	sync.stream_count = stems.size()
+	eq(sync.stream_count, AudioDirector.STEMS.size(), "an AudioStreamSynchronized holds them all")
+	# which layers play: the lit beacons open them (docs/01_GDD.md §12)
+	for layer: String in AudioDirector.STEMS:
+		check(not AudioDirector.stem_on(layer, 0, 0.5), "no layers before the first beacon: " + layer)
+		check(AudioDirector.stem_on(layer, 12, 0.5), "every layer with all beacons: " + layer)
+	check(AudioDirector.stem_on("chords", 1, 0.5) and not AudioDirector.stem_on("gusli", 1, 0.5), "the first beacon brings warm chords")
+	check(AudioDirector.stem_on("bells", 2, 0.9), "bells from the capes in thick fog early")

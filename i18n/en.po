@@ -1419,3 +1419,18 @@ msgstr "Could not connect."
 
 msgid "coop.joined"
 msgstr "Joined: %s"
+
+msgid "act.build_boat"
+msgstr "Build: %s"
+
+msgid "act.boat_needs"
+msgstr "%s: still need %s"
+
+msgid "toast.boat_built"
+msgstr "A new boat is afloat: %s"
+
+msgid "toast.achievement"
+msgstr "Achievement: %s"
+
+msgid "goal.wall_demo"
+msgstr "The demo ends here: the Summer Shore and the whole Pomor North are in the full game."

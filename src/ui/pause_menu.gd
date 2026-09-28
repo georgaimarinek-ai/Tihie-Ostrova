@@ -154,10 +154,12 @@ func _toggle_host() -> void:
 	if Net.is_online():
 		if Net.is_authority():
 			Net.leave()
+			Game.steam.close_lobby()
 			world.hud.toast(tr("coop.closed"))
 		return
 	var err := Net.host()
 	if err == OK:
+		Game.steam.open_lobby()
 		var ips := Net.addresses()
 		world.hud.toast(tr("coop.hosting") % [", ".join(ips) if not ips.is_empty() else "127.0.0.1", Net.PORT], "✦")
 	else:

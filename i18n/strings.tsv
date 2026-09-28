@@ -471,3 +471,8 @@ coop.hint	Друг открывает свой мир в паузе (Esc → «�
 coop.connecting	Подключение к %s…	Connecting to %s…
 coop.failed	Не удалось подключиться.	Could not connect.
 coop.joined	Присоединился: %s	Joined: %s
+act.build_boat	Построить: %s	Build: %s
+act.boat_needs	%s: не хватает %s	%s: still need %s
+toast.boat_built	На воде новая лодка: %s	A new boat is afloat: %s
+toast.achievement	Достижение: %s	Achievement: %s
+goal.wall_demo	Здесь кончается демо: дальше Летний берег и весь Поморский Север — в полной игре.	The demo ends here: the Summer Shore and the whole Pomor North are in the full game.

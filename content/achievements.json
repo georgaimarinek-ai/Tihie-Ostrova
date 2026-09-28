@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Steam achievements (roadmap phase 10). No grind: each one is a moment of the game, never a count of kills or hours. when = the WorldCommands event that earns it: its type and, optionally, fields that must match.",
+  "achievements": [
+    { "id": "first_fire", "name": { "ru": "Первый огонь", "en": "The first fire" }, "when": { "event": "beacon_lit" } },
+    { "id": "quiet_bay", "name": { "ru": "Тихая губа светла", "en": "The Quiet Bay is bright" }, "when": { "event": "beacon_lit", "beacon": "b03" } },
+    { "id": "summer_shore", "name": { "ru": "Летний берег светел", "en": "The Summer Shore is bright" }, "when": { "event": "beacon_lit", "beacon": "b06" } },
+    { "id": "ter_coast", "name": { "ru": "Терский берег светел", "en": "The Ter Coast is bright" }, "when": { "event": "beacon_lit", "beacon": "b09" } },
+    { "id": "lodestar", "name": { "ru": "Светоч", "en": "The Lodestar" }, "when": { "event": "beacon_lit", "beacon": "b12" } },
+    { "id": "home_at_peace", "name": { "ru": "Лад в доме", "en": "A home at peace" }, "when": { "event": "offered", "spirit": "domovoy" } },
+    { "id": "third_steam", "name": { "ru": "Третий пар — его", "en": "The third steam is his" }, "when": { "event": "steamed", "bannik": "pleased" } },
+    { "id": "green_wisp", "name": { "ru": "За зелёным огоньком", "en": "Follow the green wisp" }, "when": { "event": "offered", "spirit": "leshy" } },
+    { "id": "miracle_whale", "name": { "ru": "Ночь на рыбе-ките", "en": "A night on the whale" }, "when": { "event": "met", "creature": "ryba_kit" } },
+    { "id": "sirin_song", "name": { "ru": "Песня Сирина", "en": "Sirin's song" }, "when": { "event": "met", "creature": "sirin" } },
+    { "id": "chud_traces", "name": { "ru": "Следы чуди", "en": "Traces of the Chud" }, "when": { "event": "explored" } },
+    { "id": "shipwright", "name": { "ru": "Корабельщик", "en": "Shipwright" }, "when": { "event": "boat_added", "boat": "koch" } },
+    { "id": "hush_siverko", "name": { "ru": "Тише, Сиверко", "en": "Hush, Siverko" }, "when": { "event": "creature_died", "id": "siverko" } },
+    { "id": "heart_of_fog", "name": { "ru": "Сердце тумана", "en": "The heart of the fog" }, "when": { "event": "creature_died", "id": "mga" } },
+    { "id": "together", "name": { "ru": "Вместе веселее", "en": "Better together" }, "when": { "event": "player_joined" } }
+  ]
+}

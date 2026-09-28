@@ -12,6 +12,10 @@ const RATE := 22050
 const LOW_RATE := 11025
 const SCALE: Array[int] = [62, 64, 65, 67, 69, 72, 74, 76]  # D dorian from D4
 const CHORDS: Array = [[50, 57, 62, 65], [53, 57, 60, 65], [48, 55, 60, 64], [55, 59, 62, 67]]  # Dm F C G
+## The music layers above the base plucks (docs/01_GDD.md §12, Progress.music_layers): stems of one length
+## played together in an AudioStreamSynchronized, each faded in by the lit beacons (roadmap phase 10).
+const STEMS: Array[String] = ["chords", "gusli", "zhaleyka", "gudok", "bells", "frost", "choir"]
+const STEM_S := 32.0  # four chords of 8 s
 
 ## Inputs set by World every frame.
 var lit := 0
@@ -36,6 +40,9 @@ var _chord_i := 0
 var _wind_fx: AudioEffectBandPassFilter
 var _waves_fx: AudioEffectLowPassFilter
 var _headless := false
+var _music: AudioStreamPlayer
+var _sync: AudioStreamSynchronized
+var _stem_db: Array[float] = []
 
 
 func _ready() -> void:
@@ -55,6 +62,99 @@ func _ready() -> void:
 	_next = {"phrase": 2.0, "chord": 4.0, "bell": 3.0, "choir": 5.0, "gull": 6.0, "reed": 8.0, "gudok": 6.0, "frost": 4.0, "creak": 1.0}
 	if not _headless:
 		_task = WorkerThreadPool.add_task(_synthesise)
+
+
+## The stems, all STEM_S long and looping (mono, LOW_RATE): chords Dm–F–C–G, gusli phrases, the zhaleyka's
+## tunes, the gudok, bells from the capes, frost bells, a far choir. Seeded: the same music every time.
+static func build_stems(seconds: float = STEM_S, rate: int = LOW_RATE) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 72
+	var n := int(seconds * rate)
+	var out := {}
+	var bar := seconds / 4.0
+	for layer: String in STEMS:
+		var buf := PackedFloat32Array()
+		buf.resize(n)
+		match layer:
+			"chords":
+				for i in 4:
+					_mix(buf, Synth.pad(CHORDS[i], bar + 1.0, rate), i * bar, 0.8, rate)
+			"gusli":
+				var cache := {}
+				var t := 0.5
+				while t < seconds - 0.5:
+					var idx := rng.randi() % SCALE.size()
+					for k in 4:
+						idx = clampi(idx + rng.randi() % 3 - 1, 0, SCALE.size() - 1)
+						var m: int = SCALE[idx]
+						if not cache.has(m):
+							cache[m] = Synth.pluck(rng, m, 2.0, rate)
+						_mix(buf, cache[m], t + k * 0.42, 0.5, rate)
+					t += 4.0
+			"zhaleyka":
+				_mix(buf, Synth.reed([62, 64, 65, 69, 67, 65, 64, 62], 0.9, rate), bar * 0.25, 0.7, rate)
+				_mix(buf, Synth.reed([69, 67, 65, 64, 65, 62], 0.9, rate), bar * 2.25, 0.7, rate)
+			"gudok":
+				_mix(buf, Synth.gudok([38, 45, 43, 38], bar / 4.0 * 2.0, rate), 0.0, 0.8, rate)
+				_mix(buf, Synth.gudok([41, 45, 43, 43], bar / 4.0 * 2.0, rate), bar * 2.0, 0.8, rate)
+			"bells", "frost":
+				var arp: Array = [74, 77, 81, 84, 86] if layer == "bells" else [93, 96, 98]
+				var cache := {}
+				var t := 1.0
+				while t < seconds - 1.0:
+					for k in (4 if layer == "bells" else 3):
+						var m: int = arp[rng.randi() % arp.size()]
+						if not cache.has(m):
+							cache[m] = Synth.bell(m, 3.0, rate)
+						_mix(buf, cache[m], t + k * (0.42 if layer == "bells" else 0.21), 0.35, rate)
+					t += 6.0 if layer == "bells" else 9.0
+			"choir":
+				_mix(buf, Synth.choir([50, 57, 62], bar * 2.0, rate), 0.0, 0.8, rate)
+				_mix(buf, Synth.choir([48, 55, 60], bar * 2.0, rate), bar * 2.0, 0.8, rate)
+		out[layer] = to_wav(Synth._normalise(buf, 0.6), rate, true)
+	return out
+
+
+## Adds `src` into the loop `buf` at `at` seconds, wrapping round the end so the loop is seamless.
+static func _mix(buf: PackedFloat32Array, src: PackedFloat32Array, at: float, gain: float, rate: int = LOW_RATE) -> void:
+	var n := buf.size()
+	var start := int(at * rate)
+	for i in src.size():
+		var j := (start + i) % n
+		buf[j] += src[i] * gain
+
+
+## Which stems play now: the layers the lit beacons have opened; bells ring from the capes in thick fog early.
+static func stem_on(layer: String, lit_count: int, fog_factor: float) -> bool:
+	if Progress.music_layers(lit_count).has(layer):
+		return true
+	return layer == "bells" and lit_count >= 2 and fog_factor > 0.8
+
+
+func _start_stems() -> void:
+	if _sync != null or not _has("stem_chords"):
+		return
+	_sync = AudioStreamSynchronized.new()
+	_sync.stream_count = STEMS.size()
+	for i in STEMS.size():
+		_sync.set_sync_stream(i, _sample("stem_" + STEMS[i]))
+		_sync.set_sync_stream_volume(i, -60.0)
+		_stem_db.append(-60.0)
+	_music = AudioStreamPlayer.new()
+	_music.bus = "Music"
+	_music.stream = _sync
+	_music.volume_db = -10.0
+	add_child(_music)
+	_music.play()
+
+
+func _mix_stems(delta: float) -> void:
+	if _sync == null:
+		return
+	for i in STEMS.size():
+		var want := -4.0 if stem_on(STEMS[i], lit, fog) else -60.0
+		_stem_db[i] = move_toward(_stem_db[i], want, delta * 12.0)  # a layer comes in over ~5 s
+		_sync.set_sync_stream_volume(i, _stem_db[i])
 
 
 func _exit_tree() -> void:
@@ -113,6 +213,8 @@ func _process(delta: float) -> void:
 	# music hushes in thick fog and returns in clearings and by the fire
 	var music := lerpf(1.0, 0.3, dense * (1.0 - fire_near))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(maxf(music, 0.0001)))
+	_start_stems()
+	_mix_stems(delta)
 	_schedule(t)
 	_flush(t)
 
@@ -142,28 +244,7 @@ func _schedule(t: float) -> void:
 			play("pluck%d" % (SCALE[i] - (12 if lit == 0 else 0)), t + k * (0.35 + randf() * 0.2), -16.0)
 		var gap: float = [7.0, 5.0, 4.0][0 if lit == 0 else (1 if lit < 3 else 2)]
 		_next["phrase"] = t + gap + randf() * (8.0 if lit == 0 else 4.0)
-	if lit >= 1 and t > _next["chord"] and _has("pad0"):
-		play("pad%d" % (_chord_i % 4), t, -18.0)
-		_chord_i += 1
-		_next["chord"] = t + 8.0
-	if lit >= 4 and t > _next["reed"] and _has("reed0"):
-		play("reed%d" % (randi() % 3), t, -19.0)
-		_next["reed"] = t + 14.0 + randf() * 10.0
-	if lit >= 7 and t > _next["gudok"] and _has("gudok"):
-		play("gudok", t, -17.0)
-		_next["gudok"] = t + 16.0
-	if (lit >= 8 or (lit >= 2 and fog > 0.8)) and t > _next["bell"] and _has("bell74"):
-		var arp := [74, 77, 81, 84, 86]
-		for k in 4:
-			play("bell%d" % arp[randi() % arp.size()], t + k * 0.42, -24.0 if lit < 8 else -20.0)
-		_next["bell"] = t + (6.0 if lit >= 8 else 14.0) + randf() * 4.0
-	if lit >= 10 and t > _next["frost"] and _has("bell93"):
-		for k in 3:
-			play("bell%d" % [93, 96, 98][k], t + k * 0.21, -26.0)
-		_next["frost"] = t + 9.0 + randf() * 5.0
-	if lit >= 11 and t > _next["choir"] and _has("choir"):
-		play("choir", t, -16.0)
-		_next["choir"] = t + 13.0
+	# chords, gusli, zhaleyka, gudok, bells, frost and choir are stems (_mix_stems)
 	if t > _next["gull"] and _has("gull") and night < 0.5:
 		play("gull", t, -22.0, "Ambience")
 		if randf() < 0.5:
@@ -302,6 +383,9 @@ func _synthesise() -> void:
 		_store("reed%d" % i, to_wav(Synth.reed(melodies[i], 0.9, LOW_RATE), LOW_RATE, false))
 	_store("gudok", to_wav(Synth.gudok([38, 45, 43, 38], 3.0, LOW_RATE), LOW_RATE, false))
 	_store("choir", to_wav(Synth.choir([50, 57, 62], 11.0, LOW_RATE), LOW_RATE, false))
+	var stems := build_stems()
+	for layer: String in stems:
+		_store("stem_" + layer, stems[layer])
 
 
 static func to_wav(data: PackedFloat32Array, rate: int, loop: bool) -> AudioStreamWAV:

@@ -125,6 +125,8 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _attack(pid, cmd)
 		"join":
 			return _join(pid, cmd)
+		"build_boat":
+			return _build_boat(pid, cmd)
 		"douse":
 			return _douse(pid, cmd)
 		"steal":
@@ -1008,6 +1010,48 @@ func _debug(pid: String, cmd: Dictionary) -> Dictionary:
 
 
 # ---------------------------------------------------------------- life of the world (phase 6)
+
+## A new boat from the boatyard (boats.json: the shnyaka opens with b06, the koch with b09): the player by the
+## boatyard with the cost in the bag; the boat is launched on the nearest water beside it.
+func _build_boat(pid: String, cmd: Dictionary) -> Dictionary:
+	var type := String(cmd.get("boat", ""))
+	if not db.boats.has(type):
+		return _fail("unknown_boat")
+	var b: Dictionary = db.boats[type]
+	if not db.is_unlocked(String(b["unlock"]), state.lit):
+		return _fail("locked")
+	var uid := String(cmd.get("uid", ""))
+	var yard: Dictionary = state.pieces.get(uid, {})
+	if yard.is_empty() or String(yard["id"]) != String(b.get("station", "")):
+		return _fail("no_station")
+	if not _near(pid, yard["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var cost := ContentDB.bag(b["cost"])
+	var inv := state.inv(pid)
+	if not inv.has_bag(cost):
+		return _fail("missing")
+	var at := _launch_point(yard["pos"])
+	if at == Vector3.INF:
+		return _fail("no_water")
+	inv.remove_bag(cost)
+	var yard_pos: Vector3 = yard["pos"]
+	var yaw := atan2(-(at.x - yard_pos.x), -(at.z - yard_pos.z))
+	var boat_uid := state.add_boat(type, at, yaw)
+	return _ok([{"type": "boat_added", "uid": boat_uid, "boat": type, "player": pid}])
+
+
+## Open water (deeper than 1.5 m) within 40 m of a point, nearest first (INF if none, or no map: right there).
+func _launch_point(p: Vector3) -> Vector3:
+	if map == null:
+		return Vector3(p.x, 0.0, p.z)
+	for r in range(6, 42, 3):
+		for k in 16:
+			var a := k * TAU / 16.0
+			var q := Vector2(p.x, p.z) + Vector2.from_angle(a) * float(r)
+			if map.ground_at(q.x, q.y) < -1.5:
+				return Vector3(q.x, 0.0, q.y)
+	return Vector3.INF
+
 
 ## Host-only: a co-op friend joins (docs/04_TECH_SPEC.md §7). New players start on foot at the home pier;
 ## someone who played here before comes back as they were.

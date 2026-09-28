@@ -8,6 +8,7 @@ signal saved(ok: bool)
 signal quit_requested  # the window's close button: the world shows the evening screen first
 signal joined  # a co-op client got the host's world (the world scene starts)
 signal left_world  # a co-op client lost the host
+signal achieved(id: String)
 
 const INPUT_ACTIONS := {
 	"move_forward": [KEY_W, KEY_UP], "move_back": [KEY_S, KEY_DOWN],
@@ -33,6 +34,9 @@ var debug_cheats := false
 ## Show the main menu when the world scene starts (first launch; off for debug runs and after "Set sail").
 var show_menu := true
 var settings := GameSettings.new()
+var steam := SteamBridge.new()
+var achieved_ids: Dictionary = {}  # id -> true (user://achievements.cfg; pushed to Steam when it runs)
+const ACHIEVEMENTS_PATH := "user://achievements.cfg"
 ## What this evening brought (the evening screen): started (ms), lit beacons, built pieces, gathered items,
 ## journal pages, unlocks.
 var session: Dictionary = {}
@@ -61,9 +65,13 @@ func _ready() -> void:
 	settings.apply()
 	get_tree().auto_accept_quit = DisplayServer.get_name() == "headless"
 	reset_session()
+	SeaWall.demo = OS.has_feature("demo") or "--demo" in OS.get_cmdline_user_args()
+	steam.start()
+	_load_achievements()
 
 
 func _process(delta: float) -> void:
+	steam.poll()
 	if state == null or not Net.is_authority() or (paused and not Net.is_online()):
 		return
 	_autosave_acc += delta
@@ -184,6 +192,7 @@ func _on_applied(pid: String, cmd: Dictionary) -> void:
 func _emit_events(events: Array) -> void:
 	for e: Dictionary in events:
 		_count(e)
+		_achieve(e)
 		world_event.emit(e)
 
 
@@ -204,6 +213,37 @@ func save() -> Error:
 
 func worlds() -> Array:
 	return SaveCodec.list_worlds(Content.db, WORLDS_DIR)
+
+
+## Achievements (content/achievements.json): the local player's moments, and a friend joining.
+func _achieve(e: Dictionary) -> void:
+	if Content.db == null or Content.db.achievements.is_empty():
+		return
+	var who := String(e.get("player", ""))
+	if who != "" and who != Net.local_player_id() and String(e.get("type", "")) != "player_joined":
+		return
+	for id in Achievements.earned_by(Content.db, e):
+		if achieved_ids.has(id) or debug_cheats:
+			continue
+		achieved_ids[id] = true
+		steam.unlock(id)
+		_save_achievements()
+		achieved.emit(id)
+
+
+func _load_achievements() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(ACHIEVEMENTS_PATH) == OK:
+		for id: String in cf.get_section_keys("achieved") if cf.has_section("achieved") else PackedStringArray():
+			achieved_ids[id] = true
+			steam.unlock(id)  # Steam learns what was earned offline
+
+
+func _save_achievements() -> void:
+	var cf := ConfigFile.new()
+	for id: String in achieved_ids:
+		cf.set_value("achieved", id, true)
+	cf.save(ACHIEVEMENTS_PATH)
 
 
 func reset_session() -> void:

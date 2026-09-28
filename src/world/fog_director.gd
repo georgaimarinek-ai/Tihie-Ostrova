@@ -20,6 +20,11 @@ var extra_lights: Array[Vector4] = []  # player lantern, home hearth: Vector4(x,
 var boost_target := 1.0
 var boost := 1.0
 
+## Layer 2 (docs/04_TECH_SPEC.md §5): volumetric fog on high quality in Forward+ only, with a FogVolume of
+## negative density carving each lit beacon's clearing out of it. The material fog (layer 1) stays the truth.
+var volumetric := false
+var volumes: Dictionary = {}  # beacon id -> FogVolume
+
 var _lit_at: Dictionary = {}  # beacon id -> time it was lit (for the growth animation)
 var _time := 0.0
 var palette: Dictionary = {}
@@ -48,6 +53,8 @@ func _process(delta: float) -> void:
 	boost = lerpf(boost, boost_target, 1.0 - exp(-delta * 0.8))
 	if environment != null:
 		environment.ambient_light_energy = 1.1 * (1.0 - 0.55 * float(palette["night"]))
+	if volumetric:
+		sync_volumes(fog_col)
 	var dens := float(palette["density"]) * boost
 	var rid := db.region_at(p)
 	if not db.region_open(rid, state.lit):
@@ -57,6 +64,41 @@ func _process(delta: float) -> void:
 	for i in FogField.SLOTS:
 		RenderingServer.global_shader_parameter_set("fog_clear_%d" % i, slots[i])
 	_apply_sky()
+
+
+## Whether this machine draws layer 2: Forward+ and the high quality setting.
+static func wants_volumetric() -> bool:
+	return RenderingServer.get_current_rendering_method() == "forward_plus" and Game.settings.quality == "high" \
+			and DisplayServer.get_name() != "headless"
+
+
+## Volumetric fog in the environment and a negative-density ellipsoid over every lit beacon, grown with it.
+func sync_volumes(fog_col: Color) -> void:
+	if environment != null:
+		environment.volumetric_fog_enabled = true
+		environment.volumetric_fog_albedo = fog_col
+		environment.volumetric_fog_density = float(palette.get("density", 0.01)) * 0.6 * boost
+		environment.volumetric_fog_length = 240.0
+		environment.volumetric_fog_emission = fog_col * 0.15
+	for bid: String in state.lit:
+		var v: FogVolume = volumes.get(bid)
+		if v == null:
+			v = FogVolume.new()
+			v.name = "Clearing_" + bid
+			v.shape = RenderingServer.FOG_VOLUME_SHAPE_ELLIPSOID
+			var m := FogMaterial.new()
+			m.density = -1.0  # subtracts: the clearing
+			m.edge_fade = 0.35
+			v.material = m
+			add_child(v)
+			volumes[bid] = v
+		var p := db.beacon_pos(bid)
+		var r := float(db.beacons[bid]["clear_radius"])
+		var grow := 1.0
+		if _lit_at.has(bid):
+			grow = smoothstep(0.0, GROW_S, _time - float(_lit_at[bid]))
+		v.position = Vector3(p.x, 20.0, p.y)
+		v.size = Vector3(r * 2.0, 140.0, r * 2.0) * maxf(grow, 0.01)
 
 
 ## Lit beacons with the growth animation applied to the radius.

@@ -93,6 +93,7 @@ func _ready() -> void:
 		model.add_child(_fire)
 		_fire.position = Vector3(0.35, 1.4, -0.6)
 	_light = OmniLight3D.new()
+	_light.add_to_group("budget_light")
 	_light.light_color = Color("ffa04a")
 	_light.omni_range = 16.0
 	_light.light_energy = 0.0

@@ -316,6 +316,7 @@ static func izba() -> Node3D:
 	_box(Vector3(1.0, 1.9, 0.1), mat(DARK_WOOD), root, Vector3(0, 0.95, -2.52)).name = "Door"
 	_box(Vector3(1.6, 0.25, 1.0), mat(PLANK), root, Vector3(0, 0.12, -3.1))  # porch step
 	var light := OmniLight3D.new()
+	light.add_to_group("budget_light")
 	light.name = "WindowLight"
 	light.light_color = Color("ffa040")
 	light.light_energy = 1.4
@@ -794,6 +795,7 @@ static func fire(size: float = 1.0, with_light: bool = true) -> Node3D:
 	root.add_child(p)
 	if with_light:
 		var l := OmniLight3D.new()
+		l.add_to_group("budget_light")
 		l.name = "Light"
 		l.light_color = Color("ff9a40")
 		l.omni_range = 18.0 * maxf(size, 0.4) + 6.0

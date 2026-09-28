@@ -329,3 +329,29 @@ func test_save_v4_roundtrip_and_v3_migration() -> void:
 	var m := WorldState.from_dict(db, old)
 	near(float(m.players["p1"]["hp"]), 100.0, 1e-6, "v3 players get full health")
 	eq(m.name, "")
+
+
+func test_boats_from_the_boatyard() -> void:
+	var m := WorldMap.shared(db)
+	var c := _world("tale")
+	# a boatyard on the home island by the water
+	var sh: Vector2 = WorldMap.walk_out(m.by_id["home"], (m.by_id["home"] as IslandGen).center, Vector2(1, 0.3).normalized())["shore"]
+	var at := Vector3(sh.x, m.ground_at(sh.x, sh.y), sh.y)
+	c.state.players["p1"]["pos"] = at
+	var uid := c.state.new_uid("p")
+	c.state.pieces[uid] = {"id": "boatyard", "pos": at, "rot": 0.0, "owner": "p1"}
+	eq(c.apply("p1", {"type": "build_boat", "boat": "shnyaka", "uid": uid})["error"], "locked", "the shnyaka opens with b06")
+	for bid in ["b01", "b02", "b03", "b04", "b05", "b06"]:
+		c.state.lit[bid] = 1
+	eq(c.apply("p1", {"type": "build_boat", "boat": "shnyaka", "uid": uid})["error"], "missing")
+	var cost := ContentDB.bag(db.boats["shnyaka"]["cost"])
+	for k: String in cost:
+		c.state.inv("p1").add(k, cost[k])
+	var r := c.apply("p1", {"type": "build_boat", "boat": "shnyaka", "uid": uid})
+	check(r["ok"], "a shnyaka is built: " + String(r["error"]))
+	var boat: String = r["events"][0]["uid"]
+	eq(c.state.boats[boat]["type"], "shnyaka")
+	check(m.ground_at((c.state.boats[boat]["pos"] as Vector3).x, (c.state.boats[boat]["pos"] as Vector3).z) < -1.0, "launched on open water")
+	check(c.state.inv("p1").is_empty(), "the cost is spent")
+	eq(SeaWall.blocked(db, c.state, Vector2(0, -2000), "shnyaka"), "", "the Ter Coast is open to it")
+	eq(c.apply("p1", {"type": "build_boat", "boat": "koch", "uid": uid})["error"], "locked", "the koch waits for b09")
