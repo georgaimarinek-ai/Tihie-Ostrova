@@ -30,6 +30,12 @@ var wave_gain := 1.0  # 0 = flat water (tests)
 var model: Node3D
 var speed := 0.0  # signed forward speed, m/s (HUD, audio)
 var submerged := 0  # buoyancy points under water this step
+## The sea wall (SeaWall): with a world attached, a closed region (or one that needs a stronger boat) turns
+## the boat home after balance.fog.lock_push_s seconds inside.
+var world_state: WorldState
+var wall := ""  # "" | "locked" | "boat": what the sea says here
+var wall_time := 0.0  # seconds spent inside the wall
+var pushed := false  # the current has taken over the helm
 
 var _points: Array[Vector3] = []
 var _turn := 0.0
@@ -102,15 +108,25 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 	var v_fwd := vel.dot(fwd)
 	var v_side := vel.dot(right)
 	speed = v_fwd
+	var helm := steer
+	var sail := throttle
+	_update_wall(st.step, Vector2(xf.origin.x, xf.origin.z))
+	if pushed:
+		# the current turns the bow home and carries the boat out of the Mga, gently
+		var home := SeaWall.pull(Vector2(xf.origin.x, xf.origin.z))
+		var off := Vector2(fwd.x, fwd.z).angle_to(home)
+		helm = clampf(-off * 2.0, -1.0, 1.0)
+		sail = 0.5
+		st.apply_central_force(Vector3(home.x, 0.0, home.y) * mass * 0.8)
 	var target := 0.0
 	if not anchored:
-		if throttle > 0.0:
-			target = throttle * float(data["speed"]) * Weather.sail_factor(db, Vector2(fwd.x, fwd.z), wind)
-		elif throttle < 0.0:
-			target = throttle * 2.0 * float(data["row_speed"])
+		if sail > 0.0:
+			target = sail * float(data["speed"]) * Weather.sail_factor(db, Vector2(fwd.x, fwd.z), wind)
+		elif sail < 0.0:
+			target = sail * 2.0 * float(data["row_speed"])
 	var wet := float(submerged) / 4.0
 	if wet > 0.0:
-		var rate := ACCEL if throttle != 0.0 else COAST
+		var rate := ACCEL if sail != 0.0 else COAST
 		st.apply_central_force(fwd * mass * rate * (target - v_fwd) * wet)
 		st.apply_central_force(-right * mass * KEEL * v_side * wet)
 	if anchored:
@@ -118,7 +134,7 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 		off.y = 0.0
 		st.apply_central_force(off * mass * 0.6 - Vector3(vel.x, 0.0, vel.z) * mass * 1.5)
 	# rudder: the sketch's yaw rate, smoothed like its turn input
-	_turn = lerpf(_turn, 0.0 if anchored else steer, 1.0 - exp(-st.step * 3.0))
+	_turn = lerpf(_turn, 0.0 if anchored else helm, 1.0 - exp(-st.step * 3.0))
 	var yaw_rate := _turn * (0.35 + 0.5 * minf(1.0, absf(v_fwd) / 5.0))
 	var av := st.angular_velocity
 	av.y = lerpf(av.y, yaw_rate, 1.0 - exp(-st.step * 6.0))
@@ -134,6 +150,25 @@ func _process(delta: float) -> void:
 		s.scale.z = 0.7 + 0.3 * sin(Sea.time * 1.3) + minf(1.0, absf(speed) / 9.0) * 0.4
 	if model != null:
 		model.rotation.z = lerpf(model.rotation.z, -_turn * 0.06, 1.0 - exp(-delta * 3.0))
+
+
+## Time inside the wall grows while the sea says no and melts away outside; after lock_push_s the
+## current takes the helm until the boat is back in open water.
+func _update_wall(dt: float, pos: Vector2) -> void:
+	if world_state == null or anchored:
+		wall = ""
+		wall_time = 0.0
+		pushed = false
+		return
+	wall = SeaWall.blocked(db, world_state, pos, type)
+	if wall != "":
+		wall_time += dt
+	else:
+		wall_time = maxf(0.0, wall_time - dt * 2.0)
+	if wall_time > SeaWall.push_after_s(db):
+		pushed = true
+	elif wall == "" and wall_time <= 0.0:
+		pushed = false
 
 
 func drop_anchor() -> void:

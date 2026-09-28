@@ -314,6 +314,44 @@ func node(id: String) -> Dictionary:
 	return {}
 
 
+## A point on a beacon's path from the shore (t = 0) to the tower (t = 1), `side` metres to the side of it
+## but always on land (the sketch's pathPoint): where trial props stand.
+func path_point(bid: String, t: float, side: float) -> Vector3:
+	var isl: IslandGen = by_id[bid]
+	var p: Dictionary = paths[bid]
+	var shore: Vector2 = p["shore"]
+	var dir: Vector2 = p["dir"]
+	var base := shore.lerp(isl.center, t)
+	var across := Vector2(-dir.y, dir.x)
+	for k in 8:
+		var q := base + across * side * (1.0 - k / 8.0)
+		if isl.height_at(q.x, q.y) > 0.5:
+			return Vector3(q.x, isl.height_at(q.x, q.y), q.y)
+	return Vector3(base.x, isl.height_at(base.x, base.y), base.y)
+
+
+## The coastline of an island as a closed polygon (48 points, where the land meets the water): the chart
+## draws islands with it. Cached.
+func outline(island_id: String) -> PackedVector2Array:
+	var key := "outline:" + island_id
+	if _nodes.has(key):
+		return _nodes[key]
+	var isl: IslandGen = by_id[island_id]
+	var out := PackedVector2Array()
+	for a in 48:
+		var dir := Vector2.from_angle(a * TAU / 48.0)
+		var last := isl.center
+		var r := 0.0
+		while r < isl.radius * IslandGen.MARGIN:
+			var q := isl.center + dir * r
+			if isl.height_at(q.x, q.y) > 0.0:
+				last = q
+			r += maxf(1.0, isl.radius / 60.0)
+		out.append(last)
+	_nodes[key] = out
+	return out
+
+
 ## The fishing spot id for a point on the water.
 func fish_spot(p: Vector2) -> String:
 	var cell := float(db.raw["regions"]["nodes"]["fish_cell_m"])

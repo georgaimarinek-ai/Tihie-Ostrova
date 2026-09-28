@@ -29,6 +29,10 @@ var banner_box: VBoxContainer
 var buffs: HBoxContainer
 var hotbar: HBoxContainer
 var light_ring: LightRing
+var bars_top: ColorRect
+var bars_bottom: ColorRect
+var footer: Label
+var in_cinema := false
 
 var _banner_t := 0.0
 
@@ -137,6 +141,19 @@ func _ready() -> void:
 	toasts.alignment = BoxContainer.ALIGNMENT_BEGIN
 	toasts.add_theme_constant_override("separation", 8)
 	add_child(toasts)
+	# letterbox bars for the beacon moment
+	bars_top = ColorRect.new()
+	bars_top.color = Color(0.01, 0.03, 0.04)
+	bars_top.visible = false
+	add_child(bars_top)
+	bars_bottom = ColorRect.new()
+	bars_bottom.color = Color(0.01, 0.03, 0.04)
+	bars_bottom.visible = false
+	add_child(bars_bottom)
+	footer = UiTheme.label("", 17, UiTheme.TEXT2)
+	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	footer.visible = false
+	add_child(footer)
 	# the banner ("Beacon lit", "Unlocked:")
 	banner = PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", UiTheme.panel(Color(0.18, 0.2, 0.22, 0.88), 14, 28, Color(1, 0.6, 0.25, 0.35)))
@@ -179,7 +196,26 @@ func _layout() -> void:
 	bars.position = Vector2(w - 30 - bars.size.x, h - 24 - bars.size.y)
 	hint_label.position = Vector2(w * 0.5 - hint_label.size.x * 0.5, h - 30)
 	toasts.position = Vector2(w - 40 - toasts.size.x, 150)
-	banner.position = Vector2(w * 0.5 - banner.size.x * 0.5, 100)
+	banner.position = Vector2(w * 0.5 - banner.size.x * 0.5, 104 if in_cinema else 100)
+	bars_top.position = Vector2.ZERO
+	bars_top.size = Vector2(w, 64)
+	bars_bottom.position = Vector2(0, h - 64)
+	bars_bottom.size = Vector2(w, 64)
+	footer.position = Vector2(0, h - 44)
+	footer.size = Vector2(w, 30)
+
+
+## The beacon moment: black bars, everything but the banner hidden, a line of text in the lower bar.
+func cinematic(on: bool, footer_text: String = "") -> void:
+	in_cinema = on
+	for c in get_children():
+		if c == banner or c == bars_top or c == bars_bottom or c == footer or c == toasts:
+			continue
+		(c as CanvasItem).visible = not on if c != action_button else false
+	bars_top.visible = on
+	bars_bottom.visible = on
+	footer.visible = on
+	footer.text = footer_text
 
 
 ## Light fog behind the HUD (white nights) wants dark captions; dark skies want light ones.
@@ -212,7 +248,7 @@ func set_compass(cam_bearing: float, target_bearing: float, text: String) -> voi
 
 ## The action for the E key ("" hides the button).
 func set_action(text: String, key: String = "E") -> void:
-	action_button.visible = text != ""
+	action_button.visible = text != "" and not in_cinema
 	if text != "":
 		var t := "%s   [%s]" % [text, key]
 		if action_button.text != t:

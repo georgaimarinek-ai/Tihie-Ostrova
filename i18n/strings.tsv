@@ -155,3 +155,74 @@ toast.station_done	%s: готово	%s: done
 toast.fish_lost	Сорвалась…	It got away…
 toast.ate	Съедено: %s	Eaten: %s
 hint.fishing	Жди поклёвку. Поплавок нырнул — жми E.	Wait for a bite. When the float dives, press E.
+cmd.no_support	Не на чем стоять: нужна земля или соседняя деталь.	Nothing to stand on: it needs the ground or a neighbouring piece.
+cmd.occupied	Здесь уже стоит такая же деталь.	The same piece is already here.
+cmd.no_water	Причал ставят у воды.	A pier goes by the water.
+cmd.not_empty	Сначала освободи: внутри ещё что-то есть.	Empty it first: there is still something inside.
+build.cat.walls	Сруб	Walls
+build.cat.roof	Кровля	Roof
+build.cat.doors	Двери и окна	Doors and windows
+build.cat.furniture	Мебель	Furniture
+build.cat.stations	Станции	Stations
+build.cat.farm	Хозяйство	Farm
+build.cat.marks	Знаки	Marks
+build.title	Стройка	Building
+build.help_turn	[b]R[/b] повернуть · [b]ЛКМ[/b] поставить	[b]R[/b] turn · [b]LMB[/b] place
+build.help_remove	[b]ПКМ[/b] снести — вернётся всё потраченное	[b]RMB[/b] take down — everything spent comes back
+build.help_exit	[b]B[/b] выйти из стройки · колесо — другая деталь	[b]B[/b] leave building · wheel — another piece
+build.remove	Снести: %s	Take down: %s
+build.refund	вернётся %s	returns %s
+build.joins	встаёт к соседней детали	joins the neighbouring piece
+build.on_ground	на земле	on the ground
+build.carry	С собой: %s	Carrying: %s
+build.no_collapse	Нет опор и обрушений: деталь держится на соседней или на земле.	No loads, no collapse: a piece rests on its neighbour or on the ground.
+build.comfort	Уют у полатей	Comfort by the bed
+build.no_bed	Поставь полати: уют считается у кровати, в 10 м.	Build a sleeping loft: comfort counts around the bed, within 10 m.
+build.rest_after	Отдых после сна: %d мин	Rested after sleep: %d min
+build.next_comfort	%s даст +%d.	%s would add +%d.
+build.opens_later	(откроется за маяком «%s»)	(opens with the beacon “%s”)
+act.sleep	Лечь спать · отдых %d мин	Sleep · rested %d min
+act.steam	Попариться	Take a steam
+toast.slept	Отдых %d мин · уют %d	Rested %d min · comfort %d
+toast.steamed	Банный пар: %d мин тепла	Bath steam: %d min of warmth
+toast.unloaded	В сундук: %d	Into the chest: %d
+ui.unload	Всё в амбар	All into the storehouse
+cmd.no_fire	Нужен огонь в руке.	You need fire in hand.
+cmd.not_at_top	Нужно подняться к огнищу.	You need to climb up to the brazier.
+act.need_fire	Нужен огонь в руке	You need fire in hand
+act.lantern	Зажечь фонарь	Light the lantern
+act.listen	Послушать колокола	Listen to the bells
+act.strike	Ударить в колокол (%d/%d)	Strike the bell (%d/%d)
+act.mirror	Повернуть отражатель	Turn the reflector
+act.light_beacon	Зажечь маяк	Light the beacon
+act.need_fuel	Нужно топливо: %s	You need fuel: %s
+goal.lanterns	Тропу к маяку отмечают путевые фонари. Зажги их факелом (%d/%d).	Path lanterns mark the way to the beacon. Light them with your torch (%d/%d).
+goal.bells_listen	Из тумана звучат колокола. Подойди к маяку и послушай.	Bells ring out of the fog. Go up to the beacon and listen.
+goal.bells	Ударь в колокола в том порядке, в каком они звучали (%d/%d).	Strike the bells in the order they rang (%d/%d).
+goal.mirror	Поверни медные отражатели и сведи луч на огнище (%d/%d).	Turn the copper reflectors to bring the beam to the brazier (%d/%d).
+goal.climb_ledges	Поднимись по уступам к огнищу. Пробел — прыжок; сорвёшься — окажешься уступом ниже.	Climb the ledges to the brazier. Space jumps; a slip only drops you a ledge lower.
+goal.finale	Испытание %d из %d. %s	Trial %d of %d. %s
+goal.light	Испытание пройдено. Зажги маяк.	The trial is passed. Light the beacon.
+goal.fuel	Испытание пройдено. Для огня нужно: %s.	The trial is passed. The fire needs: %s.
+goal.lit_here	Маяк горит. Вдали мерцает следующий огонёк — к лодке.	The beacon burns. The next light glimmers far away — back to the boat.
+goal.saga_later	В Саге этот маяк зажигают боем или обороной огня.	In a Saga world this beacon is lit by a fight or by defending the fire.
+goal.wall_locked	Мга не пускает дальше: этот берег ещё закрыт. Течение разворачивает лодку.	The Mga lets you no further: this shore is still closed. The current turns the boat.
+goal.wall_boat	Здесь не пройти на такой лодке: нужна %s.	This boat can't go here: you need a %s.
+target.lantern	До фонаря	Lantern
+target.mirror	До отражателя	Reflector
+toast.bells_wrong	Сбились. Послушай ещё раз.	Out of order. Listen again.
+toast.trial_done	Испытание пройдено: %s	Trial passed: %s
+toast.region_opened	Открыт путь: %s	The way is open: %s
+banner.lit	Маяк зажжён · %d из %d	Beacon lit · %d of %d
+banner.cleared	Туман отступил на %d м	The fog drew back %d m
+banner.music	В музыке моря: %s	In the music of the sea: %s
+banner.next	Следующий огонёк мерцает %s · %s	The next light glimmers %s · %s
+banner.region	Открыт путь: %s	The way is open: %s
+banner.last	Мга ушла. Море открыто.	The Mga is gone. The sea is open.
+music.chords	тёплые аккорды	warm chords
+music.gusli	гусли чаще	the gusli more often
+music.zhaleyka	жалейка	the zhaleyka
+music.gudok	гудок и низкие струны	the gudok and low strings
+music.bells	колокольный звон с мысов	bells from the capes
+music.frost	колокольчики-иней	frost bells
+music.choir	далёкий хор	a far choir

@@ -20,6 +20,7 @@ var foot_yaw := 0.0  # foot mode: the camera's own heading
 var pitch := 0.32
 var idle := 0.0
 var dragging := false
+var build_mode := false
 ## Solid circles near the player (trees): {"pos": Vector2, "r": float}. The camera pulls in before them.
 var occluders: Array = []
 
@@ -36,7 +37,8 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_RIGHT or mb.button_index == MOUSE_BUTTON_MIDDLE:
+		# in the build mode the right button takes pieces down: look around with the middle one
+		if (mb.button_index == MOUSE_BUTTON_RIGHT and not build_mode) or mb.button_index == MOUSE_BUTTON_MIDDLE:
 			dragging = mb.pressed
 	elif event is InputEventMouseMotion and dragging:
 		var mm := event as InputEventMouseMotion

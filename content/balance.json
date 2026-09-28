@@ -23,7 +23,13 @@
     "base_min": 8,
     "per_comfort_min": 1,
     "max_comfort": 17,
-    "stamina_regen_bonus": 0.5
+    "stamina_regen_bonus": 0.5,
+    "radius_m": 10
+  },
+  "steam": {
+    "note": "The sauna stove's steam (docs/01_GDD.md §7.3): warmth and faster stamina for a while.",
+    "minutes": 10,
+    "stamina_regen_bonus": 0.2
   },
   "respawn": {
     "resource_nodes_days": 3,

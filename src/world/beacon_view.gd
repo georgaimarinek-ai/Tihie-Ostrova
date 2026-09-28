@@ -30,6 +30,30 @@ func setup(p_db: ContentDB, map: WorldMap, p_bid: String) -> void:
 		rotation.y = WorldMap.yaw_of(-(towards["dir"] as Vector2))  # ladder side faces the path
 	tower = ModelLibrary.instance("props", "beacon_tower")
 	add_child(tower)
+	# the legs and the deck are solid: the climb trial ends up there
+	var body := StaticBody3D.new()
+	body.collision_layer = 1
+	for c: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var leg := CollisionShape3D.new()
+		var lb := BoxShape3D.new()
+		lb.size = Vector3(0.4, 10.0, 0.4)
+		leg.shape = lb
+		leg.position = Vector3(c.x * 1.04, 5.0, c.y * 1.04)
+		body.add_child(leg)
+	var deck := CollisionShape3D.new()
+	var db_shape := BoxShape3D.new()
+	db_shape.size = Vector3(3.4, 0.3, 3.4)
+	deck.shape = db_shape
+	deck.position = Vector3(0, 10.1, 0)
+	body.add_child(deck)
+	var bowl := CollisionShape3D.new()
+	var bw := CylinderShape3D.new()
+	bw.radius = 0.9
+	bw.height = 0.8
+	bowl.shape = bw
+	bowl.position = Vector3(0, 10.65, 0)
+	body.add_child(bowl)
+	add_child(body)
 	var anchor := tower.get_node_or_null("Fire") as Node3D
 	var local_fire := anchor.position if anchor != null else Vector3(0, 11.2, 0)
 	fire = Placeholders.fire(1.0, true)

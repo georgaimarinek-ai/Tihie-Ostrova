@@ -471,3 +471,216 @@ msgstr "Съедено: %s"
 
 msgid "hint.fishing"
 msgstr "Жди поклёвку. Поплавок нырнул — жми E."
+
+msgid "cmd.no_support"
+msgstr "Не на чем стоять: нужна земля или соседняя деталь."
+
+msgid "cmd.occupied"
+msgstr "Здесь уже стоит такая же деталь."
+
+msgid "cmd.no_water"
+msgstr "Причал ставят у воды."
+
+msgid "cmd.not_empty"
+msgstr "Сначала освободи: внутри ещё что-то есть."
+
+msgid "build.cat.walls"
+msgstr "Сруб"
+
+msgid "build.cat.roof"
+msgstr "Кровля"
+
+msgid "build.cat.doors"
+msgstr "Двери и окна"
+
+msgid "build.cat.furniture"
+msgstr "Мебель"
+
+msgid "build.cat.stations"
+msgstr "Станции"
+
+msgid "build.cat.farm"
+msgstr "Хозяйство"
+
+msgid "build.cat.marks"
+msgstr "Знаки"
+
+msgid "build.title"
+msgstr "Стройка"
+
+msgid "build.help_turn"
+msgstr "[b]R[/b] повернуть · [b]ЛКМ[/b] поставить"
+
+msgid "build.help_remove"
+msgstr "[b]ПКМ[/b] снести — вернётся всё потраченное"
+
+msgid "build.help_exit"
+msgstr "[b]B[/b] выйти из стройки · колесо — другая деталь"
+
+msgid "build.remove"
+msgstr "Снести: %s"
+
+msgid "build.refund"
+msgstr "вернётся %s"
+
+msgid "build.joins"
+msgstr "встаёт к соседней детали"
+
+msgid "build.on_ground"
+msgstr "на земле"
+
+msgid "build.carry"
+msgstr "С собой: %s"
+
+msgid "build.no_collapse"
+msgstr "Нет опор и обрушений: деталь держится на соседней или на земле."
+
+msgid "build.comfort"
+msgstr "Уют у полатей"
+
+msgid "build.no_bed"
+msgstr "Поставь полати: уют считается у кровати, в 10 м."
+
+msgid "build.rest_after"
+msgstr "Отдых после сна: %d мин"
+
+msgid "build.next_comfort"
+msgstr "%s даст +%d."
+
+msgid "build.opens_later"
+msgstr "(откроется за маяком «%s»)"
+
+msgid "act.sleep"
+msgstr "Лечь спать · отдых %d мин"
+
+msgid "act.steam"
+msgstr "Попариться"
+
+msgid "toast.slept"
+msgstr "Отдых %d мин · уют %d"
+
+msgid "toast.steamed"
+msgstr "Банный пар: %d мин тепла"
+
+msgid "toast.unloaded"
+msgstr "В сундук: %d"
+
+msgid "ui.unload"
+msgstr "Всё в амбар"
+
+msgid "cmd.no_fire"
+msgstr "Нужен огонь в руке."
+
+msgid "cmd.not_at_top"
+msgstr "Нужно подняться к огнищу."
+
+msgid "act.need_fire"
+msgstr "Нужен огонь в руке"
+
+msgid "act.lantern"
+msgstr "Зажечь фонарь"
+
+msgid "act.listen"
+msgstr "Послушать колокола"
+
+msgid "act.strike"
+msgstr "Ударить в колокол (%d/%d)"
+
+msgid "act.mirror"
+msgstr "Повернуть отражатель"
+
+msgid "act.light_beacon"
+msgstr "Зажечь маяк"
+
+msgid "act.need_fuel"
+msgstr "Нужно топливо: %s"
+
+msgid "goal.lanterns"
+msgstr "Тропу к маяку отмечают путевые фонари. Зажги их факелом (%d/%d)."
+
+msgid "goal.bells_listen"
+msgstr "Из тумана звучат колокола. Подойди к маяку и послушай."
+
+msgid "goal.bells"
+msgstr "Ударь в колокола в том порядке, в каком они звучали (%d/%d)."
+
+msgid "goal.mirror"
+msgstr "Поверни медные отражатели и сведи луч на огнище (%d/%d)."
+
+msgid "goal.climb_ledges"
+msgstr "Поднимись по уступам к огнищу. Пробел — прыжок; сорвёшься — окажешься уступом ниже."
+
+msgid "goal.finale"
+msgstr "Испытание %d из %d. %s"
+
+msgid "goal.light"
+msgstr "Испытание пройдено. Зажги маяк."
+
+msgid "goal.fuel"
+msgstr "Испытание пройдено. Для огня нужно: %s."
+
+msgid "goal.lit_here"
+msgstr "Маяк горит. Вдали мерцает следующий огонёк — к лодке."
+
+msgid "goal.saga_later"
+msgstr "В Саге этот маяк зажигают боем или обороной огня."
+
+msgid "goal.wall_locked"
+msgstr "Мга не пускает дальше: этот берег ещё закрыт. Течение разворачивает лодку."
+
+msgid "goal.wall_boat"
+msgstr "Здесь не пройти на такой лодке: нужна %s."
+
+msgid "target.lantern"
+msgstr "До фонаря"
+
+msgid "target.mirror"
+msgstr "До отражателя"
+
+msgid "toast.bells_wrong"
+msgstr "Сбились. Послушай ещё раз."
+
+msgid "toast.trial_done"
+msgstr "Испытание пройдено: %s"
+
+msgid "toast.region_opened"
+msgstr "Открыт путь: %s"
+
+msgid "banner.lit"
+msgstr "Маяк зажжён · %d из %d"
+
+msgid "banner.cleared"
+msgstr "Туман отступил на %d м"
+
+msgid "banner.music"
+msgstr "В музыке моря: %s"
+
+msgid "banner.next"
+msgstr "Следующий огонёк мерцает %s · %s"
+
+msgid "banner.region"
+msgstr "Открыт путь: %s"
+
+msgid "banner.last"
+msgstr "Мга ушла. Море открыто."
+
+msgid "music.chords"
+msgstr "тёплые аккорды"
+
+msgid "music.gusli"
+msgstr "гусли чаще"
+
+msgid "music.zhaleyka"
+msgstr "жалейка"
+
+msgid "music.gudok"
+msgstr "гудок и низкие струны"
+
+msgid "music.bells"
+msgstr "колокольный звон с мысов"
+
+msgid "music.frost"
+msgstr "колокольчики-иней"
+
+msgid "music.choir"
+msgstr "далёкий хор"

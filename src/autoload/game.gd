@@ -74,6 +74,16 @@ func submit(cmd: Dictionary) -> Dictionary:
 	return _apply(Net.local_player_id(), cmd)
 
 
+## "Would this pass?" against the local copy of the world, changing nothing and telling no one (the build
+## mode's ghost). Co-op clients hold a replica, so they can ask too. For commands that accept "dry".
+func check(cmd: Dictionary) -> Dictionary:
+	if commands == null:
+		return {"ok": false, "error": "unknown_command", "events": []}
+	var c := cmd.duplicate()
+	c["dry"] = true
+	return commands.apply(Net.local_player_id(), c)
+
+
 func _apply(pid: String, cmd: Dictionary) -> Dictionary:
 	var res := commands.apply(pid, cmd)
 	if res["ok"]:

@@ -15,6 +15,14 @@ const GLYPH := {
 	"oil_cask": "cask", "ukha": "bowl", "rybnik": "pie", "kalitki": "pie", "spear": "spear", "iron_spear": "spear",
 	"spolokh_spear": "spear", "harpoon": "spear", "bow": "bow", "arrows": "arrow", "shield": "shield",
 	"wool_coat": "coat", "pearl_necklace": "necklace",
+	# building pieces (buildables.json) for the build bar
+	"log_foundation": "foundation", "log_wall": "wall", "log_wall_half": "wall", "plank_floor": "floor",
+	"gable_roof": "roof", "roof_ridge": "log", "carved_horse": "horse", "door": "door", "window_hatch": "window",
+	"mica_window": "window", "pier": "pier", "bench": "bench", "table": "table", "bed": "bed", "chest": "cask",
+	"drying_rack": "rack", "workbench": "table", "hearth": "fire", "tar_pit": "fire", "kiln": "fire",
+	"bloomery": "fire", "forge": "anvil", "stove": "stove", "loom": "rack", "quern": "stone",
+	"garden_bed": "grain", "boatyard": "pier", "trypot": "bowl", "salt_pan": "pile", "oil_lamp": "lantern",
+	"sheep_pen": "pen", "pomor_cross": "cross", "bathhouse_stove": "stone",
 }
 
 var item := ""
@@ -198,6 +206,76 @@ func _draw() -> void:
 			draw_circle(P.call(12, 12), 1.6 * s, c)
 		"coat":
 			draw_polyline(PackedVector2Array([P.call(9, 4), P.call(4, 8), P.call(6, 20), P.call(18, 20), P.call(20, 8), P.call(15, 4), P.call(12, 8), P.call(9, 4)]), c, w)
+		"foundation":
+			draw_rect(Rect2(P.call(4, 13), Vector2(16, 4) * s), c, false, w)
+			draw_line(P.call(6, 13), P.call(8, 9), c, w * 0.7)
+			draw_line(P.call(18, 13), P.call(16, 9), c, w * 0.7)
+			draw_line(P.call(8, 9), P.call(16, 9), c, w * 0.7)
+		"wall":
+			for y: float in [6.0, 10.0, 14.0, 18.0]:
+				draw_line(P.call(4, y), P.call(20, y), c, w)
+			draw_line(P.call(6, 6), P.call(6, 18), c, w * 0.6)
+			draw_line(P.call(18, 6), P.call(18, 18), c, w * 0.6)
+		"floor":
+			draw_polyline(PackedVector2Array([P.call(3, 15), P.call(9, 9), P.call(21, 9), P.call(15, 15), P.call(3, 15)]), c, w)
+			draw_line(P.call(7, 12), P.call(19, 12), c, w * 0.6)
+		"roof":
+			draw_polyline(PackedVector2Array([P.call(3, 17), P.call(12, 6), P.call(21, 17)]), c, w)
+			draw_line(P.call(6, 17), P.call(18, 17), c, w * 0.6)
+		"horse":
+			draw_polyline(PackedVector2Array([P.call(6, 20), P.call(9, 10), P.call(13, 5), P.call(18, 7), P.call(15, 10), P.call(12, 11), P.call(11, 20)]), c, w)
+		"door":
+			draw_rect(Rect2(P.call(7, 4), Vector2(10, 16) * s), c, false, w)
+			draw_circle(P.call(14, 12), 1.0 * s, c)
+		"window":
+			draw_rect(Rect2(P.call(5, 7), Vector2(14, 10) * s), c, false, w)
+			draw_line(P.call(12, 7), P.call(12, 17), c, w * 0.6)
+			draw_line(P.call(5, 12), P.call(19, 12), c, w * 0.6)
+		"pier":
+			draw_line(P.call(3, 10), P.call(21, 10), c, w)
+			for x: float in [6.0, 12.0, 18.0]:
+				draw_line(P.call(x, 10), P.call(x, 19), c, w)
+			draw_polyline(_curve(P.call(3, 17), P.call(12, 21), P.call(21, 17)), c, w * 0.6)
+		"bench":
+			draw_line(P.call(4, 11), P.call(20, 11), c, w * 1.2)
+			draw_line(P.call(7, 11), P.call(7, 18), c, w)
+			draw_line(P.call(17, 11), P.call(17, 18), c, w)
+		"table":
+			draw_line(P.call(3, 9), P.call(21, 9), c, w * 1.2)
+			draw_line(P.call(6, 9), P.call(6, 19), c, w)
+			draw_line(P.call(18, 9), P.call(18, 19), c, w)
+		"bed":
+			draw_rect(Rect2(P.call(4, 9), Vector2(16, 5) * s), c, false, w)
+			draw_line(P.call(5, 14), P.call(5, 20), c, w)
+			draw_line(P.call(19, 14), P.call(19, 20), c, w)
+			draw_arc(P.call(8, 7.5), 2 * s, PI, TAU, 8, c, w)
+		"rack":
+			draw_line(P.call(5, 4), P.call(5, 20), c, w)
+			draw_line(P.call(19, 4), P.call(19, 20), c, w)
+			draw_line(P.call(5, 6), P.call(19, 6), c, w)
+			for x: float in [9.0, 12.0, 15.0]:
+				draw_line(P.call(x, 6), P.call(x, 13), c, w * 0.8)
+		"fire":
+			draw_polyline(PackedVector2Array([P.call(12, 4), P.call(16, 11), P.call(14, 16), P.call(10, 16), P.call(8, 11), P.call(12, 4)]), c, w)
+			draw_line(P.call(4, 19), P.call(20, 19), c, w)
+			draw_line(P.call(6, 16), P.call(18, 20), c, w * 0.6)
+		"anvil":
+			draw_polyline(PackedVector2Array([P.call(4, 8), P.call(20, 8), P.call(17, 12), P.call(14, 12), P.call(15, 17), P.call(9, 17), P.call(10, 12), P.call(7, 12), P.call(4, 8)]), c, w)
+			draw_line(P.call(7, 20), P.call(17, 20), c, w)
+		"stove":
+			draw_rect(Rect2(P.call(4, 9), Vector2(16, 11) * s), c, false, w)
+			draw_rect(Rect2(P.call(14, 3), Vector2(4, 6) * s), c, false, w)
+			draw_arc(P.call(12, 17), 3.5 * s, PI, TAU, 8, c, w)
+		"pen":
+			for y: float in [9.0, 15.0]:
+				draw_line(P.call(3, y), P.call(21, y), c, w)
+			for x: float in [5.0, 12.0, 19.0]:
+				draw_line(P.call(x, 6), P.call(x, 19), c, w)
+		"cross":
+			draw_line(P.call(12, 3), P.call(12, 21), c, w)
+			draw_line(P.call(6, 9), P.call(18, 9), c, w)
+			draw_line(P.call(9, 5), P.call(15, 5), c, w * 0.8)
+			draw_line(P.call(8, 17), P.call(16, 14), c, w * 0.8)
 		"necklace":
 			for i in 7:
 				var a := PI * 0.15 + i * PI * 0.7 / 6.0

@@ -471,3 +471,216 @@ msgstr "Eaten: %s"
 
 msgid "hint.fishing"
 msgstr "Wait for a bite. When the float dives, press E."
+
+msgid "cmd.no_support"
+msgstr "Nothing to stand on: it needs the ground or a neighbouring piece."
+
+msgid "cmd.occupied"
+msgstr "The same piece is already here."
+
+msgid "cmd.no_water"
+msgstr "A pier goes by the water."
+
+msgid "cmd.not_empty"
+msgstr "Empty it first: there is still something inside."
+
+msgid "build.cat.walls"
+msgstr "Walls"
+
+msgid "build.cat.roof"
+msgstr "Roof"
+
+msgid "build.cat.doors"
+msgstr "Doors and windows"
+
+msgid "build.cat.furniture"
+msgstr "Furniture"
+
+msgid "build.cat.stations"
+msgstr "Stations"
+
+msgid "build.cat.farm"
+msgstr "Farm"
+
+msgid "build.cat.marks"
+msgstr "Marks"
+
+msgid "build.title"
+msgstr "Building"
+
+msgid "build.help_turn"
+msgstr "[b]R[/b] turn · [b]LMB[/b] place"
+
+msgid "build.help_remove"
+msgstr "[b]RMB[/b] take down — everything spent comes back"
+
+msgid "build.help_exit"
+msgstr "[b]B[/b] leave building · wheel — another piece"
+
+msgid "build.remove"
+msgstr "Take down: %s"
+
+msgid "build.refund"
+msgstr "returns %s"
+
+msgid "build.joins"
+msgstr "joins the neighbouring piece"
+
+msgid "build.on_ground"
+msgstr "on the ground"
+
+msgid "build.carry"
+msgstr "Carrying: %s"
+
+msgid "build.no_collapse"
+msgstr "No loads, no collapse: a piece rests on its neighbour or on the ground."
+
+msgid "build.comfort"
+msgstr "Comfort by the bed"
+
+msgid "build.no_bed"
+msgstr "Build a sleeping loft: comfort counts around the bed, within 10 m."
+
+msgid "build.rest_after"
+msgstr "Rested after sleep: %d min"
+
+msgid "build.next_comfort"
+msgstr "%s would add +%d."
+
+msgid "build.opens_later"
+msgstr "(opens with the beacon “%s”)"
+
+msgid "act.sleep"
+msgstr "Sleep · rested %d min"
+
+msgid "act.steam"
+msgstr "Take a steam"
+
+msgid "toast.slept"
+msgstr "Rested %d min · comfort %d"
+
+msgid "toast.steamed"
+msgstr "Bath steam: %d min of warmth"
+
+msgid "toast.unloaded"
+msgstr "Into the chest: %d"
+
+msgid "ui.unload"
+msgstr "All into the storehouse"
+
+msgid "cmd.no_fire"
+msgstr "You need fire in hand."
+
+msgid "cmd.not_at_top"
+msgstr "You need to climb up to the brazier."
+
+msgid "act.need_fire"
+msgstr "You need fire in hand"
+
+msgid "act.lantern"
+msgstr "Light the lantern"
+
+msgid "act.listen"
+msgstr "Listen to the bells"
+
+msgid "act.strike"
+msgstr "Strike the bell (%d/%d)"
+
+msgid "act.mirror"
+msgstr "Turn the reflector"
+
+msgid "act.light_beacon"
+msgstr "Light the beacon"
+
+msgid "act.need_fuel"
+msgstr "You need fuel: %s"
+
+msgid "goal.lanterns"
+msgstr "Path lanterns mark the way to the beacon. Light them with your torch (%d/%d)."
+
+msgid "goal.bells_listen"
+msgstr "Bells ring out of the fog. Go up to the beacon and listen."
+
+msgid "goal.bells"
+msgstr "Strike the bells in the order they rang (%d/%d)."
+
+msgid "goal.mirror"
+msgstr "Turn the copper reflectors to bring the beam to the brazier (%d/%d)."
+
+msgid "goal.climb_ledges"
+msgstr "Climb the ledges to the brazier. Space jumps; a slip only drops you a ledge lower."
+
+msgid "goal.finale"
+msgstr "Trial %d of %d. %s"
+
+msgid "goal.light"
+msgstr "The trial is passed. Light the beacon."
+
+msgid "goal.fuel"
+msgstr "The trial is passed. The fire needs: %s."
+
+msgid "goal.lit_here"
+msgstr "The beacon burns. The next light glimmers far away — back to the boat."
+
+msgid "goal.saga_later"
+msgstr "In a Saga world this beacon is lit by a fight or by defending the fire."
+
+msgid "goal.wall_locked"
+msgstr "The Mga lets you no further: this shore is still closed. The current turns the boat."
+
+msgid "goal.wall_boat"
+msgstr "This boat can't go here: you need a %s."
+
+msgid "target.lantern"
+msgstr "Lantern"
+
+msgid "target.mirror"
+msgstr "Reflector"
+
+msgid "toast.bells_wrong"
+msgstr "Out of order. Listen again."
+
+msgid "toast.trial_done"
+msgstr "Trial passed: %s"
+
+msgid "toast.region_opened"
+msgstr "The way is open: %s"
+
+msgid "banner.lit"
+msgstr "Beacon lit · %d of %d"
+
+msgid "banner.cleared"
+msgstr "The fog drew back %d m"
+
+msgid "banner.music"
+msgstr "In the music of the sea: %s"
+
+msgid "banner.next"
+msgstr "The next light glimmers %s · %s"
+
+msgid "banner.region"
+msgstr "The way is open: %s"
+
+msgid "banner.last"
+msgstr "The Mga is gone. The sea is open."
+
+msgid "music.chords"
+msgstr "warm chords"
+
+msgid "music.gusli"
+msgstr "the gusli more often"
+
+msgid "music.zhaleyka"
+msgstr "the zhaleyka"
+
+msgid "music.gudok"
+msgstr "the gudok and low strings"
+
+msgid "music.bells"
+msgstr "bells from the capes"
+
+msgid "music.frost"
+msgstr "frost bells"
+
+msgid "music.choir"
+msgstr "a far choir"

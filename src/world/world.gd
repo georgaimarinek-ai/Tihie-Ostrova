@@ -13,6 +13,8 @@ extends Node3D
 ##   --look=yaw,pitch     camera offset (degrees; boat: from the stern) and pitch (0..90)
 ##   --give=item:n,...    items in the bag (debug), --torch lights a torch, --eat=a,b eats dishes
 ##   --place=piece,...    set up pieces in front of the player, --craft[=recipe] opens the crafting window
+##   --house              build a small cabin in front of the player (snapped "place" commands)
+##   --build=piece        enter the build mode with that piece, its ghost 5 m ahead
 ##   --locale=ru|en       interface language
 ##   --mode=quiet|tale|saga, --seed=N   a new world
 ##   --lit=b01,b02        light beacons at start (debug), --light-at=N lights the next beacon at frame N
@@ -38,6 +40,8 @@ var beacons: Dictionary = {}  # beacon id -> BeaconView
 var player: Player
 var pieces: PiecesView
 var craft: CraftWindow
+var storage: StorageWindow
+var build: BuildMode
 var my_boat: Boat  # the boat the local player is aboard (null on foot)
 var last_boat: Boat  # the boat the player came ashore from
 
@@ -55,6 +59,8 @@ var _near_station := ""  # uid of the nearest station within reach
 var _fishing: Dictionary = {}  # {"spot", "t", "next", "bite", "caught", "want"}
 var _bobber: Node3D
 var _hot := 0  # chosen hotbar place
+var _near_use := ""  # a bed, a sauna stove or a chest within reach
+var _fade: ColorRect
 
 
 func _ready() -> void:
@@ -63,7 +69,7 @@ func _ready() -> void:
 		TranslationServer.set_locale(String(_args["locale"]))
 	db = ContentDB.shared()
 	if Game.state == null:
-		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft"]:
+		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft", "house", "build"]:
 			if _args.has(k):
 				Game.debug_cheats = true
 		Game.new_world(int(_args.get("seed", 4127)), String(_args.get("mode", "")))
@@ -121,6 +127,17 @@ func _ready() -> void:
 	layer.add_child(craft)
 	craft.closed.connect(func() -> void: player.busy = not _channel.is_empty())
 	craft.place_requested.connect(_place_station)
+	storage = StorageWindow.new()
+	layer.add_child(storage)
+	storage.closed.connect(func() -> void: player.busy = false)
+	build = BuildMode.new()
+	add_child(build)
+	build.setup(db, state, map, player, cam, _pid, layer)
+	_fade = ColorRect.new()
+	_fade.color = Color(0.02, 0.03, 0.05, 0.0)
+	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_fade)
 	_bobber = _make_bobber()
 	add_child(_bobber)
 	_debug_setup()
@@ -272,6 +289,12 @@ func _scan() -> void:
 		_landing = map.find_landing(Vector2(bp.x, bp.z), _blocked)
 		return
 	var p := player.global_position
+	_near_use = ""
+	for uid in Crafting.stations_near(state, p, WorldCommands.USE_REACH_M - 0.5):
+		var info: Dictionary = db.pieces[state.pieces[uid]["id"]]
+		if info.get("spawn", false) or info.has("buff") or info.has("storage"):
+			_near_use = uid
+			break
 	_near_station = ""
 	for uid in Crafting.stations_near(state, p, Crafting.REACH_M - 1.0):
 		if db.pieces[state.pieces[uid]["id"]].get("station", false):
@@ -334,6 +357,18 @@ func _action() -> Dictionary:
 		if items.size() > 1:
 			label += "   ·   " + tr("act.other")
 		return {"label": label, "run": _start_channel.bind(_near_node, item)}
+	if _near_use != "":
+		var use: Dictionary = state.pieces[_near_use]
+		var info: Dictionary = db.pieces[use["id"]]
+		if info.get("spawn", false):
+			var cf := int(Comfort.at(db, state, use["pos"])["total"])
+			return {"label": tr("act.sleep") % roundi(Comfort.rested_minutes(db, cf)), "run": _sleep.bind(_near_use)}
+		if info.has("buff"):
+			return {"label": tr("act.steam"), "run": func() -> void:
+				_send_move()
+				Game.submit({"type": "steam", "uid": _near_use})}
+		if info.has("storage"):
+			return {"label": tr("act.station") % Loc.name_of(info["name"]), "run": _open_storage.bind(_near_use)}
 	if _near_station != "":
 		var pc: Dictionary = state.pieces[_near_station]
 		var out: Dictionary = pc.get("out", {})
@@ -364,7 +399,15 @@ func _do_action() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if craft.visible:
+	if craft.visible or storage.visible:
+		return
+	if event.is_action_pressed("build_menu") and on_foot() and not build.active:
+		build.enter()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("inventory") and my_boat != null:
+		_open_storage(my_boat.uid)
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("interact"):
 		_do_action()
@@ -388,6 +431,31 @@ func _open_craft() -> void:
 		near.append({"uid": uid, "id": state.pieces[uid]["id"]})
 	craft.open(db, state, _pid, near)
 	player.busy = true
+
+
+## A chest, or the boat's hold (with "all into the storehouse" when a chest stands near the boat).
+func _open_storage(uid: String) -> void:
+	_send_move()
+	var unload := ""
+	if state.boats.has(uid):
+		var bp: Vector3 = state.boats[uid]["pos"]
+		for pu: String in state.pieces:
+			var pc: Dictionary = state.pieces[pu]
+			if pc.has("inv") and (pc["pos"] as Vector3).distance_to(bp) <= 30.0:
+				unload = pu
+				break
+	storage.open(db, state, _pid, uid, unload)
+	player.busy = true
+
+
+func _sleep(uid: String) -> void:
+	_send_move()
+	var res := Game.submit({"type": "sleep", "uid": uid})
+	if res.get("ok", false):
+		var tw := create_tween()
+		tw.tween_property(_fade, "color:a", 0.95, 0.8)
+		tw.tween_interval(0.6)
+		tw.tween_property(_fade, "color:a", 0.0, 1.2)
 
 
 ## Keys 1–8: a light is lit, food is eaten, anything else becomes the chosen tool.
@@ -625,7 +693,7 @@ func _update_audio(focus: Vector3) -> void:
 # ---------------------------------------------------------------- HUD
 
 func _update_hud() -> void:
-	hud.visible = not craft.visible
+	hud.visible = not craft.visible and not storage.visible and not build.active
 	var p := Vector2(cam.global_position.x, cam.global_position.z)
 	var rid := db.region_at(p)
 	hud.set_region("%s · %s" % [Loc.chapter(db, rid), Loc.region(db, rid)])
@@ -747,7 +815,18 @@ func _on_world_event(e: Dictionary) -> void:
 		"ate":
 			if mine:
 				hud.toast(tr("toast.ate") % Loc.item(db, e["item"]))
+		"slept":
+			if mine:
+				hud.toast(tr("toast.slept") % [roundi(float(e["minutes"])), int(e["comfort"])])
+		"steamed":
+			if mine:
+				hud.toast(tr("toast.steamed") % roundi(float(e["minutes"])))
+		"unloaded":
+			if mine:
+				hud.toast(tr("toast.unloaded") % int(e["n"]))
 	craft.refresh()
+	storage.refresh()
+	build.refresh()
 
 
 func _on_command_failed(_cmd: Dictionary, error: String) -> void:
@@ -845,11 +924,54 @@ func _debug_place() -> void:
 		for dish: String in String(_args["eat"]).split(","):
 			Game.submit({"type": "debug", "give": {dish: 1}})
 			Game.submit({"type": "eat", "item": dish})
+	if _args.has("house") and on_foot():
+		_debug_house()
+	if _args.has("build") and on_foot():
+		build.enter()
+		build.piece = String(_args["build"])
+		var yaw := player.model.rotation.y
+		var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
+		build.debug_aim = player.global_position + fwd * 5.0 + Vector3(fwd.z, 0, -fwd.x) * 2.0
 	if _args.has("craft") and on_foot():
 		_open_craft()
 		if String(_args["craft"]) != "true":
 			craft.selected = String(_args["craft"])
 			craft.refresh()
+
+
+## Debug: a small cabin 8 m ahead through the same snapped "place" commands the build mode sends.
+func _debug_house() -> void:
+	Game.submit({"type": "debug", "give": {"wood": 200, "stone": 60, "moss": 30, "birch_bark": 10, "rope": 6}})
+	var yaw := player.model.rotation.y
+	var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
+	var side := Vector3(fwd.z, 0, -fwd.x)
+	var base := player.global_position + fwd * 9.0
+	var cells: Array[Vector3] = [base, base + side * 2.0]
+	var put := func(piece: String, aim: Vector3, turns: int) -> void:
+		var sn := Building.snap(db, state, map, piece, aim, turns)
+		var q: Vector3 = sn["pos"]
+		Game.submit({"type": "place", "piece": piece, "pos": [q.x, q.y, q.z], "rot": sn["rot"]})
+	for c in cells:
+		put.call("log_foundation", c, 0)
+	for c in cells:
+		put.call("plank_floor", c, 0)
+	for c in cells:
+		var cc := Building.cell_center(c)
+		var y := map.ground_at(cc.x, cc.y)
+		for d: Vector2 in [Vector2(0, -0.9), Vector2(0, 0.9)]:
+			put.call("log_wall", Vector3(cc.x + d.x, y, cc.y + d.y), 0)
+	var c0 := Building.cell_center(cells[0])
+	var c1 := Building.cell_center(cells[1])
+	var lo := c0 if c0.x < c1.x else c1
+	var hi := c1 if c0.x < c1.x else c0
+	put.call("log_wall", Vector3(lo.x - 0.9, 0, lo.y), 0)
+	put.call("door", Vector3(hi.x + 0.9, 0, hi.y), 0)
+	for c in cells:
+		put.call("gable_roof", c, 0)
+	put.call("bed", base + side * 1.0 + Vector3(0.3, 0, 0.3), 0)
+	put.call("hearth", base - fwd * 3.5, 0)
+	put.call("bench", base - fwd * 3.5 + side * 3.0, 1)
+	put.call("bathhouse_stove", base - fwd * 2.0 - side * 4.5, 0)
 
 
 ## Debug: pass the trial, stand at the beacon with its fuel, light it (the same commands real play uses).

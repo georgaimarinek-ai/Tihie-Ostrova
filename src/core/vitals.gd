@@ -32,5 +32,5 @@ static func stamina_regen(db: ContentDB, state: WorldState, pid: String) -> floa
 	if is_rested(state, pid):
 		k += float(db.balance["rested"]["stamina_regen_bonus"])
 	if float(state.players[pid]["steam_until"]) > state.clock_min:
-		k += 0.2
+		k += float(db.balance["steam"]["stamina_regen_bonus"])
 	return float(db.balance["player"]["stamina_regen_per_s"]) * k

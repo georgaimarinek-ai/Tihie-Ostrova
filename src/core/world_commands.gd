@@ -12,6 +12,8 @@ const BEACON_REACH_M := 12.0
 const BOARD_REACH_M := 16.0  # landing looks up to 14 m from the boat
 const LAND_REACH_M := 18.0
 const PLACE_REACH_M := 10.0
+const USE_REACH_M := 4.0  # beds, sauna stoves, chests
+const CLIMB_TOP_M := 9.0  # the "climb" trial ends this high above the tower's foot
 const WORLD_LIMIT_M := 5000.0
 ## Commands only the host itself may issue; Game drops them when they arrive from a remote peer.
 const HOST_ONLY: Array[String] = ["tick", "debug"]
@@ -86,6 +88,16 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _collect(pid, cmd)
 		"eat":
 			return _eat(pid, cmd)
+		"sleep":
+			return _sleep(pid, cmd)
+		"steam":
+			return _steam(pid, cmd)
+		"store":
+			return _store(pid, cmd)
+		"take":
+			return _take(pid, cmd)
+		"unload":
+			return _unload(pid, cmd)
 		"tick":
 			return _tick(pid, cmd)
 		"debug":
@@ -159,18 +171,24 @@ func _place(pid: String, cmd: Dictionary) -> Dictionary:
 	var cost := ContentDB.bag(p["cost"])
 	var inv := state.inv(pid)
 	var pos := WorldState._to_v3(cmd.get("pos", []))
-	if map != null:
-		if not _sane(pos) or not _near(pid, pos, PLACE_REACH_M):
-			return _fail("too_far")
-		if map.ground_at(pos.x, pos.z) < -0.6 and String(p.get("snap", "free")) != "pier":
-			return _fail("no_land")
-	if not inv.remove_bag(cost):
+	var rot := wrapf(float(cmd.get("rot", 0.0)), -PI, PI)
+	if map != null and (not _sane(pos) or not _near(pid, pos, PLACE_REACH_M)):
+		return _fail("too_far")
+	var why := Building.check(db, state, map, piece_id, pos, rot)
+	if why != "":
+		return _fail(why)
+	if not inv.has_bag(cost):
 		return _fail("missing")
+	if cmd.get("dry", false):
+		return _ok([])  # the build mode's ghost asks "would it stand?" without building anything
+	inv.remove_bag(cost)
 	var uid := state.new_uid("p")
-	state.pieces[uid] = {"id": piece_id, "pos": pos, "rot": float(cmd.get("rot", 0.0)), "owner": pid}
+	state.pieces[uid] = {"id": piece_id, "pos": pos, "rot": rot, "owner": pid}
+	if p.has("storage"):
+		state.pieces[uid]["inv"] = Inventory.new(db, int(p["storage"]))
 	if p.get("spawn", false):
 		state.players[pid]["spawn"] = pos
-	return _ok([{"type": "piece_placed", "uid": uid, "piece": piece_id, "pos": WorldState._v3(pos), "rot": float(cmd.get("rot", 0.0)), "player": pid}])
+	return _ok([{"type": "piece_placed", "uid": uid, "piece": piece_id, "pos": WorldState._v3(pos), "rot": rot, "player": pid}])
 
 
 func _remove(pid: String, cmd: Dictionary) -> Dictionary:
@@ -178,6 +196,12 @@ func _remove(pid: String, cmd: Dictionary) -> Dictionary:
 	if not state.pieces.has(uid):
 		return _fail("unknown_uid")
 	var pc: Dictionary = state.pieces[uid]
+	if map != null and not _near(pid, pc["pos"], PLACE_REACH_M):
+		return _fail("too_far")
+	if pc.has("inv") and not (pc["inv"] as Inventory).is_empty():
+		return _fail("not_empty")
+	if not (pc.get("queue", []) as Array).is_empty() or not (pc.get("out", {}) as Dictionary).is_empty():
+		return _fail("not_empty")
 	var cost := ContentDB.bag(db.pieces[pc["id"]]["cost"])
 	var inv := state.inv(pid)
 	if not inv.can_fit(cost):
@@ -215,10 +239,35 @@ func _complete_trial(pid: String, cmd: Dictionary) -> Dictionary:
 		return _fail("wrong_trial")
 	if expected != "trial" and state.busy_beacon != bid:
 		return _fail("no_fight")
+	if map != null and expected == "trial":
+		var why := _trial_check(pid, bid)
+		if why != "":
+			return _fail(why)
 	state.trials_done[bid] = kind
 	if state.busy_beacon == bid:
 		state.busy_beacon = ""
 	return _ok([{"type": "trial_done", "beacon": bid, "kind": kind, "player": pid}])
+
+
+## What the host can see of a trial (docs/01_GDD.md §5.2): the player is on the beacon's island; "carry"
+## ends at the tower with fire in hand; "climb" ends up on the tower's deck. The puzzles themselves (bells,
+## lanterns, mirrors) run on the player's machine; their end is this command.
+func _trial_check(pid: String, bid: String) -> String:
+	var p: Dictionary = state.players[pid]
+	var pos: Vector3 = p["pos"]
+	var isl: IslandGen = map.by_id[bid]
+	if Vector2(pos.x, pos.z).distance_to(isl.center) > isl.radius * IslandGen.MARGIN:
+		return "too_far"
+	var trial := String(db.beacons[bid]["trial"])
+	var base := isl.height_at(isl.center.x, isl.center.y)
+	if trial == "carry":
+		if (p.get("light", {}) as Dictionary).is_empty():
+			return "no_fire"
+		if Vector2(pos.x, pos.z).distance_to(isl.center) > BEACON_REACH_M:
+			return "too_far"
+	elif trial == "climb" and pos.y < base + CLIMB_TOP_M:
+		return "not_at_top"
+	return ""
 
 
 func _light_beacon(pid: String, cmd: Dictionary) -> Dictionary:
@@ -476,6 +525,112 @@ func _eat(pid: String, cmd: Dictionary) -> Dictionary:
 	var until := state.clock_min + float(it["food"]["minutes"])
 	food.append({"id": item, "until": until})
 	return _ok([{"type": "ate", "player": pid, "item": item, "until": until}])
+
+
+## Sleep in a bed: "Rested" for base_min + comfort × per_comfort_min (+ a pearl necklace's minutes).
+func _sleep(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty() or not db.pieces[pc["id"]].get("spawn", false):
+		return _fail("unknown_uid")
+	if not _near(pid, pc["pos"], USE_REACH_M):
+		return _fail("too_far")
+	var comfort := int(Comfort.at(db, state, pc["pos"])["total"])
+	var minutes := Comfort.rested_minutes(db, comfort)
+	var p: Dictionary = state.players[pid]
+	for s: Dictionary in (p["inv"] as Inventory).slots:
+		if not s.is_empty() and db.items[s["id"]].has("trinket"):
+			minutes += float(db.items[s["id"]]["trinket"].get("rested_minutes", 0.0))
+			break
+	p["rested_until"] = state.clock_min + minutes
+	p["spawn"] = pc["pos"]
+	return _ok([{"type": "slept", "player": pid, "uid": uid, "comfort": comfort, "minutes": minutes}])
+
+
+## Steam in the bathhouse: warmth and faster stamina for balance.steam.minutes.
+func _steam(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty() or String(db.pieces[pc["id"]].get("buff", "")) != "steam":
+		return _fail("unknown_uid")
+	if not _near(pid, pc["pos"], USE_REACH_M):
+		return _fail("too_far")
+	var minutes := float(db.balance["steam"]["minutes"])
+	state.players[pid]["steam_until"] = state.clock_min + minutes
+	return _ok([{"type": "steamed", "player": pid, "uid": uid, "minutes": minutes}])
+
+
+## A container the player can reach: a chest (within USE_REACH_M) or a boat's hold (aboard or beside it).
+func _container(pid: String, uid: String) -> Inventory:
+	if state.pieces.has(uid):
+		var pc: Dictionary = state.pieces[uid]
+		if pc.has("inv") and _near(pid, pc["pos"], USE_REACH_M):
+			return pc["inv"]
+		return null
+	if state.boats.has(uid):
+		var b: Dictionary = state.boats[uid]
+		if state.players[pid]["aboard"] == uid or _near(pid, b["pos"], BOARD_REACH_M):
+			return b["cargo"]
+	return null
+
+
+static func _move_stack(from: Inventory, slot: int, to: Inventory) -> int:
+	if slot < 0 or slot >= from.size or from.slots[slot].is_empty():
+		return 0
+	var s: Dictionary = from.slots[slot]
+	var n := int(s["n"])
+	var left := to.add(String(s["id"]), n)
+	var moved := n - left
+	if left == 0:
+		from.slots[slot] = {}
+	else:
+		s["n"] = left
+	return moved
+
+
+## Bag slot → chest or hold.
+func _store(pid: String, cmd: Dictionary) -> Dictionary:
+	var box := _container(pid, String(cmd.get("uid", "")))
+	if box == null:
+		return _fail("too_far")
+	var inv := state.inv(pid)
+	var slot := int(cmd.get("slot", -1))
+	var id := String(inv.slots[slot].get("id", "")) if slot >= 0 and slot < inv.size else ""
+	var moved := _move_stack(inv, slot, box)
+	if moved == 0:
+		return _fail("no_space" if id != "" else "empty")
+	return _ok([{"type": "stored", "player": pid, "uid": cmd["uid"], "item": id, "n": moved}])
+
+
+## Chest or hold slot → bag.
+func _take(pid: String, cmd: Dictionary) -> Dictionary:
+	var box := _container(pid, String(cmd.get("uid", "")))
+	if box == null:
+		return _fail("too_far")
+	var slot := int(cmd.get("slot", -1))
+	var id := String(box.slots[slot].get("id", "")) if slot >= 0 and slot < box.size else ""
+	var moved := _move_stack(box, slot, state.inv(pid))
+	if moved == 0:
+		return _fail("no_space" if id != "" else "empty")
+	return _ok([{"type": "taken", "player": pid, "uid": cmd["uid"], "item": id, "n": moved}])
+
+
+## "All into the storehouse": the boat's hold into a chest near the pier (within 30 m of the boat).
+func _unload(pid: String, cmd: Dictionary) -> Dictionary:
+	var boat_uid := String(cmd.get("boat", ""))
+	var chest_uid := String(cmd.get("chest", ""))
+	var hold := _container(pid, boat_uid)
+	var pc: Dictionary = state.pieces.get(chest_uid, {})
+	if hold == null or pc.is_empty() or not pc.has("inv"):
+		return _fail("unknown_uid")
+	if (pc["pos"] as Vector3).distance_to(state.boats[boat_uid]["pos"]) > 30.0:
+		return _fail("too_far")
+	var moved := 0
+	for i in hold.size:
+		moved += _move_stack(hold, i, pc["inv"])
+	if moved == 0:
+		return _fail("no_space" if not hold.is_empty() else "empty")
+	return _ok([{"type": "unloaded", "player": pid, "boat": boat_uid, "chest": chest_uid, "n": moved}])
 
 
 func _near(pid: String, pos: Vector3, reach: float) -> bool:
