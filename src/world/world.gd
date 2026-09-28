@@ -454,9 +454,9 @@ func _action() -> Dictionary:
 		if Gathering.tool_ok(db, inv, item):
 			label = tr(TOOL_VERB.get(tool, "act.take")) % Loc.item(db, item)
 		else:
-			label = tr("act.need_tool") % tr("tool." + tool)
+			label = tr("act.need_tool_for") % [Loc.item(db, item), tr("tool." + tool)]
 		if items.size() > 1:
-			label += "   ·   " + tr("act.other")
+			label += "   ·   " + tr("act.other") % _other_item(items[(_choice + 1) % items.size()], inv)
 		return {"label": label, "run": _start_channel.bind(_near_node, item)}
 	if _near_use != "":
 		var use: Dictionary = state.pieces[_near_use]
@@ -495,6 +495,13 @@ func _action() -> Dictionary:
 		if d < minf(_board_dist, WorldCommands.BOARD_REACH_M):
 			return {"label": tr("act.board"), "run": _board}
 	return {}
+
+
+## What Q switches to at a resource node: "Живица", or "Живица (инструмент: нож)" without the tool.
+func _other_item(item: String, inv: Inventory) -> String:
+	if Gathering.tool_ok(db, inv, item):
+		return Loc.item(db, item)
+	return tr("act.other_tool") % [Loc.item(db, item), tr("tool." + String(db.items[item]["gather"]["tool"]))]
 
 
 func _do_action() -> void:
@@ -679,7 +686,7 @@ func _beacon_action() -> Dictionary:
 	if state.inv(_pid).has_bag(fuel):
 		return {"label": tr("act.light_beacon"), "run": _light_beacon.bind(bid)}
 	var need := tr("act.need_fuel") % ItemInfo.bag_text(db, fuel)
-	return {"label": need, "run": func() -> void: hud.toast(need)}
+	return {"label": need, "run": func() -> void: hud.toast(need + "." + ItemInfo.how_made(db, fuel))}
 
 
 ## The beacon whose tower is within lighting reach of a point on foot ("" if none).
@@ -703,7 +710,7 @@ func _saga_action(bid: String) -> Dictionary:
 	var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
 	if not state.inv(_pid).has_bag(fuel):
 		var need := tr("act.need_fuel") % ItemInfo.bag_text(db, fuel)
-		return {"label": need, "run": func() -> void: hud.toast(need)}
+		return {"label": need, "run": func() -> void: hud.toast(need + "." + ItemInfo.how_made(db, fuel))}
 	return {"label": tr("act.defend_fire") % int(db.beacons[bid]["saga"]["seconds"]), "run": start}
 
 
@@ -1246,7 +1253,7 @@ func _beacon_goal(bid: String, boat_goal: Dictionary) -> Dictionary:
 		return {}
 	if state.trials_done.has(bid):
 		var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
-		tower["text"] = tr("goal.light") if state.inv(_pid).has_bag(fuel) else tr("goal.fuel") % ItemInfo.bag_text(db, fuel)
+		tower["text"] = tr("goal.light") if state.inv(_pid).has_bag(fuel) else tr("goal.fuel") % ItemInfo.bag_text(db, fuel) + ItemInfo.how_made(db, fuel)
 		return tower
 	if Game.commands != null and String(Game.commands.rules()["beacon"]) != "trial":
 		if state.busy_beacon == bid:
@@ -1254,7 +1261,8 @@ func _beacon_goal(bid: String, boat_goal: Dictionary) -> Dictionary:
 		elif String(db.beacons[bid]["saga"]["type"]) == "guardian":
 			tower["text"] = tr("goal.saga_guardian") % Loc.name_of(db.creatures[Game.commands.guardian_of(bid)]["name"])
 		else:
-			tower["text"] = tr("goal.saga_defense") % [int(db.beacons[bid]["saga"]["seconds"]), ItemInfo.bag_text(db, ContentDB.bag(db.beacons[bid]["fuel"]))]
+			var fuel := ContentDB.bag(db.beacons[bid]["fuel"])
+			tower["text"] = tr("goal.saga_defense") % [int(db.beacons[bid]["saga"]["seconds"]), ItemInfo.bag_text(db, fuel)] + ItemInfo.how_made(db, fuel)
 		return tower
 	var t: Trial = trials.get(bid)
 	if t == null:

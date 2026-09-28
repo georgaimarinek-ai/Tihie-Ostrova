@@ -211,3 +211,25 @@ func test_finale_runs_every_trial_in_a_row(tree: SceneTree) -> void:
 	check(st.trials_done.has("b12"), "all four in a row: the finale is passed")
 	check(_events.has("trial_done"), "through complete_trial")
 	_done(tree)
+
+
+## At a pine the prompt names what Q switches to, and the tool it needs (the resin a player can't find).
+func test_resource_prompt_names_the_other(tree: SceneTree) -> void:
+	var world: Node3D = await _world(tree, 11, [])
+	var pine: Dictionary = {}
+	for n: Dictionary in Game.map.nodes("home"):
+		if String(n["kind"]) == "pine":
+			pine = n
+			break
+	world._near_node = pine
+	world._choice = 0
+	var resin := Loc.item(db, "resin")
+	var label := String(world._action().get("label", ""))
+	check(label.contains(tr("act.other") % (tr("act.other_tool") % [resin, tr("tool.knife")])), "Q — resin, needs a knife: " + label)
+	Game.submit({"type": "debug", "give": {"knife": 1}})
+	label = String(world._action().get("label", ""))
+	check(label.contains(tr("act.other") % resin), "with a knife: Q — resin: " + label)
+	world._choice = 1
+	label = String(world._action().get("label", ""))
+	check(label.begins_with(tr("act.cut") % resin), "after Q: cut resin: " + label)
+	_done(tree)

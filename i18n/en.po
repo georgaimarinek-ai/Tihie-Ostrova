@@ -220,6 +220,12 @@ msgstr "Fish: %s"
 msgid "act.need_tool"
 msgstr "You need %s"
 
+msgid "act.need_tool_for"
+msgstr "%s: you need %s"
+
+msgid "act.other_tool"
+msgstr "%s (needs %s)"
+
 msgid "act.working"
 msgstr "%s… %d/%d"
 
@@ -236,13 +242,13 @@ msgid "act.light_torch"
 msgstr "Light the torch"
 
 msgid "act.other"
-msgstr "Q — other"
+msgstr "Q — %s"
 
 msgid "goal.land"
 msgstr "The shore is close. Go ashore."
 
 msgid "goal.need_fire"
-msgstr "The fog is thicker on the island: without fire you cannot see the path. You need a torch — sticks and resin (cut resin from a pine with a knife)."
+msgstr "The fog is thicker on the island: without fire you cannot see the path. You need a torch — sticks and resin. Cut resin from a pine with a knife: walk up to a pine and press Q until it says \"Cut: Pine resin\"."
 
 msgid "goal.climb"
 msgstr "The torch pushes the fog back. Climb the path to the beacon."
@@ -618,6 +624,12 @@ msgstr "The trial is passed. Light the beacon."
 
 msgid "goal.fuel"
 msgstr "The trial is passed. The fire needs: %s."
+
+msgid "info.made_hand"
+msgstr "To make %s: %s, by hand (Tab)."
+
+msgid "info.made_at"
+msgstr "To make %s: %s at a %s (place it in build mode, B)."
 
 msgid "goal.lit_here"
 msgstr "The beacon burns. The next light glimmers far away — back to the boat."

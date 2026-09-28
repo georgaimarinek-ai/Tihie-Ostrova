@@ -57,3 +57,10 @@ func test_gathering_time_follows_rate_and_tool() -> void:
 	var k := Inventory.new(db)
 	k.add("knife", 1)
 	eq(Gathering.best_item(db, k, ["wood", "resin"]), "resin", "a knife taps resin")
+
+
+func test_fuel_says_how_it_is_made() -> void:
+	var s := ItemInfo.how_made(db, ContentDB.bag(db.beacons["b01"]["fuel"]))
+	check(s.contains(Loc.item(db, "resin")) and s.contains(Loc.item(db, "wood")), "the first beacon's fuel: from wood and resin")
+	check(s.contains(Loc.name_of(db.pieces["workbench"]["name"])), "…at the workbench")
+	eq(ItemInfo.how_made(db, {"resin": 1}), "", "resin is gathered as is")

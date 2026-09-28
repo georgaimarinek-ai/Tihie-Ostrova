@@ -62,6 +62,24 @@ static func bag_text(db: ContentDB, bag: Dictionary) -> String:
 	return " · ".join(parts)
 
 
+## " Как сделать «Смольё»: Древесина 4 · Живица 2, у станции «Верстак» (строится через B)." for every
+## crafted item of a bag ("" when all of it is gathered as is), so the fuel line tells where the fuel comes from.
+static func how_made(db: ContentDB, bag: Dictionary) -> String:
+	var out := ""
+	for id: String in bag:
+		var made := db.recipes_producing(id)
+		if made.is_empty():
+			continue
+		var r: Dictionary = made[0]
+		var inputs := bag_text(db, ContentDB.bag(r["inputs"]))
+		var station := String(r["station"])
+		if station == "hand":
+			out += " " + Loc.t("info.made_hand") % [Loc.item(db, id), inputs]
+		else:
+			out += " " + Loc.t("info.made_at") % [Loc.item(db, id), inputs, Loc.name_of(db.pieces[station]["name"])]
+	return out
+
+
 ## "04:05" for minutes.
 static func clock(minutes: float) -> String:
 	var s := maxi(0, int(minutes * 60.0))

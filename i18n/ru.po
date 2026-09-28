@@ -220,6 +220,12 @@ msgstr "Удить: %s"
 msgid "act.need_tool"
 msgstr "Нужен инструмент: %s"
 
+msgid "act.need_tool_for"
+msgstr "%s: нужен инструмент — %s"
+
+msgid "act.other_tool"
+msgstr "%s (инструмент: %s)"
+
 msgid "act.working"
 msgstr "%s… %d/%d"
 
@@ -236,13 +242,13 @@ msgid "act.light_torch"
 msgstr "Зажечь факел"
 
 msgid "act.other"
-msgstr "Q — другое"
+msgstr "Q — %s"
 
 msgid "goal.land"
 msgstr "Берег рядом. Сойди на него."
 
 msgid "goal.need_fire"
-msgstr "На острове туман гуще: без огня тропы не видно. Нужен факел — хворост и живица (живицу срезают ножом с сосны)."
+msgstr "На острове туман гуще: без огня тропы не видно. Нужен факел — хворост и живица. Живицу срезают ножом с сосны: подойди к сосне и нажми Q, пока не появится «Срезать: Живица»."
 
 msgid "goal.climb"
 msgstr "Факел горит и раздвигает туман. Поднимись по тропе к маяку."
@@ -618,6 +624,12 @@ msgstr "Испытание пройдено. Зажги маяк."
 
 msgid "goal.fuel"
 msgstr "Испытание пройдено. Для огня нужно: %s."
+
+msgid "info.made_hand"
+msgstr "Как сделать «%s»: %s, руками (Tab)."
+
+msgid "info.made_at"
+msgstr "Как сделать «%s»: %s, у станции «%s» (её ставят в строительстве, B)."
 
 msgid "goal.lit_here"
 msgstr "Маяк горит. Вдали мерцает следующий огонёк — к лодке."
