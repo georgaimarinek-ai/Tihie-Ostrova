@@ -37,14 +37,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		_charge = -1.0
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("dodge"):
-		if world.player.dodge(float(db.balance["combat"]["dodge_stamina"])):
+		_dodge_held = 0.0  # the dash comes on the release of a short tap: Ctrl+Tab and friends don't fire it
+	elif event.is_action_released("dodge") and _dodge_held >= 0.0:
+		var tap := _dodge_held < DODGE_TAP_S and not _dodge_combo
+		_dodge_held = -1.0
+		_dodge_combo = false
+		if tap and world.player.dodge(float(db.balance["combat"]["dodge_stamina"])):
 			world.audio.sfx("whoosh")
 			world._send_move()
+	elif _dodge_held >= 0.0 and event is InputEventKey and (event as InputEventKey).pressed:
+		_dodge_combo = true  # another key while Ctrl is down: a shortcut, not a dodge
 
 
 func _process(delta: float) -> void:
 	if _charge >= 0.0:
 		_charge += delta
+	if _dodge_held >= 0.0:
+		_dodge_held += delta
+		if not get_window().has_focus():
+			_dodge_held = -1.0  # Alt+Tab took the window: no dash on the way back
 	var p: Player = world.player
 	var want := can_fight() and Input.is_action_pressed("block") and p.stamina > 1.0
 	if want != p.blocking:
@@ -58,6 +69,9 @@ func weapon() -> String:
 
 
 var _bow_hinted := false
+const DODGE_TAP_S := 0.35
+var _dodge_held := -1.0  # seconds the dodge key has been down (-1 = up)
+var _dodge_combo := false
 
 
 func strike(heavy: bool) -> void:

@@ -15,7 +15,7 @@ const INPUT_ACTIONS := {
 	"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 	"jump": [KEY_SPACE], "sprint": [KEY_SHIFT], "interact": [KEY_E], "build_menu": [KEY_B],
 	"inventory": [KEY_TAB], "map": [KEY_M], "pause": [KEY_ESCAPE], "cycle": [KEY_Q], "rotate": [KEY_R],
-	"eat": [KEY_F], "journal": [KEY_J], "block": [KEY_C], "dodge": [KEY_CTRL, KEY_ALT],
+	"eat": [KEY_F], "journal": [KEY_J], "block": [KEY_C], "dodge": [KEY_CTRL],
 	"slot_1": [KEY_1], "slot_2": [KEY_2], "slot_3": [KEY_3], "slot_4": [KEY_4],
 	"slot_5": [KEY_5], "slot_6": [KEY_6], "slot_7": [KEY_7], "slot_8": [KEY_8],
 }
