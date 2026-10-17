@@ -143,7 +143,7 @@ def validate(data):
                 errors.append(f"node kind {kid}: item '{it}' is not gatherable")
             node_items.add(it)
     for gid, swaps in nodes.get("swap", {}).items():
-        if gid not in regions:
+        if gid not in regions and gid != "*":  # '*' = everywhere, after the regional swap (WorldMap.nodes)
             errors.append(f"nodes.swap: unknown region '{gid}'")
         for src, (dst, share) in swaps.items():
             if src not in kinds or dst not in kinds:

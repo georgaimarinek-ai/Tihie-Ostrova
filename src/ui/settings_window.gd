@@ -96,6 +96,12 @@ func _build() -> void:
 		Game.settings.apply())
 	left.add_child(fs)
 	_rows["fullscreen"] = fs
+	var fl := MainMenu.check_box(tr("settings.free_look"))
+	fl.toggled.connect(func(on: bool) -> void:
+		Game.settings.free_look = on)
+	left.add_child(fl)
+	_rows["free_look"] = fl
+	left.add_child(UiTheme.label(tr("settings.free_look_note"), 13, UiTheme.MUTED))
 	left.add_child(UiTheme.label(tr("settings.sound").to_upper(), 13, UiTheme.BIRCH, "caps"))
 	for bus: String in GameSettings.BUSES:
 		var row := HBoxContainer.new()
@@ -163,6 +169,7 @@ func _refresh() -> void:
 		(_rows["quality_" + val] as Button).button_pressed = st.quality == val
 	_restart.visible = st.needs_restart()
 	(_rows["fullscreen"] as CheckBox).set_pressed_no_signal(st.fullscreen)
+	(_rows["free_look"] as CheckBox).set_pressed_no_signal(st.free_look)
 	for bus: String in GameSettings.BUSES:
 		(_rows["bus_" + bus] as HSlider).set_value_no_signal(float(st.volume[bus]))
 	var cur := TranslationServer.get_locale().substr(0, 2)

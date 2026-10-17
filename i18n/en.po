@@ -1602,3 +1602,93 @@ msgstr "The Deep One lives in the deep water of the Ter Coast and the Frozen Sea
 
 msgid "part.lantern"
 msgstr "Boat lantern"
+
+msgid "settings.free_look"
+msgstr "The mouse turns the camera"
+
+msgid "settings.free_look_note"
+msgstr "Off: look around only with the right button held. F11 toggles fullscreen."
+
+msgid "toast.place_hint"
+msgstr "Pick the spot: the mouse aims, R turns, click sets it down, Esc cancels."
+
+msgid "ui.drop"
+msgstr "Drop"
+
+msgid "ui.drop_one"
+msgstr "Drop one"
+
+msgid "toast.dropped"
+msgstr "Dropped: %s ×%d"
+
+msgid "ui.drag_hint"
+msgstr "Drag things between slots; the first eight are the belt (1–8)."
+
+msgid "node.pine"
+msgstr "Pine"
+
+msgid "node.birch"
+msgstr "Birch"
+
+msgid "node.larch"
+msgstr "Larch"
+
+msgid "node.rock"
+msgstr "Boulder"
+
+msgid "node.flint_rock"
+msgstr "Flint rock (dark, sharp-edged)"
+
+msgid "node.berry_bush"
+msgstr "Cloudberry bush (orange berries)"
+
+msgid "node.lingonberry_bush"
+msgstr "Lingonberry bush (red berries)"
+
+msgid "node.fallen_birch"
+msgstr "Fallen birch"
+
+msgid "node.sticks"
+msgstr "Sticks on the ground"
+
+msgid "node.nettle"
+msgstr "Nettle"
+
+msgid "node.moss"
+msgstr "Moss"
+
+msgid "node.mushrooms"
+msgstr "Mushrooms"
+
+msgid "node.bog"
+msgstr "Bog"
+
+msgid "node.clay_bank"
+msgstr "Clay bank"
+
+msgid "node.flax"
+msgstr "Wild flax"
+
+msgid "node.barley"
+msgstr "Wild barley"
+
+msgid "node.pearl_shoal"
+msgstr "Pearl shoal (at the ebb)"
+
+msgid "node.spolokh"
+msgstr "Glimmer on the ice"
+
+msgid "node.sea"
+msgstr "The sea (with a rod)"
+
+msgid "info.where"
+msgstr "Where: %s · with: %s · region: %s"
+
+msgid "info.made_by"
+msgstr "Made: %s (%s)"
+
+msgid "info.found"
+msgstr "A find: Chud ruins, creatures or the sea."
+
+msgid "toast.bow_hint"
+msgstr "Bow: LMB shoots whoever is ahead, up to 30 m. Arrows: %d."

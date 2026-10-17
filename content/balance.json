@@ -176,11 +176,11 @@
   "targets": {
     "beacon_minutes_by_region": {
       "r1": [
-        25,
+        20,
         75
       ],
       "r2": [
-        40,
+        35,
         130
       ],
       "r3": [
@@ -193,10 +193,10 @@
       ]
     },
     "total_hours_quiet": [
-      12,
+      11,
       22
     ],
     "evening_session_min": 90,
-    "note": "Targets are for an efficient player who knows the recipes (the model). First-time players take about 1.6-2.5x longer; check in playtests (docs/07_PLAYTEST.md)."
+    "note": "Targets are for an efficient player who knows the recipes (the model). First-time players take about 1.6-2.5x longer; check in playtests (docs/07_PLAYTEST.md). Lowered after the first playtest (0.13.0): gathering was twice as slow as it felt right, so the floor came down with it."
   }
 }

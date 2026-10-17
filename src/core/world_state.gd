@@ -3,7 +3,7 @@ extends RefCounted
 ## The whole shared world as plain data. Nodes are views of it; WorldCommands is the only writer.
 ## Serialised by SaveCodec; the host sends it to joining clients (docs/04_TECH_SPEC.md §7).
 
-const VERSION := 5
+const VERSION := 6
 
 var world_seed: int = 0
 var name: String = ""  # the world's name (the menu's "Rodnaya guba")
@@ -33,6 +33,9 @@ var spirits: Dictionary = {}
 var creatures: Dictionary = {}
 ## The Saga fight in progress: {"beacon", "kind": "guardian" | "defense", "until": clock_min (defence), "boss": uid}.
 var fight: Dictionary = {}
+## Partial harvests (WorldCommands._gather): node id (or "node/item" for a tap) -> units taken so far. A tree
+## falls and a rock is spent only when GATHER_MAX units are out of it; a tap (resin, bark, berries) never fells.
+var harvest: Dictionary = {}
 ## Things afloat (SeaLife): uid -> {"kind", "pos", "until"}; picked up with "pick_flotsam".
 var flotsam: Dictionary = {}
 ## A tailwind after a beacon (balance.sea_events.tailwind): sail speed × factor until this clock minute.
@@ -135,7 +138,7 @@ func to_dict() -> Dictionary:
 		"pieces": pcs, "graves": gr, "depleted": depleted.duplicate(), "players": ps, "boats": bs, "next_uid": next_uid,
 		"journal": journal.duplicate(), "tuning": tuning.duplicate(),
 		"name": name, "spirits": spirits.duplicate(true), "creatures": cr, "fight": fight.duplicate(),
-		"flotsam": fl, "tailwind_until": tailwind_until,
+		"flotsam": fl, "tailwind_until": tailwind_until, "harvest": harvest.duplicate(),
 	}
 
 
@@ -200,6 +203,8 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		var f: Dictionary = d["flotsam"][uid]
 		s.flotsam[uid] = {"kind": String(f["kind"]), "pos": _to_v3(f["pos"]), "until": float(f["until"])}
 	s.tailwind_until = float(d["tailwind_until"])
+	for k: String in d["harvest"]:
+		s.harvest[k] = int(d["harvest"][k])
 	return s
 
 
@@ -295,5 +300,10 @@ static func migrate(src: Dictionary) -> Dictionary:
 		if not d.has("tailwind_until"):
 			d["tailwind_until"] = 0.0
 		v = 5
+	if v < 6:
+		# v6: partial harvests (a tree stands until its wood is out; taps never fell it).
+		if not d.has("harvest"):
+			d["harvest"] = {}
+		v = 6
 	d["version"] = v
 	return d

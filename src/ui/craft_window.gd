@@ -21,6 +21,7 @@ var tab := "hand"  # "hand" or a station piece id
 var tab_uid := ""
 var selected := ""  # recipe id
 var selected_item := ""  # item id when a bag slot is chosen
+var selected_slot := -1  # its slot (drop)
 var qty := 1
 
 var _title: Label
@@ -301,9 +302,29 @@ func _slot(s: Dictionary, index: int) -> Control:
 				use_item(String(s["id"]))
 			elif mb.button_index == MOUSE_BUTTON_LEFT:
 				selected_item = String(s["id"])
+				selected_slot = index
 				selected = ""
 				refresh())
+	_draggable(b, index)
 	return b
+
+
+## Drag a slot onto another: "swap" (the first eight slots are the belt).
+func _draggable(b: Control, index: int) -> void:
+	var get_data := func(_at: Vector2) -> Variant:
+		if state.inv(pid).slots[index].is_empty():
+			return null
+		var ghost := ItemIcon.new(String(state.inv(pid).slots[index]["id"]), int(state.inv(pid).slots[index]["n"]))
+		ghost.custom_minimum_size = Vector2(44, 44)
+		ghost.color = UiTheme.FIRE
+		b.set_drag_preview(ghost)
+		return {"slot": index}
+	var can_drop := func(_at: Vector2, data: Variant) -> bool:
+		return data is Dictionary and (data as Dictionary).has("slot") and int(data["slot"]) != index
+	var drop := func(_at: Vector2, data: Variant) -> void:
+		Game.submit({"type": "swap", "a": int(data["slot"]), "b": index})
+		refresh()
+	b.set_drag_forwarding(get_data, can_drop, drop)
 
 
 ## Use an item from the bag: eat food, light a light.
@@ -518,6 +539,11 @@ func _recipe_card(rid: String) -> void:
 		var need := int(r["inputs"][k]) * qty
 		var have := inv.count(k)
 		h.add_child(UiTheme.label("%d / %d" % [have, need], 17, UiTheme.TEXT if have >= need else UiTheme.HEALTH_BONUS, "bold"))
+		var q := UiTheme.label("?", 15, UiTheme.MUTED, "bold")  # hover: where to get it
+		q.custom_minimum_size = Vector2(18, 0)
+		h.add_child(q)
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.tooltip_text = ItemInfo.source(db, k)
 		row.add_child(h)
 		_card.add_child(row)
 	var unlocked := db.is_unlocked(r["unlock"], state.lit)
@@ -591,6 +617,33 @@ func _item_card(id: String) -> void:
 		use.text = tr("ui.eat") if it.has("food") else tr("act.light_torch") if id == "torch" else tr("ui.light")
 		use.pressed.connect(use_item.bind(id))
 		_card.add_child(use)
+	var inv := state.inv(pid)
+	if selected_slot >= 0 and selected_slot < inv.size and inv.slots[selected_slot].get("id", "") == id:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var n := int(inv.slots[selected_slot]["n"])
+		var slot := selected_slot
+		var drop := Button.new()
+		drop.text = tr("ui.drop")
+		drop.custom_minimum_size = Vector2(0, 42)
+		drop.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		drop.pressed.connect(func() -> void:
+			Game.submit({"type": "drop", "slot": slot})
+			selected_item = ""
+			selected_slot = -1
+			refresh())
+		row.add_child(drop)
+		if n > 1:
+			var one := Button.new()
+			one.text = tr("ui.drop_one")
+			one.custom_minimum_size = Vector2(0, 42)
+			one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			one.pressed.connect(func() -> void:
+				Game.submit({"type": "drop", "slot": slot, "n": 1})
+				refresh())
+			row.add_child(one)
+		_card.add_child(row)
+		_card.add_child(UiTheme.label(tr("ui.drag_hint"), 13, UiTheme.MUTED))
 
 
 ## A tool's wear: its remaining uses, and "Repair" when standing at its station with the cost in the bag.

@@ -57,9 +57,15 @@ func weapon() -> String:
 	return Game.commands.best_weapon(state.inv(Net.local_player_id())) if Game.commands != null else ""
 
 
+var _bow_hinted := false
+
+
 func strike(heavy: bool) -> void:
 	var cb: Dictionary = db.balance["combat"]
 	var w := weapon()
+	if w == "bow" and not _bow_hinted:
+		_bow_hinted = true
+		world.hud.toast(tr("toast.bow_hint") % state.inv(Net.local_player_id()).count("arrows"), "➶")
 	var cost := 5.0
 	var reach := float(cb["reach_bare"])
 	if w != "":

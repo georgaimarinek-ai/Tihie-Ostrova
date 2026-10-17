@@ -1602,3 +1602,93 @@ msgstr "Пучинник живёт в глубокой воде Терског�
 
 msgid "part.lantern"
 msgstr "Лодочный фонарь"
+
+msgid "settings.free_look"
+msgstr "Мышь поворачивает камеру"
+
+msgid "settings.free_look_note"
+msgstr "Выключено: обзор только с зажатой правой кнопкой. F11 — во весь экран."
+
+msgid "toast.place_hint"
+msgstr "Выбери место: мышь — куда, R — повернуть, клик — поставить, Esc — отмена."
+
+msgid "ui.drop"
+msgstr "Выбросить"
+
+msgid "ui.drop_one"
+msgstr "Выбросить одну"
+
+msgid "toast.dropped"
+msgstr "Выброшено: %s ×%d"
+
+msgid "ui.drag_hint"
+msgstr "Перетаскивай предметы между ячейками; первые восемь — на поясе (1–8)."
+
+msgid "node.pine"
+msgstr "Сосна"
+
+msgid "node.birch"
+msgstr "Берёза"
+
+msgid "node.larch"
+msgstr "Лиственница"
+
+msgid "node.rock"
+msgstr "Камень-валун"
+
+msgid "node.flint_rock"
+msgstr "Кремнёвый камень (тёмный, с острыми сколами)"
+
+msgid "node.berry_bush"
+msgstr "Морошковый куст (рыжие ягоды)"
+
+msgid "node.lingonberry_bush"
+msgstr "Брусничник (красные ягоды)"
+
+msgid "node.fallen_birch"
+msgstr "Упавшая берёза"
+
+msgid "node.sticks"
+msgstr "Хворост на земле"
+
+msgid "node.nettle"
+msgstr "Крапива"
+
+msgid "node.moss"
+msgstr "Мох"
+
+msgid "node.mushrooms"
+msgstr "Грибы"
+
+msgid "node.bog"
+msgstr "Болотина"
+
+msgid "node.clay_bank"
+msgstr "Глиняный берег"
+
+msgid "node.flax"
+msgstr "Дикий лён"
+
+msgid "node.barley"
+msgstr "Дикий ячмень"
+
+msgid "node.pearl_shoal"
+msgstr "Жемчужная отмель (в отлив)"
+
+msgid "node.spolokh"
+msgstr "Сполох на льду"
+
+msgid "node.sea"
+msgstr "Море (удочкой)"
+
+msgid "info.where"
+msgstr "Где взять: %s · чем: %s · где: %s"
+
+msgid "info.made_by"
+msgstr "Делается: %s (%s)"
+
+msgid "info.found"
+msgstr "Находка: в руинах чуди, у тварей или в море."
+
+msgid "toast.bow_hint"
+msgstr "Лук: ЛКМ — выстрел в того, кто перед тобой, до 30 м. Стрел: %d."

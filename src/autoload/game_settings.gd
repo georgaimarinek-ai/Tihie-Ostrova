@@ -12,6 +12,7 @@ const REBINDABLE := ["move_forward", "move_back", "move_left", "move_right", "ju
 
 var quality := "high"  # "high" | "low"
 var fullscreen := false
+var free_look := true  # the mouse turns the camera without a button held (off: hold the right button)
 var volume := {"Master": 1.0, "Music": 0.8, "Ambience": 0.9, "Sfx": 1.0}
 var keys: Dictionary = {}  # action -> physical keycode (only the rebound ones)
 var language := ""  # "" = the system's (ru or en)
@@ -24,6 +25,7 @@ func load_file() -> void:
 		return
 	quality = String(cf.get_value("graphics", "quality", quality))
 	fullscreen = bool(cf.get_value("graphics", "fullscreen", fullscreen))
+	free_look = bool(cf.get_value("controls", "free_look", free_look))
 	for b: String in BUSES:
 		volume[b] = clampf(float(cf.get_value("audio", b, volume[b])), 0.0, 1.0)
 	keys = {}
@@ -37,6 +39,7 @@ func save_file() -> Error:
 	var cf := ConfigFile.new()
 	cf.set_value("graphics", "quality", quality)
 	cf.set_value("graphics", "fullscreen", fullscreen)
+	cf.set_value("controls", "free_look", free_look)
 	for b: String in BUSES:
 		cf.set_value("audio", b, volume[b])
 	for a: String in keys:
@@ -67,7 +70,18 @@ func apply() -> void:
 	if language != "":
 		TranslationServer.set_locale(language)
 	if DisplayServer.get_name() != "headless":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+		var now := DisplayServer.window_get_mode()
+		var is_full := now == DisplayServer.WINDOW_MODE_FULLSCREEN or now == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+		if is_full != fullscreen:  # only when it differs: a reload must never kick the player out of fullscreen
+			DisplayServer.window_set_mode(want)
+
+
+## F11 / Alt+Enter: the window mode flips and the setting remembers it.
+func toggle_fullscreen() -> void:
+	fullscreen = not fullscreen
+	apply()
+	save_file()
 
 
 ## Puts the chosen renderer into override.cfg (next to the executable when exported, the project when run from

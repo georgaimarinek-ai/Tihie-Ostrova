@@ -75,8 +75,15 @@ func test_station_crafting_and_fishing(tree: SceneTree) -> void:
 	world._disembark()
 	await frames(tree, 3)
 	Game.submit({"type": "debug", "give": {"wood": 30, "resin": 4, "fishing_rod": 1}})
-	# a workbench goes down in front of the player, through "place"
+	# a workbench from the crafting window: the build mode opens with it in hand, the player picks the spot
 	world._place_station("workbench")
+	check(world.build.active and world.build.piece == "workbench", "the build mode holds the workbench")
+	var yaw: float = world.player.model.rotation.y
+	var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
+	world.build.debug_aim = world.player.global_position + fwd * 3.0
+	await frames(tree, 2)
+	world.build.place()
+	world.build.exit()
 	await frames(tree, 2)
 	var bench := ""
 	for uid: String in st.pieces:
@@ -110,5 +117,5 @@ func test_station_crafting_and_fishing(tree: SceneTree) -> void:
 	var spot: String = world._fishing["spot"]
 	world._stop_fishing()
 	eq(st.inv(pid).count("raw_fish"), 3, "three fish")
-	check(int(st.depleted.get(spot, 0)) > st.day, "the spot rests for a while")
+	eq(int(st.harvest.get(spot, 0)), 3, "three of the spot's five are out; it rests after the fifth")
 	game.state = null

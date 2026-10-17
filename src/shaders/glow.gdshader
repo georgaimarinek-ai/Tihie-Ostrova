@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled, blend_add, depth_draw_never;
+render_mode unshaded, cull_disabled, blend_add, depth_draw_never, fog_disabled;  // fog_disabled: else the volumetric fog fills the whole quad
 
 // Soft additive glow sprites (beacon fire halo, the hint light over the next beacon, sparks). Not fogged:
 // lights must read through the Mga. Billboard quads facing the camera.

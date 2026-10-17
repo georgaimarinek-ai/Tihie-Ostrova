@@ -455,10 +455,16 @@ func _run_from(p: Vector3, spd: float, delta: float) -> void:
 
 func _wander(r: float, spd: float, delta: float) -> void:
 	mood = "wander"
-	if _flat(_goal) < 0.6 or _mood_t <= 0.0:
+	if _flat(_goal) < 0.6:
+		if _mood_t > 0.0:
+			return  # arrived: stand a while (no shivering between goals)
 		var a := randf() * TAU
 		_goal = home + Vector3(cos(a), 0, sin(a)) * randf() * r
-		_mood_t = 4.0 + randf() * 5.0
+		_mood_t = 2.0 + randf() * 4.0
+	elif _mood_t <= 0.0:
+		_goal = position  # took too long: give up on this goal and rest
+		_mood_t = 2.0 + randf() * 3.0
+		return
 	_go(_goal, spd, delta)
 
 

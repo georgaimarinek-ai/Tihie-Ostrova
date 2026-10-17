@@ -532,3 +532,33 @@ journal.sea_bottle	Записка в бутылке	A note in a bottle
 tale.sea_bottle	Бутылка из тёмного стекла, горлышко залито смолой. Внутри берестяной лоскут, буквы выжжены иглой: «Кто найдёт — зажги огонь на Чаячьей луде. Мы шли на него три дня и не дошли, туман съел дорогу. Лодка цела, люди целы, рыбы мало. Если огонь загорится — мы увидим и придём». Подписи нет. Поморы говорили: такие письма пишут не чтобы спасли, а чтобы помнили, зачем маяки.	A bottle of dark glass, its neck sealed with pitch. Inside, a strip of birch bark with letters burnt in with a needle: 'Whoever finds this, light the fire on Gull Skerry. We steered for it three days and never arrived; the fog ate the way. The boat is whole, the people are whole, the fish are few. If the fire is lit we will see it and come.' No signature. The Pomors said such letters are written not to be rescued but so that people remember what the beacons are for.
 tale.puchinnik	Пучинник живёт в глубокой воде Терского берега и Студёного моря и выходит ночью, когда Мга лежит на воде. По имени его не зовут: сказал — приплывёт. Сперва он ходит кругами, и лодку качает без волны. Потом хватает за днище, и лодка стоит, как привязанная, а он бьёт в борт. Не бей его три раза подряд — отпустит и отойдёт. Огня он не терпит: факел в руке или фонарь на носу держат его поодаль. Гарпун с палубы долетает, а на лине и возвращается. Лодку он не топит, трюм не трогает — ему нужен не груз, а страх.	The Deep One lives in the deep water of the Ter Coast and the Frozen Sea and comes out at night when the Mga lies on the water. Nobody calls it by name: say it and it swims up. First it circles, and the boat rocks without a wave. Then it grips the hull and the boat stands as if tied while it beats at the side. Strike it three times in a row and it lets go and draws off. It cannot bear fire: a torch in hand or a lantern at the bow keeps it at a distance. A harpoon reaches it from the deck and comes back on its line. It does not sink boats and does not touch the hold; it wants not cargo but fear.
 part.lantern	Лодочный фонарь	Boat lantern
+settings.free_look	Мышь поворачивает камеру	The mouse turns the camera
+settings.free_look_note	Выключено: обзор только с зажатой правой кнопкой. F11 — во весь экран.	Off: look around only with the right button held. F11 toggles fullscreen.
+toast.place_hint	Выбери место: мышь — куда, R — повернуть, клик — поставить, Esc — отмена.	Pick the spot: the mouse aims, R turns, click sets it down, Esc cancels.
+ui.drop	Выбросить	Drop
+ui.drop_one	Выбросить одну	Drop one
+toast.dropped	Выброшено: %s ×%d	Dropped: %s ×%d
+ui.drag_hint	Перетаскивай предметы между ячейками; первые восемь — на поясе (1–8).	Drag things between slots; the first eight are the belt (1–8).
+node.pine	Сосна	Pine
+node.birch	Берёза	Birch
+node.larch	Лиственница	Larch
+node.rock	Камень-валун	Boulder
+node.flint_rock	Кремнёвый камень (тёмный, с острыми сколами)	Flint rock (dark, sharp-edged)
+node.berry_bush	Морошковый куст (рыжие ягоды)	Cloudberry bush (orange berries)
+node.lingonberry_bush	Брусничник (красные ягоды)	Lingonberry bush (red berries)
+node.fallen_birch	Упавшая берёза	Fallen birch
+node.sticks	Хворост на земле	Sticks on the ground
+node.nettle	Крапива	Nettle
+node.moss	Мох	Moss
+node.mushrooms	Грибы	Mushrooms
+node.bog	Болотина	Bog
+node.clay_bank	Глиняный берег	Clay bank
+node.flax	Дикий лён	Wild flax
+node.barley	Дикий ячмень	Wild barley
+node.pearl_shoal	Жемчужная отмель (в отлив)	Pearl shoal (at the ebb)
+node.spolokh	Сполох на льду	Glimmer on the ice
+node.sea	Море (удочкой)	The sea (with a rod)
+info.where	Где взять: %s · чем: %s · где: %s	Where: %s · with: %s · region: %s
+info.made_by	Делается: %s (%s)	Made: %s (%s)
+info.found	Находка: в руинах чуди, у тварей или в море.	A find: Chud ruins, creatures or the sea.
+toast.bow_hint	Лук: ЛКМ — выстрел в того, кто перед тобой, до 30 м. Стрел: %d.	Bow: LMB shoots whoever is ahead, up to 30 m. Arrows: %d.

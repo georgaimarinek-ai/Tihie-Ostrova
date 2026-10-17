@@ -276,6 +276,16 @@ func _count(e: Dictionary) -> void:
 
 
 ## The window's close button: give the world a chance to show the evening; a second press quits.
+## F11 or Alt+Enter anywhere: fullscreen on and off (the setting follows).
+func _unhandled_key_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k == null or not k.pressed or k.echo:
+		return
+	if k.keycode == KEY_F11 or (k.keycode == KEY_ENTER and k.alt_pressed):
+		settings.toggle_fullscreen()
+		get_viewport().set_input_as_handled()
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		if state == null or quit_requested.get_connections().is_empty():

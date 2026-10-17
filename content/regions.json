@@ -2,13 +2,16 @@
   "version": 1,
   "note": "Distances in metres from the home island (0,0); north is -z. fog.density feeds Environment fog (see docs/04_TECH_SPEC.md §5); fog.locked is the density of a region that is not yet opened. Palette values come from the atmosphere sketch (reference/sketch).",
   "nodes": {
-    "note": "Resource nodes on islands (docs/01_GDD.md §9.1). kinds: what a node gives; only items listed in the island region's resources count. swap: [kind, share] turns part of the trees into another kind in a region. pickups: small ground nodes per 1000 m2 of land. fish_cell_m: every sea cell of this size is one fishing spot.",
+    "note": "Resource nodes on islands (docs/01_GDD.md §9.1). kinds: what a node gives; only items listed in the island region's resources count. swap: [kind, share] turns part of the nodes into another kind in a region; the '*' swap runs after the regional one, everywhere (flint rocks, lingonberry bushes, fallen birches). pickups: small ground nodes per 1000 m2 of land. fish_cell_m: every sea cell of this size is one fishing spot.",
     "kinds": {
       "pine": { "items": ["wood", "resin"], "shape": "pine", "solid": 0.45 },
       "birch": { "items": ["wood", "birch_bark"], "shape": "birch", "solid": 0.4 },
       "larch": { "items": ["larch", "resin"], "shape": "larch", "solid": 0.45 },
-      "rock": { "items": ["stone", "flint", "mica"], "shape": "rock", "solid": 0.8 },
-      "berry_bush": { "items": ["cloudberry", "lingonberry"], "shape": "bush" },
+      "rock": { "items": ["stone"], "shape": "rock", "solid": 0.8 },
+      "flint_rock": { "items": ["flint", "mica"], "shape": "flint_rock", "solid": 0.6 },
+      "berry_bush": { "items": ["cloudberry"], "shape": "bush" },
+      "lingonberry_bush": { "items": ["lingonberry"], "shape": "bush_red" },
+      "fallen_birch": { "items": ["birch_bark", "wood"], "shape": "log", "solid": 0.3 },
       "sticks": { "items": ["branch"], "shape": "sticks" },
       "nettle": { "items": ["fiber"], "shape": "nettle" },
       "moss": { "items": ["moss"], "shape": "moss" },
@@ -22,7 +25,8 @@
     },
     "swap": {
       "r3": { "birch": ["larch", 0.5] },
-      "r4": { "pine": ["rock", 0.7], "birch": ["rock", 1.0], "berry_bush": ["rock", 1.0] }
+      "r4": { "pine": ["rock", 0.7], "birch": ["rock", 1.0], "berry_bush": ["rock", 1.0] },
+      "*": { "rock": ["flint_rock", 0.4], "berry_bush": ["lingonberry_bush", 0.5], "birch": ["fallen_birch", 0.18] }
     },
     "pickups": { "sticks": 1.2, "nettle": 0.8, "moss": 0.8, "mushrooms": 0.4, "bog": 0.8, "clay_bank": 0.6, "flax": 0.7, "barley": 0.5, "pearl_shoal": 0.3, "spolokh": 0.35 },
     "fish_cell_m": 40

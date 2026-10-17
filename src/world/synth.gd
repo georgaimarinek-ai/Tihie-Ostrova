@@ -172,7 +172,7 @@ static func choir(midis: Array, seconds: float, rate: int) -> PackedFloat32Array
 
 
 static func effect(kind: String, rng: RandomNumberGenerator, rate: int) -> PackedFloat32Array:
-	var dur := {"thud": 0.4, "whoosh": 0.9, "step": 0.1, "chop": 0.25, "gull": 0.6, "creak": 0.7}[kind] as float
+	var dur := {"thud": 0.4, "whoosh": 0.3, "step": 0.1, "chop": 0.25, "gull": 0.6, "creak": 0.7}[kind] as float
 	var n := int(dur * rate)
 	var out := PackedFloat32Array()
 	out.resize(n)
@@ -188,8 +188,8 @@ static func effect(kind: String, rng: RandomNumberGenerator, rate: int) -> Packe
 				lp += 0.08 * (w - lp)
 				v = lp * exp(-t * 12.0) * 3.0 + sin(TAU * 80.0 * t) * exp(-t * 18.0)
 			"whoosh":
-				lp += (0.05 + 0.4 * k) * (w - lp)
-				v = lp * sin(k * PI)
+				lp += (0.25 + 0.5 * k) * (w - lp)  # short and airy: a swing, not a wave running up the beach
+				v = lp * sin(k * PI) * 0.8
 			"step":
 				lp += 0.35 * (w - lp)
 				v = lp * exp(-t * 60.0)

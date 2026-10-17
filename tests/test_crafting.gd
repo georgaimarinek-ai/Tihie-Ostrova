@@ -46,12 +46,12 @@ func test_times_multiplies() -> void:
 
 func test_gathering_time_follows_rate_and_tool() -> void:
 	var inv := Inventory.new(db)
-	near(Gathering.unit_seconds(db, inv, "branch"), 60.0 / 20.0, 1e-6, "sticks by hand: 20 a minute")
+	near(Gathering.unit_seconds(db, inv, "branch"), 60.0 / 40.0, 1e-6, "sticks by hand: 40 a minute (0.13.0: twice the old pace)")
 	check(not Gathering.tool_ok(db, inv, "wood"), "wood needs an axe")
 	inv.add("stone_axe", 1)
-	near(Gathering.unit_seconds(db, inv, "wood"), 60.0 / 8.0, 1e-6, "stone axe: tier 1 speed")
+	near(Gathering.unit_seconds(db, inv, "wood"), 60.0 / 16.0, 1e-6, "stone axe: tier 1 speed")
 	inv.add("iron_axe", 1)
-	near(Gathering.unit_seconds(db, inv, "wood"), 60.0 / (8.0 * 1.75), 1e-6, "iron axe: 1.75x")
+	near(Gathering.unit_seconds(db, inv, "wood"), 60.0 / (16.0 * 1.75), 1e-6, "iron axe: 1.75x")
 	check(not Gathering.tool_ok(db, Inventory.new(db), "larch"), "larch needs an iron axe")
 	eq(Gathering.best_item(db, Inventory.new(db), ["wood", "resin"]), "", "no tools: nothing from a pine")
 	var k := Inventory.new(db)

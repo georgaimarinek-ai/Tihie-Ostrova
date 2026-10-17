@@ -241,6 +241,7 @@ func nodes(island_id: String) -> Array:
 	var rid: String = region_of[island_id]
 	var res: Array = db.regions[rid]["resources"]
 	var swap: Dictionary = cfg.get("swap", {}).get(rid, {})
+	var swap_all: Dictionary = cfg.get("swap", {}).get("*", {})  # after the regional swap, everywhere
 	var rng := RandomNumberGenerator.new()
 	rng.seed = isl.island_seed + 17
 	var density := 1.2 if kind_of[island_id] == "home" else 1.0
@@ -251,6 +252,9 @@ func nodes(island_id: String) -> Array:
 		var roll := rng.randf()
 		if swap.has(kind) and roll < float(swap[kind][1]):
 			kind = String(swap[kind][0])
+		var roll2 := rng.randf()
+		if swap_all.has(kind) and roll2 < float(swap_all[kind][1]):
+			kind = String(swap_all[kind][0])
 		out.append(_node(n["id"], kind, n["pos"], sc, yaw, kinds, res))
 	# ground pickups: count per 1000 m² of land, only kinds whose items occur in this region
 	var prng := RandomNumberGenerator.new()

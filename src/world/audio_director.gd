@@ -209,7 +209,7 @@ func _process(delta: float) -> void:
 	_loop_gain("wind", (0.12 + 0.12 * (0.5 + 0.5 * sin(t * 0.07))) * (0.7 if on_foot else 1.0) * (0.7 + 0.5 * dense) * (1.0 - 0.4 * night) * 2.4)
 	_loop_gain("waves", (0.22 + 0.18 * (0.5 + 0.5 * sin(t * 0.6)) + sp * 0.15) * (0.55 if on_foot else 1.0) * 2.2)
 	_loop_gain("fire", fire_near * (0.05 + 0.06 * randf()) * 6.0)
-	_loop_gain("drone", 0.05 * 5.0 * (0.8 if lit >= 10 else 1.0))
+	_loop_gain("drone", 0.05 * 2.2 * (0.8 if lit >= 10 else 1.0))  # playtest: the bourdon hummed too loud
 	# music hushes in thick fog and returns in clearings and by the fire
 	var music := lerpf(1.0, 0.3, dense * (1.0 - fire_near))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(maxf(music, 0.0001)))

@@ -324,8 +324,8 @@ func _spirits(f: Vector3, rid: String) -> void:
 	# the leshy on a big forested island in thick fog
 	if on_foot and list.has("leshy") and _count("leshy") == 0:
 		var isl := map.island_at(f.x, f.z)
-		if isl != null and isl.id != _leshy_island and map.forested(isl.id):
-			var dark: bool = map.kind_of[isl.id] == "beacon" and not state.lit.has(isl.id)
+		if isl != null and isl.id != _leshy_island and map.forested(isl.id) and map.kind_of[isl.id] == "beacon":
+			var dark: bool = not state.lit.has(isl.id)
 			if dark or night >= 0.5 or FogField.factor(db, state, Vector2(f.x, f.z)) > 0.8:
 				for k in 8:
 					var a := randf() * TAU

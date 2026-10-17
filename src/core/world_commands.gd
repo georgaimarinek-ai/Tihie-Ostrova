@@ -63,6 +63,10 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _craft(pid, cmd)
 		"repair":
 			return _repair(pid, cmd)
+		"drop":
+			return _drop(pid, cmd)
+		"swap":
+			return _swap(pid, cmd)
 		"place":
 			return _place(pid, cmd)
 		"remove":
@@ -167,11 +171,14 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 	var qty := clampi(int(cmd.get("qty", 1)), 1, GATHER_MAX)
 	if node == "":
 		return _fail("bad_node")
-	if int(state.depleted.get(node, 0)) > state.day:
-		return _fail("depleted")
 	var it: Dictionary = db.items.get(item, {})
 	if not it.has("gather"):
 		return _fail("not_gatherable")
+	# a tap (resin, bark, berries: items.json gather.tap) has its own count and never fells the node
+	var tap := bool(it["gather"].get("tap", false))
+	var key := node + "/" + item if tap else node
+	if int(state.depleted.get(node, 0)) > state.day or int(state.depleted.get(key, 0)) > state.day:
+		return _fail("depleted")
 	if map != null:
 		var n := map.node(node)
 		if n.is_empty():
@@ -195,13 +202,57 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 	if left == qty:
 		return _fail("no_space")
 	var days := int(db.balance["respawn"]["berries_days"] if it["kind"] == "food" else db.balance["respawn"]["resource_nodes_days"])
-	state.depleted[node] = state.day + days
-	var events: Array[Dictionary] = [{"type": "gathered", "player": pid, "node": node, "item": item, "n": qty - left}]
+	var taken := int(state.harvest.get(key, 0)) + (qty - left)
+	var spent := taken >= GATHER_MAX  # the tree falls, the rock is bare, the bush is picked clean
+	if spent:
+		state.depleted[key] = state.day + days
+		state.harvest.erase(key)
+	else:
+		state.harvest[key] = taken
+	var events: Array[Dictionary] = [{"type": "gathered", "player": pid, "node": node, "item": item, "n": qty - left, "spent": spent, "felled": spent and not tap}]
 	if wear_on and g["tool"] != "hand":
 		var w := Tools.use(db, inv, String(g["tool"]), qty - left)  # one use per unit (docs/08_NEXT.md, stage 14)
 		if not w.is_empty() and w["from"] != w["to"]:
 			events.append({"type": "tool_worn", "player": pid, "item": w["item"], "slot": w["slot"], "condition": w["to"]})
 	return _ok(events)
+
+
+## Throw things away: `n` of a bag slot (all of it by default). Gone for good; the game has no litter.
+func _drop(pid: String, cmd: Dictionary) -> Dictionary:
+	var inv := state.inv(pid)
+	var slot := int(cmd.get("slot", -1))
+	if slot < 0 or slot >= inv.size or inv.slots[slot].is_empty():
+		return _fail("empty")
+	var s: Dictionary = inv.slots[slot]
+	var n := clampi(int(cmd.get("n", int(s["n"]))), 1, int(s["n"]))
+	var id := String(s["id"])
+	s["n"] = int(s["n"]) - n
+	if int(s["n"]) <= 0:
+		inv.slots[slot] = {}
+	return _ok([{"type": "dropped", "player": pid, "item": id, "n": n, "slot": slot}])
+
+
+## Swap two bag slots (drag and drop; the first eight are the hotbar).
+func _swap(pid: String, cmd: Dictionary) -> Dictionary:
+	var inv := state.inv(pid)
+	var a := int(cmd.get("a", -1))
+	var b := int(cmd.get("b", -1))
+	if a < 0 or b < 0 or a >= inv.size or b >= inv.size or a == b:
+		return _fail("bad_value")
+	var sa: Dictionary = inv.slots[a]
+	var sb: Dictionary = inv.slots[b]
+	if not sa.is_empty() and not sb.is_empty() and sa["id"] == sb["id"] and not sa.has("wear") and not sb.has("wear"):
+		# same stackable thing: pour a into b as far as it goes
+		var room := db.stack_size(String(sa["id"])) - int(sb["n"])
+		var move := mini(room, int(sa["n"]))
+		sb["n"] = int(sb["n"]) + move
+		sa["n"] = int(sa["n"]) - move
+		if int(sa["n"]) <= 0:
+			inv.slots[a] = {}
+	else:
+		inv.slots[a] = sb
+		inv.slots[b] = sa
+	return _ok([{"type": "bag_arranged", "player": pid, "a": a, "b": b}])
 
 
 ## Mend a tool at its station (Tools.repair_station) for a share of its recipe (Tools.repair_cost).

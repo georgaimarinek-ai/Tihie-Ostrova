@@ -64,6 +64,28 @@ static func bag_text(db: ContentDB, bag: Dictionary) -> String:
 	return " · ".join(parts)
 
 
+## "Где взять: сосна, упавшая берёза · ножом · Тихая губа" and/or "Делается: верстак (Древесина 4 · Живица 2)":
+## the tooltip on a recipe's ingredient, built from content (regions.json node kinds, items.json gather, recipes).
+static func source(db: ContentDB, id: String) -> String:
+	var lines: PackedStringArray = []
+	var it: Dictionary = db.items.get(id, {})
+	if it.has("gather"):
+		var g: Dictionary = it["gather"]
+		var kinds: PackedStringArray = []
+		for kind: String in db.raw["regions"]["nodes"]["kinds"]:
+			if (db.raw["regions"]["nodes"]["kinds"][kind]["items"] as Array).has(id):
+				kinds.append(Loc.t("node." + kind).to_lower())
+		var where := ", ".join(kinds) if not kinds.is_empty() else Loc.t("node.sea")
+		lines.append(Loc.t("info.where") % [where, Loc.t("tool." + String(g["tool"])), Loc.region(db, g["region"])])
+	for r: Dictionary in db.recipes_producing(id):
+		var st := String(r["station"])
+		var at := Loc.t("ui.by_hand").to_lower() if st == "hand" else Loc.name_of(db.pieces[st]["name"])
+		lines.append(Loc.t("info.made_by") % [at, bag_text(db, ContentDB.bag(r["inputs"]))])
+	if lines.is_empty():
+		lines.append(Loc.t("info.found"))
+	return "\n".join(lines)
+
+
 ## " Как сделать «Смольё»: Древесина 4 · Живица 2, у станции «Верстак» (строится через B)." for every
 ## crafted item of a bag ("" when all of it is gathered as is), so the fuel line tells where the fuel comes from.
 static func how_made(db: ContentDB, bag: Dictionary) -> String:

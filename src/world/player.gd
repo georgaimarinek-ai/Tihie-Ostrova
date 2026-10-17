@@ -1,8 +1,9 @@
 class_name Player
 extends CharacterBody3D
-## The pomor on foot (docs/06_ROADMAP.md phase 2, feel from the sketch's updateFoot): W/S walk along the
-## camera, A/D turn the camera (1.9 rad/s), the mouse looks around, Shift runs while stamina lasts, Space
-## jumps. The shore is the edge: the player never walks into deep water (ground below -0.35 m).
+## The pomor on foot (docs/06_ROADMAP.md phase 2; controls reworked after the first playtest): WASD walk
+## relative to the camera and the pomor turns the way he walks, the mouse looks around, Shift runs while
+## stamina lasts, Space jumps, Ctrl dodges (a short dash). The shore is the edge: the player never walks
+## into deep water (ground below -0.35 m).
 ## Only a view of the local player: where it stands goes to the world with the "move" command.
 
 const WALK := 4.2
@@ -36,6 +37,7 @@ var _slow_k := 1.0
 var _swing_heavy := false
 
 var _speed := 0.0
+var _move := Vector3.ZERO  # smoothed walking velocity on the ground plane
 var _step := 0.0
 var _time := 0.0
 var _safe := Vector3.ZERO
@@ -47,6 +49,8 @@ var _torch: Node3D
 var _fire: Node3D
 var _light: OmniLight3D
 var _work := 0.0  # > 0 while swinging a tool
+var _tool: Node3D  # the tool in the fist (set_tool)
+var _tool_type := ""
 
 
 signal stepped
@@ -115,34 +119,40 @@ func place(pos: Vector3, yaw: float) -> void:
 func _physics_process(delta: float) -> void:
 	_time += delta
 	var fwd := Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
-	var turn := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
+	var side := Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 	var joy := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
 	if joy.length() > 0.2:
 		fwd -= joy.y
-		turn -= joy.x
+		side += joy.x
 	if busy or (cam != null and cam.in_shot()):
 		fwd = 0.0
-		turn = 0.0
-	fwd = clampf(fwd, -1.0, 1.0)
-	if cam != null:
-		cam.foot_yaw += turn * TURN * delta
-	var sprint := Input.is_action_pressed("sprint") and fwd > 0.1 and stamina > 1.0
+		side = 0.0
+	var input := Vector2(side, fwd)
+	if input.length() > 1.0:
+		input = input.normalized()
+	var sprint := Input.is_action_pressed("sprint") and input.length() > 0.1 and stamina > 1.0
 	if sprint:
 		stamina = maxf(0.0, stamina - sprint_cost * delta)
 	else:
 		stamina = minf(stamina_max, stamina + stamina_regen * delta)
-	var want := fwd * (RUN if sprint else WALK) * (0.6 if fwd < 0.0 else 1.0)
+	var top := RUN if sprint else WALK
 	if blocking:
-		want *= 0.4
+		top *= 0.4
 	if _slow_t > 0.0:
 		_slow_t -= delta
-		want *= _slow_k
-	_speed = lerpf(_speed, want, 1.0 - exp(-delta * 8.0))
+		top *= _slow_k
+	# the camera's heading is "forward"; the pomor turns to face the way he walks (_animate)
 	var yaw := cam.foot_yaw if cam != null else 0.0
-	var dir := Vector3(-sin(yaw), 0.0, -cos(yaw)) * signf(_speed)
-	var hv := dir * absf(_speed)
+	var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var right := Vector3(-forward.z, 0.0, forward.x)
+	var want := (forward * input.y + right * input.x) * top
+	_move = _move.lerp(want, 1.0 - exp(-delta * 8.0))
+	_speed = _move.length()
+	var hv := _move
+	if cam != null:
+		cam.follow_dir = want
 	# the shore is the edge of the walkable world
-	if absf(_speed) > 0.05:
+	if _speed > 0.05:
 		var ahead := global_position + hv.normalized() * 0.8
 		if map.ground_at(ahead.x, ahead.z) < WATER_EDGE:
 			var ax := global_position + Vector3(hv.x, 0, 0).normalized() * 0.8
@@ -153,6 +163,7 @@ func _physics_process(delta: float) -> void:
 				hv = Vector3(0, 0, hv.z)
 			else:
 				hv = Vector3.ZERO
+				_move = Vector3.ZERO
 				_speed = 0.0
 	if _dodge_t > 0.0:
 		_dodge_t -= delta
@@ -183,7 +194,7 @@ func _animate(delta: float, hv: Vector3, moved: float) -> void:
 	if hv.length() > 0.1:
 		var target := atan2(-hv.x, -hv.z)
 		model.rotation.y = lerp_angle(model.rotation.y, target, 1.0 - exp(-delta * 10.0))
-	var sp := absf(_speed)
+	var sp := _speed
 	var prev := _step
 	if sp > 0.05:
 		_step += moved * 2.2
@@ -231,6 +242,23 @@ func _process(_delta: float) -> void:
 ## Swing the tool for a moment (gathering feedback).
 func work(seconds: float = 0.6) -> void:
 	_work = seconds
+
+
+## The tool in the hand: "axe", "knife", "pick", "shovel", "rod" or "" (World sets it while gathering).
+func set_tool(type: String) -> void:
+	if type == _tool_type:
+		return
+	_tool_type = type
+	if _tool != null:
+		_tool.queue_free()
+		_tool = null
+	if type == "" or type == "hand":
+		return
+	_tool = Placeholders.tool_prop(type)
+	var hand := _torch.get_parent() if _torch != null else model
+	hand.add_child(_tool)
+	_tool.position = _torch.position if _torch != null else Vector3(0.35, 1.0, -0.2)
+	_tool.rotation.x = -0.9  # held out ahead, head up
 
 
 ## "" | "block" | "dodge": sent to the host with "move" so its creatures' hits land right.

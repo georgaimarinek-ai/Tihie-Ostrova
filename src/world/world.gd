@@ -311,6 +311,7 @@ func _physics_process(_delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_frame += 1
+	_mouse_mode()
 	var focus := _focus()
 	streamer.focus = focus
 	player.light_id = String((state.players[_pid].get("light", {}) as Dictionary).get("id", ""))
@@ -384,7 +385,8 @@ func _occluders() -> Array:
 	var out: Array = []
 	var p := Vector2(player.global_position.x, player.global_position.z)
 	for s: Dictionary in streamer.solids_near(p, 9.0):
-		out.append({"pos": s["pos"], "r": maxf(0.8, float(s["r"]) * 3.2)})
+		# the crown, not the trunk: a pine's foliage reaches ~1.7 m × scale out from the stem
+		out.append({"pos": s["pos"], "r": maxf(0.8, maxf(float(s["r"]) * 3.2, float(s.get("crown", 0.0)) * 0.55))})
 	return out
 
 
@@ -546,6 +548,19 @@ func _do_action() -> void:
 		(a["run"] as Callable).call()
 
 
+## The cursor: captured while playing with free look (the mouse turns the camera), visible over any window,
+## in the build mode and in headless/automation runs.
+func _mouse_mode() -> void:
+	cam.free_look = Game.settings.free_look
+	if DisplayServer.get_name() == "headless" or not _args.is_empty():
+		return
+	var want := Input.MOUSE_MODE_VISIBLE
+	if Game.settings.free_look and not ui_open() and not cam.in_shot() and not Game.paused and get_window().has_focus():
+		want = Input.MOUSE_MODE_CAPTURED
+	if Input.mouse_mode != want:
+		Input.mouse_mode = want
+
+
 ## Anything that takes the keys and the mouse from the world.
 func ui_open() -> bool:
 	return craft.visible or storage.visible or chart.visible or journal.visible or pause_menu.visible or build.active \
@@ -646,12 +661,11 @@ func _use_hotbar(i: int) -> void:
 func _place_station(piece: String) -> void:
 	if not on_foot():
 		return
-	var yaw := player.model.rotation.y
-	var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
-	var at := player.global_position + fwd * 2.5
-	at.y = map.ground_at(at.x, at.z)
-	_send_move()
-	Game.submit({"type": "place", "piece": piece, "pos": [at.x, at.y, at.z], "rot": yaw + PI})
+	# the build mode with this piece in hand: the ghost follows the mouse, R turns it, a click sets it down
+	craft.close_window()
+	build.enter()
+	build.piece = piece
+	hud.toast(tr("toast.place_hint"), "B")
 
 
 func _disembark() -> void:
@@ -833,6 +847,7 @@ func _start_channel(n: Dictionary, item: String) -> void:
 		return
 	_channel = {"node": n["id"], "item": item, "per": Gathering.unit_seconds(db, inv, item, _wear()), "t": 0.0, "done": 0, "want": WorldCommands.GATHER_MAX}
 	player.busy = true
+	player.set_tool(String(db.items[item]["gather"]["tool"]))
 
 
 func _update_channel(delta: float) -> void:
@@ -841,6 +856,7 @@ func _update_channel(delta: float) -> void:
 	if not on_foot():
 		_channel = {}
 		player.busy = false
+		player.set_tool("")
 		return
 	var c := _channel
 	c["t"] = float(c["t"]) + delta
@@ -857,6 +873,7 @@ func _finish_channel() -> void:
 	var c := _channel
 	_channel = {}
 	player.busy = false
+	player.set_tool("")
 	if c.is_empty() or int(c["done"]) <= 0:
 		return
 	_send_move()
@@ -1171,7 +1188,13 @@ func _update_hud() -> void:
 		hud.set_compass(cam_bearing, atan2(rel.x, -rel.y), "%s: %s" % [goal["label"], Loc.meters(rel.length())])
 	else:
 		hud.set_compass(cam_bearing, NAN, "")
-	hud.set_action("" if craft.visible else String(_action().get("label", "")))
+	var progress := -1.0
+	if not _channel.is_empty():
+		var c := _channel
+		progress = (float(c["done"]) + float(c["t"]) / maxf(float(c["per"]), 0.01)) / float(c["want"])
+	elif _poling > 0.0:
+		progress = 1.0 - _poling / 10.0
+	hud.set_action("" if craft.visible else String(_action().get("label", "")), "E", progress)
 	hud.set_bars(player.hp, player.hp_max, float(Vitals.bonus(db, state, _pid)["hp"]), player.stamina, player.stamina_max)
 	var food: Array = []
 	for f: Dictionary in state.players[_pid]["food"]:
@@ -1795,6 +1818,10 @@ func _debug_place() -> void:
 		if String(_args["craft"]) != "true":
 			if String(_args["craft"]).begins_with("item:"):
 				craft.selected_item = String(_args["craft"]).trim_prefix("item:")  # --craft=item:knife: the item's card
+				for i in state.inv(_pid).size:
+					if state.inv(_pid).slots[i].get("id", "") == craft.selected_item:
+						craft.selected_slot = i
+						break
 			else:
 				craft.selected = String(_args["craft"])
 			craft.refresh()

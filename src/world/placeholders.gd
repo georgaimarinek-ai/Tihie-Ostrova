@@ -368,6 +368,42 @@ static func pier(length: int) -> Node3D:
 	mi.mesh = merge_colored(parts)
 	mi.material_override = mat(Color.WHITE, Color.BLACK, 0.0, true, true)
 	root.add_child(mi)
+	var body := StaticBody3D.new()  # you can walk out along it
+	body.collision_layer = 1
+	var cs := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.4, 0.18, float(length))
+	cs.shape = box
+	cs.position = Vector3(0, 0, -float(length) * 0.5)
+	body.add_child(cs)
+	root.add_child(body)
+	return root
+
+
+## A tool for the pomor's fist while he works (Player.set_tool): a haft along the hand, the head at the end.
+static func tool_prop(type: String) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Tool"
+	var haft := mat(Color("6b4f36"))
+	var iron := mat(Color("8a9299"))
+	var stone := mat(Color("6f7378"))
+	match type:
+		"axe":
+			_box(Vector3(0.05, 0.75, 0.05), haft, root, Vector3(0, 0.3, 0))
+			_box(Vector3(0.22, 0.14, 0.06), stone, root, Vector3(0.1, 0.62, 0))
+		"knife":
+			_box(Vector3(0.04, 0.16, 0.04), haft, root, Vector3(0, 0.08, 0))
+			_box(Vector3(0.03, 0.22, 0.06), iron, root, Vector3(0, 0.27, 0))
+		"pick":
+			_box(Vector3(0.05, 0.8, 0.05), haft, root, Vector3(0, 0.32, 0))
+			_box(Vector3(0.42, 0.07, 0.06), iron, root, Vector3(0, 0.68, 0))
+		"shovel":
+			_box(Vector3(0.05, 0.9, 0.05), haft, root, Vector3(0, 0.38, 0))
+			_box(Vector3(0.16, 0.22, 0.03), haft, root, Vector3(0, 0.9, 0))
+		"rod":
+			_box(Vector3(0.03, 1.6, 0.03), haft, root, Vector3(0, 0.7, 0))
+		_:
+			pass
 	return root
 
 
@@ -687,6 +723,47 @@ static func node_parts(shape: String) -> Array:
 				var a := i * 2.4
 				ps.append([berry, Transform3D(Basis(), Vector3(cos(a) * 0.42, 0.35 + (i % 3) * 0.12, sin(a) * 0.42)), Color("f0a030")])
 			out = [[merge_colored(ps), true]]
+		"bush_red":
+			var s2 := SphereMesh.new()
+			s2.radius = 0.4
+			s2.height = 0.5
+			s2.radial_segments = 6
+			s2.rings = 3
+			var berry2 := SphereMesh.new()
+			berry2.radius = 0.06
+			berry2.height = 0.12
+			berry2.radial_segments = 4
+			berry2.rings = 2
+			var ps2: Array = [[s2, Transform3D(Basis(), Vector3(0, 0.22, 0)), Color("3f5a34")],
+				[s2, Transform3D(Basis.from_scale(Vector3.ONE * 0.8), Vector3(0.38, 0.18, 0.15)), Color("46633a")],
+				[s2, Transform3D(Basis.from_scale(Vector3.ONE * 0.7), Vector3(-0.3, 0.16, -0.22)), Color("3f5a34")]]
+			for i in 9:
+				var a := i * 2.1
+				ps2.append([berry2, Transform3D(Basis(), Vector3(cos(a) * 0.4, 0.25 + (i % 3) * 0.1, sin(a) * 0.4)), Color("c8302a")])
+			out = [[merge_colored(ps2), true]]
+		"flint_rock":
+			var fr := SphereMesh.new()
+			fr.radius = 0.7
+			fr.height = 1.0
+			fr.radial_segments = 4
+			fr.rings = 2
+			var chip := SphereMesh.new()
+			chip.radius = 0.22
+			chip.height = 0.3
+			chip.radial_segments = 4
+			chip.rings = 2
+			out = [[merge_colored([[fr, Transform3D(Basis(), Vector3(0, 0.2, 0)), Color("3e4347")],
+				[chip, Transform3D(Basis(), Vector3(0.55, 0.1, 0.2)), Color("23262a")],
+				[chip, Transform3D(Basis(), Vector3(-0.4, 0.08, -0.45)), Color("23262a")],
+				[chip, Transform3D(Basis(), Vector3(0.1, 0.75, -0.1)), Color("8a9299")]]), true]]
+		"log":
+			var trunk := _cyl(0.28, 0.22, 3.6, 6)
+			var band := _cyl(0.29, 0.29, 0.12, 6)
+			var lying := Basis(Vector3(0, 0, 1), PI * 0.5)
+			var lp: Array = [[trunk, Transform3D(lying, Vector3(0, 0.28, 0)), Color("e6e2d8")]]
+			for i in 5:
+				lp.append([band, Transform3D(lying, Vector3(-1.5 + i * 0.75, 0.28, 0)), Color("2e2c2a")])
+			out = [[merge_colored(lp), true]]
 		"sticks":
 			var st: Array = []
 			for i in 4:

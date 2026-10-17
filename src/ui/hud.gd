@@ -111,6 +111,12 @@ func _ready() -> void:
 	action_button.focus_mode = Control.FOCUS_NONE
 	action_button.visible = false
 	action_button.pressed.connect(func() -> void: action_pressed.emit())
+	var bar := ColorRect.new()  # gathering progress (set_action progress)
+	bar.name = "Progress"
+	bar.color = Color(1, 1, 1, 0.85)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.visible = false
+	action_button.add_child(bar)
 	add_child(action_button)
 	# bottom-left: the boat
 	boat_panel = PanelContainer.new()
@@ -291,13 +297,18 @@ func set_compass(cam_bearing: float, target_bearing: float, text: String) -> voi
 
 
 ## The action for the E key ("" hides the button).
-func set_action(text: String, key: String = "E") -> void:
+func set_action(text: String, key: String = "E", progress: float = -1.0) -> void:
 	action_button.visible = text != "" and not in_cinema
 	if text != "":
 		var t := "%s   [%s]" % [text, key]
 		if action_button.text != t:
 			action_button.text = t
 			action_button.size = Vector2.ZERO
+	var bar := action_button.get_node("Progress") as ColorRect
+	bar.visible = progress >= 0.0 and action_button.visible
+	if bar.visible:
+		bar.position = Vector2(14, action_button.size.y - 7)
+		bar.size = Vector2(maxf(2.0, (action_button.size.x - 28.0) * clampf(progress, 0.0, 1.0)), 3)
 
 
 ## Boat panel: {} hides it. Keys: name, wind_text, speed, hold, wind_angle (radians, relative to the bow).

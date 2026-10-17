@@ -111,7 +111,7 @@ func test_wear_survives_saves_and_chests() -> void:
 	var back := SaveCodec.decode(db, SaveCodec.encode(st))
 	eq(int(_slot(back.inv("p1"), "stone_axe")["wear"]), 42, "wear is saved")
 	check(not _slot(back.inv("p1"), "wood").has("wear"), "plain items carry none")
-	eq(WorldState.VERSION, 5, "save format v5")
+	eq(WorldState.VERSION, 6, "save format v6")
 	var old := st.to_dict()
 	old["version"] = 4
 	for s: Dictionary in old["players"]["p1"]["inv"]["slots"]:

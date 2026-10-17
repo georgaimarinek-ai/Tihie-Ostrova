@@ -20,7 +20,58 @@ func test_gather_needs_the_right_tool() -> void:
 	var r := c.apply("p1", {"type": "gather", "node": "home:1", "item": "wood", "qty": 3})
 	check(r["ok"], "gather with an axe")
 	eq(c.state.inv("p1").count("wood"), 3)
+	check(not r["events"][0]["felled"], "three of five: the tree still stands")
+	eq(int(c.state.harvest["home:1"]), 3)
+	r = c.apply("p1", {"type": "gather", "node": "home:1", "item": "wood", "qty": 2})
+	check(r["ok"] and r["events"][0]["felled"], "the last two fell it")
+	check(not c.state.harvest.has("home:1"), "the count is spent with the tree")
 	eq(c.apply("p1", {"type": "gather", "node": "home:1", "item": "wood"})["error"], "depleted")
+
+
+## Taps (resin, bark, berries) have their own count and leave the tree standing (the first playtest: a pine
+## vanished after a cut of resin).
+func test_taps_never_fell_the_tree() -> void:
+	var c := new_world()
+	c.state.inv("p1").add("knife", 1)
+	c.state.inv("p1").add("stone_axe", 1)
+	for i in 5:
+		check(c.apply("p1", {"type": "gather", "node": "home:2", "item": "resin", "qty": 1})["ok"], "a cut of resin")
+	eq(c.apply("p1", {"type": "gather", "node": "home:2", "item": "resin", "qty": 1})["error"], "depleted", "tapped out for now")
+	check(not c.state.depleted.has("home:2"), "the pine itself is not spent")
+	var r := c.apply("p1", {"type": "gather", "node": "home:2", "item": "wood", "qty": 5})
+	check(r["ok"] and r["events"][0]["felled"], "the axe fells it")
+	eq(c.apply("p1", {"type": "gather", "node": "home:2", "item": "resin", "qty": 1})["error"], "depleted", "no tree, no resin")
+	var back := SaveCodec.decode(db, SaveCodec.encode(c.state))
+	eq(back.harvest, c.state.harvest, "harvest counts travel with the save")
+
+
+func test_drop_and_swap() -> void:
+	var c := new_world()
+	var inv := c.state.inv("p1")
+	inv.add("stone", 12)
+	inv.add("knife", 1)
+	eq(c.apply("p1", {"type": "drop", "slot": 5})["error"], "empty")
+	check(c.apply("p1", {"type": "drop", "slot": 0, "n": 4})["ok"], "four stones overboard")
+	eq(inv.count("stone"), 8)
+	check(c.apply("p1", {"type": "drop", "slot": 0})["ok"], "the rest too")
+	eq(inv.count("stone"), 0)
+	check(inv.slots[0].is_empty() and inv.slots[1]["id"] == "knife", "the knife stays where it was")
+	check(c.apply("p1", {"type": "swap", "a": 1, "b": 0})["ok"], "the knife to the first belt slot")
+	eq(inv.slots[0]["id"], "knife")
+	eq(c.apply("p1", {"type": "swap", "a": 1, "b": 1})["error"], "bad_value")
+	inv.add("stone", 50)
+	inv.add("stone", 3)
+	var a := -1
+	var b := -1
+	for i in inv.size:
+		if inv.slots[i].get("id", "") == "stone":
+			if a < 0:
+				a = i
+			else:
+				b = i
+	check(c.apply("p1", {"type": "swap", "a": b, "b": a})["ok"], "pour the small stack into the full one")
+	eq(int(inv.slots[a]["n"]), 50, "stays full")
+	eq(int(inv.slots[b]["n"]), 3, "nothing moved: no room")
 
 
 func test_gather_is_capped_and_region_checked() -> void:
