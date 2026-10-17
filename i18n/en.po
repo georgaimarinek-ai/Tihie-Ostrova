@@ -1126,6 +1126,9 @@ msgstr "The cold of the Frozen Sea"
 msgid "tuning.durability"
 msgstr "Tool wear"
 
+msgid "tuning.soon"
+msgstr "(coming later)"
+
 msgid "tuning.night_raids"
 msgstr "Night raids (Saga only)"
 

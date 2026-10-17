@@ -19,7 +19,8 @@ const WORLD_LIMIT_M := 5000.0
 const HIT_REACH_M := 4.5  # a creature's bite or swipe (guardians reach further)
 ## Only the host sends these: world time, debug, and what the host simulates (creatures, their hits, storms).
 const HOST_ONLY: Array[String] = ["tick", "debug", "spawn", "despawn", "creatures", "hurt", "capsize", "douse", "steal", "join"]
-const ARENA_LANTERNS := 4  # around the Lodestar: the Mga is weak while all of them burn
+const ARENA_LANTERNS := 4
+const STEAL_REACH_M := 16.0  # a gull circles a drying rack 11 m out before it swoops  # around the Lodestar: the Mga is weak while all of them burn
 
 var db: ContentDB
 var state: WorldState
@@ -241,6 +242,12 @@ func _remove(pid: String, cmd: Dictionary) -> Dictionary:
 	for k: String in cost:
 		inv.add(k, cost[k])  # full refund: rebuilding should never feel like a loss
 	state.pieces.erase(uid)
+	if db.pieces[pc["id"]].get("spawn", false):
+		for other: String in state.players:
+			var pl: Dictionary = state.players[other]
+			if (pl["spawn"] as Vector3).is_equal_approx(pc["pos"]):
+				var bed := Comfort.nearest_bed(db, state, pc["pos"], INF)
+				pl["spawn"] = state.pieces[bed]["pos"] if bed != "" else (map.home["spawn"] if map != null else pl["spawn"])
 	return _ok([{"type": "piece_removed", "uid": uid, "player": pid}])
 
 
@@ -409,6 +416,8 @@ func _steal(_pid: String, cmd: Dictionary) -> Dictionary:
 	var pc: Dictionary = state.pieces.get(rack, {})
 	if c.is_empty() or String(Creatures.info(db, String(c["id"])).get("behaviour", "")) != "thief" or pc.is_empty():
 		return _fail("unknown_uid")
+	if (c["pos"] as Vector3).distance_to(pc["pos"]) > STEAL_REACH_M:
+		return _fail("too_far")
 	var out: Dictionary = pc.get("out", {})
 	if out.is_empty():
 		return _fail("nothing")
@@ -468,6 +477,8 @@ func _tick_fight() -> Array[Dictionary]:
 	return events
 
 
+## A player passed a trial (Quiet and Tale). Only "trial" is ever accepted from a player: in Saga a beacon is
+## won by beating its guardian ("attack") or by holding the fire (_tick_fight), both the host's own doing.
 func _complete_trial(pid: String, cmd: Dictionary) -> Dictionary:
 	var bid := String(cmd.get("beacon", ""))
 	var kind := String(cmd.get("kind", "trial"))
@@ -476,22 +487,16 @@ func _complete_trial(pid: String, cmd: Dictionary) -> Dictionary:
 	var b: Dictionary = db.beacons[bid]
 	if not db.region_open(b["region"], state.lit):
 		return _fail("region_locked")
-	var expected := "trial"
-	if rules()["beacon"] == "guardian_or_defense":
-		expected = String(b["saga"]["type"])
-	if kind != expected:
+	if kind != "trial" or rules()["beacon"] != "trial":
 		return _fail("wrong_trial")
-	if expected != "trial" and state.busy_beacon != bid:
-		return _fail("no_fight")
-	if map != null and expected == "trial":
+	if state.trials_done.has(bid):
+		return _fail("already_done")
+	if map != null:
 		var why := _trial_check(pid, bid)
 		if why != "":
 			return _fail(why)
 	state.trials_done[bid] = kind
-	var events: Array[Dictionary] = [{"type": "trial_done", "beacon": bid, "kind": kind, "player": pid}]
-	if state.busy_beacon == bid:
-		events.append_array(_end_fight(true))
-	return _ok(events)
+	return _ok([{"type": "trial_done", "beacon": bid, "kind": kind, "player": pid}])
 
 
 ## What the host can see of a trial (docs/01_GDD.md §5.2): the player is on the beacon's island; "carry"
@@ -547,7 +552,21 @@ func _set_mode(pid: String, cmd: Dictionary) -> Dictionary:
 		return _fail("busy")
 	var old := state.mode
 	state.mode = m
-	return _ok([{"type": "mode_changed", "from": old, "to": m, "player": pid}])
+	var events: Array[Dictionary] = [{"type": "mode_changed", "from": old, "to": m, "player": pid}]
+	events.append_array(_despawn_disallowed())
+	return _ok(events)
+
+
+## After the rules change: every creature the new rules don't allow goes back into the fog (a wolf can't
+## stay in a world that just became Quiet, a mistling can't stay in a Tale).
+func _despawn_disallowed() -> Array[Dictionary]:
+	var r := rules()
+	var events: Array[Dictionary] = []
+	for uid: String in state.creatures.keys():
+		if not Creatures.allowed(db, state.mode, r, String(state.creatures[uid]["id"])):
+			state.creatures.erase(uid)
+			events.append({"type": "creature_gone", "uid": uid})
+	return events
 
 
 ## Host-generated when a player's health reaches zero (or they fall/drown in Quiet).
@@ -1195,7 +1214,9 @@ func _set_tuning(pid: String, cmd: Dictionary) -> Dictionary:
 		state.tuning.erase(rule)
 	else:
 		state.tuning[rule] = value
-	return _ok([{"type": "tuning_changed", "player": pid, "rule": rule, "value": value}])
+	var events: Array[Dictionary] = [{"type": "tuning_changed", "player": pid, "rule": rule, "value": value}]
+	events.append_array(_despawn_disallowed())
+	return _ok(events)
 
 
 ## Host-only: a storm above the hull's class capsizes the boat (Tale and Saga). It floats; right it with E.
@@ -1286,6 +1307,8 @@ func _hurt(pid: String, cmd: Dictionary) -> Dictionary:
 		return _fail("friendly")
 	if String(rules()["death"]) == "none":
 		return _fail("no_harm")
+	if not Creatures.allowed(db, state.mode, rules(), id):
+		return _fail("not_in_this_mode")
 	var p: Dictionary = state.players[target]
 	var reach := 16.0 if Creatures.group(db, id) == "guardian" else HIT_REACH_M  # needles, gusts, waves
 	if (c["pos"] as Vector3).distance_to(p["pos"]) > reach:

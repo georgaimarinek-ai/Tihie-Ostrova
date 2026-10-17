@@ -107,3 +107,32 @@ func test_placeholders_follow_the_rules() -> void:
 		var b := Placeholders.boat(id)
 		_check("boats", id, b)
 		b.free()
+
+
+## Hitboxes follow the model (docs/05_ART_AUDIO.md §4.6): a creature without size metadata (the artist's
+## .glb) is measured from its meshes; a piece that brought its own "-colonly" shape gets no second body.
+func test_hitboxes_fit_the_model() -> void:
+	var bear := Node3D.new()
+	var body := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(1.2, 1.6, 2.6)
+	body.mesh = box
+	body.position = Vector3(0, 0.8, 0)
+	bear.add_child(body)
+	var head := MeshInstance3D.new()
+	head.mesh = SphereMesh.new()  # radius 0.5
+	head.position = Vector3(0, 1.4, -1.5)
+	bear.add_child(head)
+	var size := ModelLibrary.fit(bear)
+	near(float(size["radius"]), 1.65, 0.01, "half the longer side (nose to tail 3.3 m: the box plus the head)")
+	near(float(size["height"]), 1.9, 0.01, "the top of the head")
+	check(not ModelLibrary.has_collision(bear), "no collision of its own")
+	var cs := CollisionShape3D.new()
+	cs.shape = BoxShape3D.new()
+	bear.add_child(cs)
+	check(ModelLibrary.has_collision(bear), "an imported '-colonly' shape counts")
+	bear.free()
+	var ph := Placeholders.build("creatures", "wolf")
+	var ps := ModelLibrary.fit(ph)
+	eq(float(ps["radius"]), float(ph.get_meta("radius")), "a placeholder keeps its own size")
+	ph.free()

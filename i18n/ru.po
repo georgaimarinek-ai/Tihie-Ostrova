@@ -1126,6 +1126,9 @@ msgstr "Холод Студёного моря"
 msgid "tuning.durability"
 msgstr "Износ инструментов"
 
+msgid "tuning.soon"
+msgstr "(будет позже)"
+
 msgid "tuning.night_raids"
 msgstr "Ночные набеги (только Сага)"
 

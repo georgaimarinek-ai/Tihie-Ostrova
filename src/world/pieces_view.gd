@@ -32,16 +32,17 @@ func add_piece(uid: String) -> void:
 	n.set_meta("uid", uid)
 	add_child(n)
 	nodes[uid] = n
-	var body := StaticBody3D.new()
-	body.collision_layer = 1
-	var cs := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	var bounds := _bounds(n)
-	box.size = Vector3(maxf(bounds.size.x, 0.3), maxf(bounds.size.y, 0.3), maxf(bounds.size.z, 0.3))
-	cs.shape = box
-	cs.position = bounds.get_center()
-	body.add_child(cs)
-	n.add_child(body)
+	if not ModelLibrary.has_collision(n):  # the artist's own "-colonly" shape wins; else a box around the meshes
+		var body := StaticBody3D.new()
+		body.collision_layer = 1
+		var cs := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		var bounds := ModelLibrary.bounds(n)
+		box.size = Vector3(maxf(bounds.size.x, 0.3), maxf(bounds.size.y, 0.3), maxf(bounds.size.z, 0.3))
+		cs.shape = box
+		cs.position = bounds.get_center()
+		body.add_child(cs)
+		n.add_child(body)
 	var anchor := n.get_node_or_null("Fire") as Node3D
 	if anchor != null:
 		var f := Placeholders.fire(0.45 if id != "bloomery" else 0.3, true)
@@ -83,15 +84,3 @@ func fog_lights(near: Vector2, n: int) -> Array[Vector4]:
 		if float(all[i][0]) < 250.0:
 			out.append(all[i][1])
 	return out
-
-
-static func _bounds(root: Node3D) -> AABB:
-	var box := AABB()
-	var first := true
-	for mi: MeshInstance3D in ModelLibrary._meshes(root):
-		if mi.mesh == null:
-			continue
-		var b := mi.transform * mi.mesh.get_aabb()
-		box = b if first else box.merge(b)
-		first = false
-	return box

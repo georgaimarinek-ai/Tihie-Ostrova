@@ -83,18 +83,35 @@ func test_b03_opens_the_next_region() -> void:
 func test_saga_needs_the_guardian() -> void:
 	var c := new_world("saga")
 	eq(c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "trial"})["error"], "wrong_trial")
-	eq(c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "guardian"})["error"], "no_fight")
+	eq(c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "guardian"})["error"], "wrong_trial", "no player can declare a guardian beaten")
 	check(c.apply("p1", {"type": "begin_fight", "beacon": "b03"})["ok"], "fight starts")
+	eq(c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "guardian"})["error"], "wrong_trial", "not even during the fight")
 	eq(c.apply("p1", {"type": "set_mode", "mode": "quiet"})["error"], "busy", "no mode switch mid-fight")
-	check(c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "guardian"})["ok"], "guardian beaten")
+	check(_beat_guardian(c, "b03"), "guardian beaten")
 	eq(c.state.busy_beacon, "")
-	eq(c.apply("p1", {"type": "complete_trial", "beacon": "b01", "kind": "guardian"})["error"], "wrong_trial", "b01 is a defence in Saga")
+	check(c.state.trials_done.has("b03"), "the beacon's trial is passed")
+	eq(c.apply("p1", {"type": "begin_fight", "beacon": "b03"})["error"], "already_done")
+
+
+## Fight the beacon's guardian to the end with a spear (the host's "attack"); false when it doesn't die.
+func _beat_guardian(c: WorldCommands, bid: String) -> bool:
+	var boss := String(c.state.fight["boss"])
+	c.state.players["p1"]["pos"] = c.state.creatures[boss]["pos"]
+	c.state.inv("p1").add("spear", 1)
+	for i in 200:
+		var r := c.apply("p1", {"type": "attack", "target": boss, "heavy": true})
+		if not r["ok"]:
+			return false
+		for e: Dictionary in r["events"]:
+			if e["type"] == "creature_died":
+				return true
+	return false
 
 
 func test_mode_switch_keeps_progress() -> void:
 	var c := new_world("saga")
 	c.apply("p1", {"type": "begin_fight", "beacon": "b03"})
-	c.apply("p1", {"type": "complete_trial", "beacon": "b03", "kind": "guardian"})
+	check(_beat_guardian(c, "b03"), "guardian beaten")
 	check(c.apply("p1", {"type": "set_mode", "mode": "quiet"})["ok"], "switch")
 	eq(c.state.mode, "quiet")
 	check(c.state.trials_done.has("b03"), "a won fight stays won")

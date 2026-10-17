@@ -39,8 +39,9 @@ func setup(p_director, p_uid: String, p_id: String, pos: Vector3, p_fight: Strin
 	name = "Creature_%s_%s" % [id, uid]
 	model = ModelLibrary.instance("creatures", id)
 	add_child(model)
-	height = float(model.get_meta("height", 1.5))
-	radius = float(model.get_meta("radius", 0.5))
+	var size := ModelLibrary.fit(model)  # the placeholder says its size; the artist's model is measured
+	height = float(size["height"])
+	radius = float(size["radius"])
 	match id:
 		"gull":
 			hover = 9.0

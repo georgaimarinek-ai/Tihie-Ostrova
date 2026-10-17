@@ -355,3 +355,52 @@ func test_boats_from_the_boatyard() -> void:
 	check(c.state.inv("p1").is_empty(), "the cost is spent")
 	eq(SeaWall.blocked(db, c.state, Vector2(0, -2000), "shnyaka"), "", "the Ter Coast is open to it")
 	eq(c.apply("p1", {"type": "build_boat", "boat": "koch", "uid": uid})["error"], "locked", "the koch waits for b09")
+
+
+## Changing the rules sends away every creature they no longer allow (docs/01_GDD.md §6: no predators in
+## Quiet, fog creatures only in Saga), and a creature the mode doesn't allow can't bite even if it lingers.
+func test_rule_changes_clear_the_creatures() -> void:
+	var c := _world("tale")
+	var wolf := _creature(c, "wolf")
+	var hare := _creature(c, "hare")
+	var r := c.apply("p1", {"type": "set_mode", "mode": "quiet"})
+	check(r["ok"] and r["events"].size() == 2 and r["events"][1] == {"type": "creature_gone", "uid": wolf}, "the wolf leaves a Quiet world")
+	check(c.state.creatures.has(hare) and not c.state.creatures.has(wolf), "the hare stays")
+	var saga := _world("saga")
+	var mglyak := _creature(saga, "mglyak")
+	saga.apply("p1", {"type": "set_mode", "mode": "tale"})
+	check(not saga.state.creatures.has(mglyak), "a mistling can't stay in a Tale")
+	var tale := _world("tale")
+	var lost := _creature(tale, "mglyak")
+	eq(tale.apply("p1", {"type": "hurt", "player": "p1", "source": lost})["error"], "not_in_this_mode", "no bite from a creature of another mode")
+	var w2 := _creature(tale, "wolf")
+	tale.apply("p1", {"type": "set_tuning", "rule": "storms", "value": "cosmetic"})
+	check(tale.state.creatures.has(w2), "tuning that doesn't touch creatures keeps them")
+
+
+func test_gull_steals_only_at_the_rack() -> void:
+	var c := _world("quiet")
+	var p: Vector3 = c.state.players["p1"]["pos"]
+	c.state.pieces["rack"] = {"id": "drying_rack", "pos": p, "rot": 0.0, "owner": "p1", "out": {"salted_cod": 2}}
+	var gull := _creature(c, "gull")
+	c.state.creatures[gull]["pos"] = p + Vector3(40, 9, 0)
+	eq(c.apply("p1", {"type": "steal", "source": gull, "uid": "rack"})["error"], "too_far", "from across the bay: no")
+	c.state.creatures[gull]["pos"] = p + Vector3(8, 9, 0)
+	check(c.apply("p1", {"type": "steal", "source": gull, "uid": "rack"})["ok"], "swooping over the rack")
+	eq(int(c.state.pieces["rack"]["out"]["salted_cod"]), 1)
+
+
+func test_removing_the_bed_sends_the_spawn_home() -> void:
+	var c := _world("tale")
+	var home: Vector3 = c.map.home["spawn"]
+	var at := home + Vector3(6, 0, 0)
+	c.state.pieces["bed"] = {"id": "bed", "pos": at, "rot": 0.0, "owner": "p1"}
+	c.state.players["p1"]["spawn"] = at
+	c.state.players["p1"]["pos"] = at
+	check(c.apply("p1", {"type": "remove", "uid": "bed"})["ok"], "the bed comes down")
+	eq(c.state.players["p1"]["spawn"], home, "no bed left: wake up at the home pier")
+	c.state.pieces["b1"] = {"id": "bed", "pos": at, "rot": 0.0, "owner": "p1"}
+	c.state.pieces["b2"] = {"id": "bed", "pos": at + Vector3(3, 0, 0), "rot": 0.0, "owner": "p1"}
+	c.state.players["p1"]["spawn"] = at
+	c.apply("p1", {"type": "remove", "uid": "b1"})
+	eq(c.state.players["p1"]["spawn"], at + Vector3(3, 0, 0), "another bed takes over")

@@ -373,6 +373,7 @@ menu.unnamed	без имени	unnamed
 tuning.storms	Шторма переворачивают лодку	Storms capsize boats
 tuning.cold	Холод Студёного моря	The cold of the Frozen Sea
 tuning.durability	Износ инструментов	Tool wear
+tuning.soon	(будет позже)	(coming later)
 tuning.night_raids	Ночные набеги (только Сага)	Night raids (Saga only)
 tale.hare	Заяц на Поморье — зверь пугливый: след путает, петляет, а в туман сидит под кочкой и не дышит. Говорят, кто первого зайца весной увидит — тому лёгкая дорога. (TODO: быличка автора)	The Pomor hare is a shy beast: it tangles its tracks and sits breathless under a tussock in the fog. They say whoever sees the first hare in spring has an easy road. (TODO: author's tale)
 tale.fox	Лиса ходит краем тумана и слушает, где стучит топор. Старики говорили: лиса у избы — к гостям. (TODO: быличка автора)	The fox walks the edge of the fog and listens for the axe. The old folk said a fox by the house means guests are coming. (TODO: author's tale)
