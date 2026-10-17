@@ -1692,3 +1692,12 @@ msgstr "A find: Chud ruins, creatures or the sea."
 
 msgid "toast.bow_hint"
 msgstr "Bow: LMB shoots whoever is ahead, up to 30 m. Arrows: %d."
+
+msgid "hint.held_tool"
+msgstr "In hand: %s · LMB works it on what is ahead · wheel scrolls the belt · E acts"
+
+msgid "hint.held_use"
+msgstr "In hand: %s · the same key again uses it · wheel scrolls the belt"
+
+msgid "toast.wrong_tool"
+msgstr "%s is no use here."

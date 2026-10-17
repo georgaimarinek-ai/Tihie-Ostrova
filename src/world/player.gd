@@ -235,6 +235,8 @@ func _process(_delta: float) -> void:
 	var lit := light_id != ""
 	if _torch != null:
 		_torch.visible = lit
+	if _tool != null and lit and _tool_type == "item:torch":
+		_tool.visible = false  # the burning torch is its own node
 	_fire.visible = lit
 	_light.light_energy = (3.4 + 0.6 * sin(_time * 13.0) + 0.4 * randf()) if lit else 0.0
 
@@ -246,15 +248,26 @@ func work(seconds: float = 0.6) -> void:
 
 ## The tool in the hand: "axe", "knife", "pick", "shovel", "rod" or "" (World sets it while gathering).
 func set_tool(type: String) -> void:
-	if type == _tool_type:
+	_hold("tool:" + type if type != "" and type != "hand" else "", func() -> Node3D: return Placeholders.tool_prop(type))
+
+
+## The belt item in the hand when not working ("" = empty hands): World sets it from the chosen hotbar slot.
+func set_held(item: String) -> void:
+	if _tool_type.begins_with("tool:"):
+		return  # working: the tool stays until the job ends
+	_hold("item:" + item if item != "" else "", func() -> Node3D: return Placeholders.item_prop(db, item))
+
+
+func _hold(key: String, make: Callable) -> void:
+	if key == _tool_type:
 		return
-	_tool_type = type
+	_tool_type = key
 	if _tool != null:
 		_tool.queue_free()
 		_tool = null
-	if type == "" or type == "hand":
+	if key == "":
 		return
-	_tool = Placeholders.tool_prop(type)
+	_tool = make.call()
 	var hand := _torch.get_parent() if _torch != null else model
 	hand.add_child(_tool)
 	_tool.position = _torch.position if _torch != null else Vector3(0.35, 1.0, -0.2)

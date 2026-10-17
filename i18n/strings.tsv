@@ -562,3 +562,6 @@ info.where	Где взять: %s · чем: %s · где: %s	Where: %s · with: 
 info.made_by	Делается: %s (%s)	Made: %s (%s)
 info.found	Находка: в руинах чуди, у тварей или в море.	A find: Chud ruins, creatures or the sea.
 toast.bow_hint	Лук: ЛКМ — выстрел в того, кто перед тобой, до 30 м. Стрел: %d.	Bow: LMB shoots whoever is ahead, up to 30 m. Arrows: %d.
+hint.held_tool	В руках: %s · ЛКМ — работать им по тому, что перед тобой · колесо мыши — пояс · E — действие	In hand: %s · LMB works it on what is ahead · wheel scrolls the belt · E acts
+hint.held_use	В руках: %s · ещё раз та же цифра — использовать · колесо мыши — пояс	In hand: %s · the same key again uses it · wheel scrolls the belt
+toast.wrong_tool	%s здесь не годится.	%s is no use here.

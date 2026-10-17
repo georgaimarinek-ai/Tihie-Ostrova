@@ -30,6 +30,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_charge = -1.0
 		return
 	if event.is_action_pressed("attack"):
+		if world.use_held_tool():
+			get_viewport().set_input_as_handled()
+			return
 		_charge = 0.0
 		get_viewport().set_input_as_handled()
 	elif event.is_action_released("attack") and _charge >= 0.0:
@@ -65,7 +68,13 @@ func _process(delta: float) -> void:
 
 ## The weapon a strike uses now: the best in the bag (WorldCommands.best_weapon), "" = bare hands.
 func weapon() -> String:
-	return Game.commands.best_weapon(state.inv(Net.local_player_id())) if Game.commands != null else ""
+	var inv := state.inv(Net.local_player_id())
+	var held: String = world.held_item()
+	if held != "" and db.items[held].has("weapon"):
+		var w: Dictionary = db.items[held]["weapon"]
+		if not w.has("ammo") or inv.count(String(w["ammo"])) > 0:
+			return held  # the weapon in the hands, not the best in the bag
+	return Game.commands.best_weapon(inv) if Game.commands != null else ""
 
 
 var _bow_hinted := false

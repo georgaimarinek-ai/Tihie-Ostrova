@@ -407,6 +407,53 @@ static func tool_prop(type: String) -> Node3D:
 	return root
 
 
+## What the chosen belt item looks like in the fist (Player.set_held): tools and weapons by their shape, a
+## torch or lantern, food as a small round loaf, anything else as a bundle the size of a hand.
+static func item_prop(db: ContentDB, id: String) -> Node3D:
+	var it: Dictionary = db.items.get(id, {})
+	if it.has("tool"):
+		return tool_prop(String(it["tool"]["type"]))
+	var root := Node3D.new()
+	root.name = "Held"
+	var haft := mat(Color("6b4f36"))
+	var iron := mat(Color("8a9299"))
+	if it.has("weapon"):
+		match id:
+			"bow":
+				_box(Vector3(0.04, 1.3, 0.05), haft, root, Vector3(0, 0.45, 0)).rotation.z = 0.08
+				_box(Vector3(0.01, 1.2, 0.01), mat(Color("d9cbb0")), root, Vector3(0.09, 0.45, 0))
+			"shield":
+				_box(Vector3(0.7, 0.9, 0.06), haft, root, Vector3(0, 0.3, 0.1))
+				_box(Vector3(0.2, 0.2, 0.08), iron, root, Vector3(0, 0.3, 0.07))
+			_:
+				var long := 1.9 if id != "harpoon" else 1.6
+				_box(Vector3(0.05, long, 0.05), haft, root, Vector3(0, long * 0.4, 0))
+				_box(Vector3(0.06, 0.34, 0.1), iron if id != "spear" else mat(Color("6f7378")), root, Vector3(0, long * 0.9 + 0.1, 0))
+				if id == "spolokh_spear":
+					root.add_child(glow(Color("8fe3d0"), 0.9, 0.8))
+					(root.get_child(root.get_child_count() - 1) as Node3D).position = Vector3(0, long * 0.9 + 0.1, 0)
+		return root
+	if it.has("light"):
+		_box(Vector3(0.06, 0.6, 0.06), haft, root, Vector3(0, 0.25, 0))
+		if id == "torch":
+			_box(Vector3(0.12, 0.16, 0.12), mat(Color("2a1a10")), root, Vector3(0, 0.6, 0))
+		else:
+			_box(Vector3(0.18, 0.26, 0.18), mat(Color("3a3226"), Color("ffc070"), 1.6, false), root, Vector3(0, 0.62, 0))
+		return root
+	if it.has("food"):
+		var loaf := _cyl(0.11, 0.09, 0.07, 8)
+		var mi := MeshInstance3D.new()
+		mi.mesh = loaf
+		mi.material_override = mat(Color("c9a26a"))
+		mi.position = Vector3(0, 0.05, 0)
+		root.add_child(mi)
+		return root
+	# a bundle: a hand-sized block in the colour of what it is
+	var colours := {"raw": Color("7a5c3a"), "fuel": Color("2c2420"), "valuable": Color("e8e4dc"), "cloth": Color("d9cbb0"), "material": Color("8a8782"), "ammo": Color("a08a60")}
+	_box(Vector3(0.18, 0.14, 0.26), mat(colours.get(String(it.get("kind", "raw")), Color("7a5c3a"))), root, Vector3(0, 0.07, 0))
+	return root
+
+
 ## Pomor cross, a navigation mark 7.5 m tall: short top bar, main bar, slanted foot bar.
 static func pomor_cross() -> Node3D:
 	var root := Node3D.new()

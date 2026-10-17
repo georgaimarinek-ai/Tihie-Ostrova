@@ -595,6 +595,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_storage(my_boat.uid)
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed and on_foot() and not build.active:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_hot = posmod(_hot + (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 8)
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("interact"):
 		_do_action()
 	elif event.is_action_pressed("cycle"):
@@ -645,16 +651,42 @@ func _sleep(uid: String) -> void:
 
 
 ## Keys 1–8: a light is lit, food is eaten, anything else becomes the chosen tool.
+## A belt key (1–8): the first press takes the thing in hand, a second press on the same place uses it
+## (eats food, lights a torch). The wheel scrolls the belt.
 func _use_hotbar(i: int) -> void:
+	var again := _hot == i
 	_hot = i
 	var s: Dictionary = state.inv(_pid).slots[i]
-	if s.is_empty():
+	if s.is_empty() or not again:
 		return
 	var it: Dictionary = db.items[s["id"]]
 	if it.has("food"):
 		Game.submit({"type": "eat", "item": s["id"]})
 	elif it.has("light"):
 		Game.submit({"type": "light", "item": s["id"]})
+
+
+## The item in the hands: the chosen belt slot ("" when it is empty).
+func held_item() -> String:
+	if not on_foot():
+		return ""
+	var s: Dictionary = state.inv(_pid).slots[_hot]
+	return String(s.get("id", ""))
+
+
+## LMB with a tool in hand works the node in reach that this tool gathers (an axe on a pine: wood; a knife:
+## resin), without E or Q. True when the click was spent on it.
+func use_held_tool() -> bool:
+	var id := held_item()
+	if id == "" or not db.items[id].has("tool") or _near_node.is_empty() or not _channel.is_empty():
+		return false
+	var type := String(db.items[id]["tool"]["type"])
+	for item: String in _near_node["items"]:
+		if String(db.items[item]["gather"]["tool"]) == type:
+			_start_channel(_near_node, item)
+			return true
+	hud.toast(tr("toast.wrong_tool") % Loc.item(db, id))
+	return true
 
 
 ## A station goes down 2.5 m in front of the player, facing them.
@@ -1202,6 +1234,7 @@ func _update_hud() -> void:
 	hud.set_buffs(food, _states())
 	_update_fight_bar()
 	hud.set_hotbar(state.inv(_pid).slots.slice(0, 8), _hot, on_foot() and not craft.visible, _wear())
+	player.set_held(held_item())
 	var light: Dictionary = state.players[_pid].get("light", {})
 	if on_foot() and not light.is_empty():
 		var lt: Dictionary = db.items[light["id"]]["light"]
@@ -1234,6 +1267,10 @@ func _update_hud() -> void:
 			hint = tr("hint.fishing")
 		elif creatures.hostile_near(player.global_position, 25.0):
 			hint = tr("hint.combat")
+		elif held_item() != "" and db.items[held_item()].has("tool"):
+			hint = tr("hint.held_tool") % Loc.item(db, held_item())
+		elif held_item() != "" and (db.items[held_item()].has("food") or db.items[held_item()].has("light")):
+			hint = tr("hint.held_use") % Loc.item(db, held_item())
 		hud.set_hint(hint)
 
 
