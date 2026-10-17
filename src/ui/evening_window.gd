@@ -86,7 +86,7 @@ func rows() -> Array:
 	if not pages.is_empty():
 		var names: PackedStringArray = []
 		for p: String in pages.slice(0, 3):
-			names.append(Loc.name_of(db.creatures[p]["name"]) if db.creatures.has(p) else tr("journal.chud_circle"))
+			names.append(Loc.name_of(db.creatures[p]["name"]) if db.creatures.has(p) else tr("journal.sea_bottle") if p == "sea_bottle" else tr("journal.chud_circle"))
 		out.append([tr("evening.journal"), ", ".join(names)])
 	var pid := Net.local_player_id()
 	if state != null and state.players.has(pid) and bool(state.rules()["durability"]):

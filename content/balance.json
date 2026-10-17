@@ -88,6 +88,51 @@
     "headwind_speed": 0.6,
     "wind_period_min": 40
   },
+  "sea_events": {
+    "note": "The living sea (docs/08_NEXT.md stage 13; SeaLife is pure in seed and clock). shoal: a fishing spot bites bite_bonus faster for lasts_min out of every every_min. tide: low water for low_share of the day from day phase low_from, the sea drop_m lower; only_nodes are reachable only then. flotsam after a storm (kinds: items or a journal page), picked up within reach_m. tailwind after a beacon. squall_warning_min before a worse storm. The vodyanoy sulks after vodyanoy_angry_days without his fish. aurora_boost over the Frozen Sea on clear nights.",
+    "shoal": {
+      "every_min": 18,
+      "lasts_min": 3,
+      "bite_bonus": 2.0
+    },
+    "tide": {
+      "low_from": 0.6,
+      "low_share": 0.333,
+      "drop_m": 1.0,
+      "only_nodes": [
+        "pearl_shoal"
+      ]
+    },
+    "flotsam": {
+      "after_storm_min": 20,
+      "reach_m": 8,
+      "lasts_min": 30,
+      "kinds": {
+        "log": {
+          "items": {
+            "wood": 4
+          }
+        },
+        "barrel": {
+          "items": {
+            "salted_cod": 2,
+            "rope": 1
+          }
+        },
+        "bottle": {
+          "journal": "sea_bottle"
+        }
+      }
+    },
+    "tailwind": {
+      "minutes": 2,
+      "factor": 1.25
+    },
+    "squall_warning_min": 1,
+    "vodyanoy_angry_days": 3,
+    "vodyanoy_angry_penalty": 0.3,
+    "aurora_boost": 1.6
+  },
   "fog": {
     "clear_factor": 0.22,
     "clear_edge": 0.3,

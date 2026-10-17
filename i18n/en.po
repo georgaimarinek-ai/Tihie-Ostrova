@@ -1494,3 +1494,111 @@ msgstr "Lasts %d uses, then dulls and breaks; mended at the %s."
 
 msgid "evening.tools"
 msgstr "Time to mend"
+
+msgid "cmd.tide"
+msgstr "The ebb will bare this shoal."
+
+msgid "cmd.unknown_part"
+msgstr "No such fitting."
+
+msgid "cmd.shallow"
+msgstr "Too shallow here."
+
+msgid "cmd.near_beacon"
+msgstr "Too close to a beacon."
+
+msgid "act.pick_flotsam"
+msgstr "Haul in: %s"
+
+msgid "act.pick_bottle"
+msgstr "Fish out the bottle"
+
+msgid "act.fit_boat"
+msgstr "Fit the boat: %s"
+
+msgid "act.fit_needs"
+msgstr "%s: missing %s"
+
+msgid "act.pole_off"
+msgstr "Pole off (%d s)"
+
+msgid "flotsam.log"
+msgstr "A log"
+
+msgid "flotsam.barrel"
+msgstr "A barrel"
+
+msgid "flotsam.bottle"
+msgstr "A bottle"
+
+msgid "toast.flotsam"
+msgstr "Hauled in: %s"
+
+msgid "toast.bottle"
+msgstr "A note in the bottle. A page in the journal (J)."
+
+msgid "toast.boat_held"
+msgstr "The Deep One grips the boat! Strike it or show fire."
+
+msgid "toast.boat_released"
+msgstr "The boat is free."
+
+msgid "toast.boat_fitted"
+msgstr "The boat now has: %s."
+
+msgid "toast.capsized_by"
+msgstr "The boat was rolled over. Right it (E)."
+
+msgid "toast.tide_low"
+msgstr "Low tide: the shoals are bare, the shores are shallow."
+
+msgid "toast.tide_high"
+msgstr "High tide: the water is back."
+
+msgid "ui.tailwind"
+msgstr "Tailwind"
+
+msgid "ui.squall"
+msgstr "Squall coming"
+
+msgid "ui.squall_hint"
+msgstr "make for shore or brace"
+
+msgid "ui.tide_low"
+msgstr "Low tide"
+
+msgid "ui.tide_left"
+msgstr "%d min left"
+
+msgid "ui.shoal"
+msgstr "A shoal"
+
+msgid "ui.held"
+msgstr "The boat is held!"
+
+msgid "ui.vodyanoy_angry"
+msgstr "The vodyanoy sulks"
+
+msgid "ui.vodyanoy_hint"
+msgstr "bites are worse: give him the first fish"
+
+msgid "goal.aground"
+msgstr "The boat is aground: the water has gone. Pole off (E) or wait for the tide (%d min)."
+
+msgid "goal.aground_rocks"
+msgstr "The boat ran onto the rocks. Pole off (E), and don't trust every light."
+
+msgid "goal.held"
+msgstr "The Deep One holds the boat. A spear or a harpoon from the deck; fire in hand drives it off."
+
+msgid "journal.sea_bottle"
+msgstr "A note in a bottle"
+
+msgid "tale.sea_bottle"
+msgstr "A bottle of dark glass with a strip of birch bark inside: \"Whoever finds this, light the fire on Gull Skerry. We did not make it in time.\" Unsigned. (TODO: author's tale)"
+
+msgid "tale.puchinnik"
+msgstr "The old folk say that in thick fog something walks beneath the boat that no one names. It is not evil, only hungry, and it does not like the light. Keep a lantern at the bow and a harpoon to hand. (TODO: author's tale)"
+
+msgid "part.lantern"
+msgstr "Boat lantern"

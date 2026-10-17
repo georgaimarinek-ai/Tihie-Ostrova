@@ -20,6 +20,10 @@ var yaw := 0.0
 var hover := 0.0  # height over the ground (gulls fly, mistlings float)
 var target := Vector3.INF  # what it goes for instead of the player (the beacon's fire in a defence)
 var raid := Vector3.INF  # a night raid: the homestead it probes
+var phase_t := 0.0  # a sea creature: seconds in its current phase (circle → grip → roll)
+var hit_t := 999.0  # seconds since a player last struck it
+var hits := 0  # strikes taken while gripping (three drive it off)
+var false_light: Node3D  # the Morok's lure over the shallows
 
 var _goal := Vector3.ZERO
 var _t := 0.0
@@ -51,6 +55,8 @@ func setup(p_director, p_uid: String, p_id: String, pos: Vector3, p_fight: Strin
 			hover = 1.2
 		"ryba_kit":
 			hover = -1.4
+		"puchinnik":
+			hover = -0.7  # awash: only the hump and the crest show
 	home = pos
 	_goal = pos
 	position = pos
@@ -58,6 +64,41 @@ func setup(p_director, p_uid: String, p_id: String, pos: Vector3, p_fight: Strin
 	if id == "likho":
 		mood = "sleep"
 	_bob = randf() * 10.0
+	if id == "morok":
+		_hang_false_light()
+
+
+## The Morok's trick (creatures.json special): a warm light like a beacon's hint, hung over the shallows
+## 60–200 m out from its shore. A boat that steers for it runs onto the bottom. Not on the compass; with fire
+## in hand it flickers green.
+func _hang_false_light() -> void:
+	var map: WorldMap = director.map
+	var best := Vector3.INF
+	for k in 24:
+		var a := k * TAU / 24.0
+		for r in range(60, 200, 20):
+			var p2 := Vector2(position.x, position.z) + Vector2.from_angle(a) * float(r)
+			var g := map.ground_at(p2.x, p2.y)
+			if g < -0.4 and g > -1.6:
+				best = Vector3(p2.x, 6.0, p2.y)
+				break
+		if best != Vector3.INF:
+			break
+	if best == Vector3.INF:
+		return
+	false_light = Node3D.new()
+	false_light.name = "FalseLight"
+	false_light.top_level = true
+	false_light.position = best
+	false_light.add_child(Placeholders.glow(Color("ffb060"), 4.0, 1.2))
+	var l := OmniLight3D.new()
+	l.light_color = Color("ffb060")
+	l.light_energy = 2.0
+	l.omni_range = 14.0
+	l.shadow_enabled = false
+	l.add_to_group("budget_light")
+	false_light.add_child(l)
+	add_child(false_light)
 
 
 func behaviour() -> String:
@@ -76,6 +117,7 @@ func flash() -> void:
 func _process(delta: float) -> void:
 	_bob += delta
 	_flash = maxf(0.0, _flash - delta)
+	hit_t += delta
 	var s := 1.0 + _flash * 0.6
 	model.scale = Vector3.ONE * s
 	model.rotation.y = yaw
@@ -85,6 +127,16 @@ func _process(delta: float) -> void:
 		y += sin(_bob * 1.7) * 0.25
 	if id == "ryba_kit":
 		y = hover + sin(_bob * 0.3) * 0.3
+	elif behaviour() == "sea":
+		y = Sea.height(position.x, position.z, director.world.sea.storm) + hover + sin(_bob * 0.8) * 0.2
+		model.rotation.x = sin(_bob * 0.8) * 0.08
+	if false_light != null:
+		var torch_near: bool = director.player_light_radius() > 0.0 and _flat_from(director.player_pos(), false_light.position) < 60.0
+		var glow := false_light.get_node("Glow") as MeshInstance3D
+		var col := Color("70e090") if torch_near else Color("ffb060")
+		(glow.material_override as ShaderMaterial).set_shader_parameter("color", col)
+		(glow.material_override as ShaderMaterial).set_shader_parameter("strength", 1.2 + sin(_bob * (9.0 if torch_near else 2.0)) * 0.5)
+		(false_light.get_child(1) as OmniLight3D).light_color = col
 	elif id in ["seal", "vodyanoy"] and ground < 0.3:
 		y = -0.6 + sin(_bob) * 0.1  # in the water to the shoulders
 	position.y = lerpf(position.y, y, 1.0 - exp(-delta * 6.0))
@@ -111,10 +163,18 @@ func think(delta: float) -> void:
 				_run_from(pp, speed(), delta)
 			else:
 				_wander(4.0, speed() * 0.25, delta)
+		"sea":
+			_sea(pp, d, on_foot, delta)
 		"watch":
 			if d < 7.0 and on_foot and id == "seal":
 				mood = "hide"
 				_go(_shore_out(), speed(), delta)
+			elif id == "seal" and not on_foot and d < 35.0 and absf(float(director.world.my_boat.speed)) > 1.0:
+				# seals keep the boat company: alongside, a little astern (docs/08_NEXT.md 13.1)
+				mood = "escort"
+				var h: Vector2 = director.world.my_boat.heading()
+				var side := 1.0 if uid.hash() % 2 == 0 else -1.0
+				_go(pp + Vector3(-h.y, 0, h.x) * 6.0 * side - Vector3(h.x, 0, h.y) * 3.0, speed() * 2.0, delta)
 			elif id == "sirin":
 				_face(pp, delta)
 			else:
@@ -226,6 +286,72 @@ func _fog(pp: Vector3, d: float, on_foot: bool, delta: float) -> void:
 		_wander(8.0, speed() * 0.3, delta)
 
 
+## A creature of the deep (the Puchinnik, docs/08_NEXT.md 13.3). Fire in hand or a lantern at the bow keeps it
+## off at keep_off_m and makes it let go. Else: it circles the boat and rocks it for circle_s, then grips the
+## hull (director.grapple) and strikes everyone aboard every 5 s; three strikes on it, or half its health,
+## drive it off to circle again; left unanswered for grapple_s it rolls the boat (director.sink) and leaves.
+func _sea(pp: Vector3, d: float, on_foot: bool, delta: float) -> void:
+	phase_t += delta
+	var boat: Boat = director.boat_of(self)
+	if on_foot or boat == null:
+		mood = "wander"
+		_go(home + Vector3(sin(_t * 0.3), 0, cos(_t * 0.3)) * 25.0, speed() * 0.5, delta)
+		return
+	var keep_off: float = float(director.db.raw["boats"]["parts"]["lantern"]["keep_off_m"])
+	var lit: bool = director.player_light_radius() > 0.0 or boat.has_part("lantern")
+	var holding: bool = boat.held and String(director.state.boats[boat.uid]["held"]) == uid
+	if lit:
+		if holding:
+			director.release(self, boat)
+			hits = 0
+		if mood != "keep_off":
+			phase_t = 0.0
+		mood = "keep_off"
+		_circle(pp, maxf(keep_off, radius + 6.0), delta)
+		if phase_t > 60.0:
+			director.leave(self)  # it tires of the light
+		return
+	if holding:
+		mood = "chase"
+		_face(pp, delta)
+		position.x = lerpf(position.x, pp.x + (position.x - pp.x) * 0.9, 1.0 - exp(-delta * 2.0))
+		position.z = lerpf(position.z, pp.z + (position.z - pp.z) * 0.9, 1.0 - exp(-delta * 2.0))
+		if hit_t < 0.5:
+			hit_t = 1.0
+			hits += 1
+			phase_t = 0.0
+		if hits >= 3 or float(director.state.creatures.get(uid, {}).get("hp", 0.0)) < float(info["hp"]) * 0.5:
+			director.release(self, boat)
+			hits = 0
+			mood = "circle"
+			phase_t = -20.0  # it keeps its distance a while before it comes again
+			return
+		if _cool <= 0.0:
+			_cool = 5.0
+			director.bite_all(self, boat, 0.6)
+		if phase_t > float(info.get("grapple_s", 30.0)):
+			director.sink(self, boat)
+			director.leave(self)
+		return
+	if mood != "circle" and mood != "chase":
+		mood = "circle"
+		phase_t = 0.0
+	if mood == "circle":
+		_circle(pp, 22.0, delta)
+		if _special <= 0.0:
+			_special = 8.0
+			director.rock(self, boat)
+		if phase_t > float(info.get("circle_s", 40.0)):
+			mood = "chase"
+			phase_t = 0.0
+		return
+	_go(pp, speed(), delta)  # the grip: up to the hull
+	if d < radius + 2.5 and phase_t > 1.0:
+		director.grapple(self, boat)
+		phase_t = 0.0
+		hits = 0
+
+
 func _friend(pp: Vector3, d: float, delta: float) -> void:
 	match id:
 		"leshy":
@@ -305,9 +431,11 @@ func _go(p: Vector3, spd: float, delta: float) -> void:
 	var n := to / d
 	var step := minf(d, spd * delta)
 	var next := position + Vector3(n.x, 0, n.y) * step
-	if hover < 0.3 and not id in ["seal", "vodyanoy", "hozyain_guby", "ryba_kit"] and director.map.ground_at(next.x, next.z) < 0.25:
+	if hover < 0.3 and not id in ["seal", "vodyanoy", "hozyain_guby", "ryba_kit"] and behaviour() != "sea" and director.map.ground_at(next.x, next.z) < 0.25:
 		_goal = home
 		return
+	if behaviour() == "sea" and director.map.ground_at(next.x, next.z) > -3.0:
+		return  # the deep never comes into the shallows
 	position.x = next.x
 	position.z = next.z
 	yaw = lerp_angle(yaw, atan2(-n.x, -n.y), 1.0 - exp(-delta * 8.0))

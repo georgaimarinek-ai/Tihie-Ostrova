@@ -496,3 +496,39 @@ ui.repair_free	Починить	Repair
 ui.repair_at	Чинят у станции «%s».	Mended at the %s.
 info.tool_uses	Хватает на %d использований, потом тупится и ломается; правка — %s.	Lasts %d uses, then dulls and breaks; mended at the %s.
 evening.tools	Пора починить	Time to mend
+cmd.tide	Эту отмель откроет отлив.	The ebb will bare this shoal.
+cmd.unknown_part	Такой снасти нет.	No such fitting.
+cmd.shallow	Здесь мелко.	Too shallow here.
+cmd.near_beacon	Слишком близко к маяку.	Too close to a beacon.
+act.pick_flotsam	Подобрать: %s	Haul in: %s
+act.pick_bottle	Выловить бутылку	Fish out the bottle
+act.fit_boat	Поставить на лодку: %s	Fit the boat: %s
+act.fit_needs	%s: не хватает %s	%s: missing %s
+act.pole_off	Оттолкнуться шестом (%d с)	Pole off (%d s)
+flotsam.log	Бревно	A log
+flotsam.barrel	Бочонок	A barrel
+flotsam.bottle	Бутылка	A bottle
+toast.flotsam	Выловил: %s	Hauled in: %s
+toast.bottle	В бутылке записка. Страница в журнале (J).	A note in the bottle. A page in the journal (J).
+toast.boat_held	Пучинник держит лодку! Бей его или покажи огонь.	The Deep One grips the boat! Strike it or show fire.
+toast.boat_released	Лодка свободна.	The boat is free.
+toast.boat_fitted	На лодке теперь: %s.	The boat now has: %s.
+toast.capsized_by	Лодку опрокинули. Переверни её (E).	The boat was rolled over. Right it (E).
+toast.tide_low	Отлив: отмели открыты, у берегов мелко.	Low tide: the shoals are bare, the shores are shallow.
+toast.tide_high	Прилив: вода вернулась.	High tide: the water is back.
+ui.tailwind	Попутный ветер	Tailwind
+ui.squall	Шквал близко	Squall coming
+ui.squall_hint	к берегу или готовься	make for shore or brace
+ui.tide_low	Отлив	Low tide
+ui.tide_left	ещё %d мин	%d min left
+ui.shoal	Косяк	A shoal
+ui.held	Лодку держат!	The boat is held!
+ui.vodyanoy_angry	Водяной обижен	The vodyanoy sulks
+ui.vodyanoy_hint	клёв хуже: дай ему первую рыбу	bites are worse: give him the first fish
+goal.aground	Лодка на мели: вода ушла. Оттолкнись шестом (E) или дождись прилива (%d мин).	The boat is aground: the water has gone. Pole off (E) or wait for the tide (%d min).
+goal.aground_rocks	Лодка села на камни. Оттолкнись шестом (E) — и не верь каждому огоньку.	The boat ran onto the rocks. Pole off (E), and don't trust every light.
+goal.held	Пучинник держит лодку. Рогатина или гарпун с борта, огонь в руке отгоняет его.	The Deep One holds the boat. A spear or a harpoon from the deck; fire in hand drives it off.
+journal.sea_bottle	Записка в бутылке	A note in a bottle
+tale.sea_bottle	Бутылка из тёмного стекла, в ней берестяной лоскут: «Кто найдёт — пусть зажжёт огонь на Чаячьей. Мы не успели». Без подписи. (TODO: быличка автора)	A bottle of dark glass with a strip of birch bark inside: "Whoever finds this, light the fire on Gull Skerry. We did not make it in time." Unsigned. (TODO: author's tale)
+tale.puchinnik	Старики говорят: в густую мглу под лодкой ходит тот, кого не зовут по имени. Он не злой, он голодный, и свет ему не по нраву. Держи фонарь на носу и гарпун под рукой. (TODO: быличка автора)	The old folk say that in thick fog something walks beneath the boat that no one names. It is not evil, only hungry, and it does not like the light. Keep a lantern at the bow and a harpoon to hand. (TODO: author's tale)
+part.lantern	Лодочный фонарь	Boat lantern

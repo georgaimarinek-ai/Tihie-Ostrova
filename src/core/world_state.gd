@@ -33,6 +33,10 @@ var spirits: Dictionary = {}
 var creatures: Dictionary = {}
 ## The Saga fight in progress: {"beacon", "kind": "guardian" | "defense", "until": clock_min (defence), "boss": uid}.
 var fight: Dictionary = {}
+## Things afloat (SeaLife): uid -> {"kind", "pos", "until"}; picked up with "pick_flotsam".
+var flotsam: Dictionary = {}
+## A tailwind after a beacon (balance.sea_events.tailwind): sail speed × factor until this clock minute.
+var tailwind_until := 0.0
 var next_uid: int = 1
 
 var db: ContentDB
@@ -73,7 +77,8 @@ func inv(pid: String) -> Inventory:
 ## A boat of a type from boats.json with an empty hold. Only WorldCommands calls this (and tests).
 func add_boat(type: String, pos: Vector3, yaw: float) -> String:
 	var uid := new_uid("b")
-	boats[uid] = {"type": type, "pos": pos, "yaw": yaw, "cargo": Inventory.new(db, int(db.boats[type]["cargo_slots"])), "capsized": false}
+	boats[uid] = {"type": type, "pos": pos, "yaw": yaw, "cargo": Inventory.new(db, int(db.boats[type]["cargo_slots"])), "capsized": false,
+		"held": "", "parts": []}
 	return uid
 
 
@@ -114,7 +119,12 @@ func to_dict() -> Dictionary:
 	var bs := {}
 	for uid: String in boats:
 		var b: Dictionary = boats[uid]
-		bs[uid] = {"type": b["type"], "pos": _v3(b["pos"]), "yaw": b["yaw"], "cargo": (b["cargo"] as Inventory).to_dict(), "capsized": b["capsized"]}
+		bs[uid] = {"type": b["type"], "pos": _v3(b["pos"]), "yaw": b["yaw"], "cargo": (b["cargo"] as Inventory).to_dict(), "capsized": b["capsized"],
+			"held": b["held"], "parts": (b["parts"] as Array).duplicate()}
+	var fl := {}
+	for uid: String in flotsam:
+		var f: Dictionary = flotsam[uid]
+		fl[uid] = {"kind": f["kind"], "pos": _v3(f["pos"]), "until": f["until"]}
 	var cr := {}
 	for uid: String in creatures:
 		var c: Dictionary = creatures[uid]
@@ -125,6 +135,7 @@ func to_dict() -> Dictionary:
 		"pieces": pcs, "graves": gr, "depleted": depleted.duplicate(), "players": ps, "boats": bs, "next_uid": next_uid,
 		"journal": journal.duplicate(), "tuning": tuning.duplicate(),
 		"name": name, "spirits": spirits.duplicate(true), "creatures": cr, "fight": fight.duplicate(),
+		"flotsam": fl, "tailwind_until": tailwind_until,
 	}
 
 
@@ -170,7 +181,11 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		var b: Dictionary = d["boats"][uid]
 		var cargo := Inventory.new(p_db, int(p_db.boats[String(b["type"])]["cargo_slots"]))
 		cargo.from_dict(b["cargo"])
-		s.boats[uid] = {"type": String(b["type"]), "pos": _to_v3(b["pos"]), "yaw": float(b["yaw"]), "cargo": cargo, "capsized": bool(b["capsized"])}
+		var parts: Array = []
+		for part in b.get("parts", []):
+			parts.append(String(part))
+		s.boats[uid] = {"type": String(b["type"]), "pos": _to_v3(b["pos"]), "yaw": float(b["yaw"]), "cargo": cargo, "capsized": bool(b["capsized"]),
+			"held": String(b.get("held", "")), "parts": parts}
 	s.next_uid = int(d["next_uid"])
 	for k: String in d["journal"]:
 		s.journal[k] = int(d["journal"][k])
@@ -181,6 +196,10 @@ static func from_dict(p_db: ContentDB, src: Dictionary) -> WorldState:
 		var c: Dictionary = d["creatures"][uid]
 		s.creatures[uid] = {"id": String(c["id"]), "pos": _to_v3(c["pos"]), "hp": float(c["hp"]), "fight": String(c["fight"])}
 	s.fight = (d["fight"] as Dictionary).duplicate()
+	for uid: String in d["flotsam"]:
+		var f: Dictionary = d["flotsam"][uid]
+		s.flotsam[uid] = {"kind": String(f["kind"]), "pos": _to_v3(f["pos"]), "until": float(f["until"])}
+	s.tailwind_until = float(d["tailwind_until"])
 	return s
 
 
@@ -263,7 +282,18 @@ static func migrate(src: Dictionary) -> Dictionary:
 			d["name"] = ""
 		v = 4
 	if v < 5:
-		# v5: bag slots may carry "wear" (tool wear, docs/08_NEXT.md stage 14). Old slots have none = whole tools.
+		# v5: bag slots may carry "wear" (tool wear, docs/08_NEXT.md stage 14): old slots have none = whole tools.
+		# The living sea (stage 13): flotsam, a tailwind, boats held by a creature and fitted with parts.
+		for uid: String in d["boats"]:
+			var b: Dictionary = d["boats"][uid]
+			if not b.has("held"):
+				b["held"] = ""
+			if not b.has("parts"):
+				b["parts"] = []
+		if not d.has("flotsam"):
+			d["flotsam"] = {}
+		if not d.has("tailwind_until"):
+			d["tailwind_until"] = 0.0
 		v = 5
 	d["version"] = v
 	return d

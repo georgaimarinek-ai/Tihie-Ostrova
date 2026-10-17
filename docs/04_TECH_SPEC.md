@@ -76,6 +76,10 @@ reference/sketch/        браузерный набросок, эталон о�
 | `meet` | creature | существо есть в этом режиме и регионе; рыба-кит — тихая ночь Студёного моря («Отдых»), Сирин — рассвет | `met`, `journal_page` |
 | `explore` | site | руины чуди (`WorldMap.chud_sites`) в 6 м, ещё не осмотрены | `explored`, `journal_page` |
 | `repair` | uid, slot | инструмент в слоте тупой или сломанный (`Tools.condition`), `uid` — его станция (`Tools.repair_station`: кузня для кованого, иначе верстак) в 6 м, стоимость `Tools.repair_cost` в сумке | `repaired` |
+| `flotsam` | kind, pos | **только хост**: вид из `balance.sea_events.flotsam.kinds`, точка на воде | `flotsam_added` |
+| `pick_flotsam` | uid | с лодки в `reach_m` (8 м) или вброд в 4 м; вещи в сумку целиком или страница журнала | `flotsam_picked`, `journal_page` |
+| `grapple` / `release` | boat, source | **только хост**: существо с поведением `sea` в 8 м от неперевёрнутой лодки; `release` снимает хватку. Гибель, `despawn` и смена режима отпускают сами | `boat_held`, `boat_released` |
+| `fit_boat` | uid, boat, part | игрок у эллинга, лодка в 40 м от него, снасть из `boats.json → parts` открыта и оплачена, ещё не стоит | `boat_fitted` |
 | `set_tuning` | rule, value | storms/cold/durability/night_raids с допустимым значением, не во время боя. Как и `set_mode`, убирает из мира существ, которых новые правила не допускают | `tuning_changed`, `creature_gone`… |
 | `right_boat` | boat | лодка опрокинута, игрок в ней или в 16 м | `boat_righted` |
 | `complete_trial` | beacon, kind | регион открыт; только kind = trial и только когда правило маяка `trial` (Тихий/Сказание). В Саге испытание засчитывает сам хост: гибель стража в `attack`, выдержанная оборона в `tick`; игрок объявить победу не может. С картой хост проверяет, что видит сам: игрок на острове маяка; `carry` — огонь в руке и игрок у вышки (12 м); `climb` — игрок на высоте площадки (`CLIMB_TOP_M` = 9 м над вершиной) | `trial_done` |

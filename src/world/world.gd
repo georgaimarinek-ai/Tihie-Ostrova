@@ -12,6 +12,7 @@ extends Node3D
 ##   --walk=x,z,yaw       put the player on foot there
 ##   --look=yaw,pitch     camera offset (degrees; boat: from the stern) and pitch (0..90)
 ##   --give=item:n,...    items in the bag (debug), --wear=tool:n wears a tool, --torch lights a torch, --eat=a,b eats dishes
+##   --flotsam            a log, a barrel and a bottle beside the boat; --fit=lantern fits the boat out (debug)
 ##   --place=piece,...    set up pieces in front of the player, --craft[=recipe] opens the crafting window
 ##   --house              build a small cabin in front of the player (snapped "place" commands)
 ##   --build=piece        enter the build mode with that piece, its ghost 5 m ahead
@@ -50,6 +51,7 @@ var storage: StorageWindow
 var build: BuildMode
 var chart: MapWindow
 var creatures: CreatureDirector
+var sea_life: SeaDirector  # flotsam, the tide's turn (docs/08_NEXT.md 13.1)
 var sites: SitesView
 var weather: WeatherView
 var combat: Combat
@@ -77,6 +79,7 @@ var _channel: Dictionary = {}  # gathering in progress: {"node", "item", "per", 
 var _board_dist := 6.0
 var _near_station := ""  # uid of the nearest station within reach
 var _fishing: Dictionary = {}  # {"spot", "t", "next", "bite", "caught", "want"}
+var _poling := 0.0  # seconds left of poling the boat off the bottom (E when aground)
 var _bobber: Node3D
 var _hot := 0  # chosen hotbar place
 var _near_use := ""  # a bed, a sauna stove or a chest within reach
@@ -94,7 +97,7 @@ func _ready() -> void:
 	if not _args.is_empty() and not _args.has("menu"):
 		Game.show_menu = false  # debug and automation runs start straight in the world
 	if Game.state == null:
-		for k in ["debug-cheats", "lit", "light-at", "give", "wear", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon"]:
+		for k in ["debug-cheats", "lit", "light-at", "give", "wear", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon", "flotsam", "fit"]:
 			if _args.has(k):
 				Game.debug_cheats = true
 		Game.new_world(int(_args.get("seed", 4127)), String(_args.get("mode", "")))
@@ -165,6 +168,9 @@ func _ready() -> void:
 	creatures = CreatureDirector.new()
 	add_child(creatures)
 	creatures.setup(self)
+	sea_life = SeaDirector.new()
+	add_child(sea_life)
+	sea_life.setup(self)
 	sites = SitesView.new()
 	add_child(sites)
 	sites.setup(self)
@@ -261,6 +267,7 @@ func _spawn_boat(uid: String) -> Boat:
 	b.global_position = row["pos"]
 	b.rotation.y = float(row["yaw"])
 	b.world_state = state  # the sea wall: closed regions turn the boat home
+	b.refit(row["parts"])
 	boats[uid] = b
 	return b
 
@@ -279,9 +286,15 @@ func on_foot() -> bool:
 
 func _physics_process(_delta: float) -> void:
 	var wind := Weather.wind(db, state.world_seed, state.clock_min)
-	for b: Boat in boats.values():
+	Sea.level = SeaLife.tide_offset(db, state.clock_min)
+	var tail := SeaLife.tailwind(db, state)
+	for uid: String in boats:
+		var b: Boat = boats[uid]
 		b.wind = wind
 		b.storm = sea.storm
+		b.tailwind = tail
+		b.seabed = map.ground_at(b.global_position.x, b.global_position.z)
+		b.held = state.boats.has(uid) and String(state.boats[uid]["held"]) != ""
 	if my_boat != null:
 		var fwd := Input.get_action_strength("move_forward") - 0.5 * Input.get_action_strength("move_back")
 		var steer := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
@@ -310,6 +323,9 @@ func _process(delta: float) -> void:
 	elif my_boat != null:
 		extra.append(my_boat.fog_light(true))
 	extra.append(home.hearth_light)
+	for b: Boat in boats.values():
+		if b != my_boat and b != last_boat and b.has_part("lantern"):
+			extra.append(b.fog_light(false))
 	extra.append_array(pieces.fog_lights(Vector2(focus.x, focus.z), 2))
 	for t: Trial in trials.values():
 		extra.append_array(t.fog_lights())
@@ -320,6 +336,10 @@ func _process(delta: float) -> void:
 		_scan_timer = 0.15
 		_scan()
 	_update_channel(delta)
+	if _poling > 0.0 and my_boat != null:
+		_poling -= delta
+		if _poling <= 0.0:
+			my_boat.pole_off(_deeper_dir())
 	_update_fishing(delta)
 	_update_vitals()
 	_update_beacons()
@@ -422,6 +442,13 @@ func _action() -> Dictionary:
 			if float(_fishing["bite"]) > 0.0:
 				return {"label": tr("act.hook"), "run": _hook}
 			return {"label": tr("act.reel") % [int(_fishing["caught"]), int(_fishing["want"])], "run": _stop_fishing}
+		if my_boat.aground:
+			if _poling > 0.0:
+				return {"label": tr("act.pole_off") % ceili(_poling), "run": func() -> void: pass}
+			return {"label": tr("act.pole_off") % 10, "run": func() -> void: _poling = 10.0}
+		var afloat := sea_life.action(my_boat.global_position, true)
+		if not afloat.is_empty():
+			return afloat
 		var whale := creatures.action(my_boat.global_position, true)
 		if not whale.is_empty():
 			return whale
@@ -443,6 +470,8 @@ func _action() -> Dictionary:
 	var life := sites.action(player.global_position)
 	if life.is_empty():
 		life = creatures.action(player.global_position, false)
+	if life.is_empty():
+		life = sea_life.action(player.global_position, false)  # wading out to a log
 	if not life.is_empty():
 		return life
 	var inv := state.inv(_pid)
@@ -674,7 +703,41 @@ func _boatyard_action(uid: String) -> Dictionary:
 				Game.submit({"type": "build_boat", "boat": type, "uid": uid})}
 		var need := tr("act.boat_needs") % [name, ItemInfo.bag_text(db, inv.missing(cost))]
 		return {"label": need, "run": func() -> void: hud.toast(need)}
+	# fittings (boats.json → parts) for a boat lying by the yard
+	var yard_pos: Vector3 = state.pieces[uid]["pos"]
+	var parts: Dictionary = db.raw["boats"].get("parts", {})
+	for part: String in parts:
+		if part == "note" or not db.is_unlocked(String(parts[part]["unlock"]), state.lit):
+			continue
+		for buid: String in state.boats:
+			var row: Dictionary = state.boats[buid]
+			if (row["pos"] as Vector3).distance_to(yard_pos) > WorldCommands.FIT_REACH_M or (row["parts"] as Array).has(part):
+				continue
+			var pname := tr("part." + part)
+			var pcost := ContentDB.bag(parts[part]["cost"])
+			var bag := state.inv(_pid)
+			if bag.has_bag(pcost):
+				return {"label": tr("act.fit_boat") % pname, "run": func() -> void:
+					_send_move()
+					Game.submit({"type": "fit_boat", "uid": uid, "boat": buid, "part": part})}
+			var lack := tr("act.fit_needs") % [pname, ItemInfo.bag_text(db, bag.missing(pcost))]
+			return {"label": lack, "run": func() -> void: hud.toast(lack)}
 	return {}
+
+
+## Where the water is deepest within 12 m: the way to pole off a shoal.
+func _deeper_dir() -> Vector3:
+	var p := my_boat.global_position
+	var best := Vector3(-p.x, 0, -p.z).normalized()
+	var best_g := INF
+	for k in 12:
+		var a := k * TAU / 12.0
+		var d := Vector3(cos(a), 0, sin(a))
+		var g := map.ground_at(p.x + d.x * 12.0, p.z + d.z * 12.0)
+		if g < best_g:
+			best_g = g
+			best = d
+	return best
 
 
 ## E by a trial's props, or at the tower once the trial is passed: "Light the beacon" (or what fuel is missing).
@@ -828,9 +891,10 @@ func _cast_point() -> Vector3:
 func _start_fishing() -> void:
 	var cp := _cast_point()
 	var per := Gathering.unit_seconds(db, state.inv(_pid), "raw_fish", _wear())
-	if Creatures.vodyanoy_boon(state):
-		per /= 1.0 + float(db.balance["spirits"]["vodyanoy_bite_bonus"])  # the first fish went to the vodyanoy
-	_fishing = {"spot": map.fish_spot(Vector2(cp.x, cp.z)), "pos": cp, "t": 0.0, "next": per * randf_range(0.6, 1.3), "bite": 0.0, "caught": 0, "want": WorldCommands.GATHER_MAX, "per": per}
+	var spot := map.fish_spot(Vector2(cp.x, cp.z))
+	# the vodyanoy's boon or sulk in his waters, a shoal under the gulls (SeaLife)
+	per /= SeaLife.vodyanoy_bite_factor(db, state, db.region_at(Vector2(cp.x, cp.z))) * SeaLife.shoal_factor(db, state.world_seed, state.clock_min, spot)
+	_fishing = {"spot": spot, "pos": cp, "t": 0.0, "next": per * randf_range(0.6, 1.3), "bite": 0.0, "caught": 0, "want": WorldCommands.GATHER_MAX, "per": per}
 	_bobber.visible = true
 	player.busy = true
 	audio.sfx("board")
@@ -1165,6 +1229,20 @@ func _states() -> Array:
 		out.append({"label": tr("ui.cold"), "text": tr("ui.cold_hint"), "warn": true})
 	if Creatures.leshy_guiding(state):
 		out.append({"label": tr("ui.wisp"), "text": ""})
+	var f := _focus()
+	var rid := db.region_at(Vector2(f.x, f.z))
+	if my_boat != null and my_boat.held:
+		out.append({"label": tr("ui.held"), "text": "", "warn": true})
+	if SeaLife.tailwind(db, state) > 1.0:
+		out.append({"label": tr("ui.tailwind"), "text": left.call(state.tailwind_until)})
+	if my_boat != null and SeaLife.squall_coming(db, state.world_seed, state.clock_min, rid):
+		out.append({"label": tr("ui.squall"), "text": tr("ui.squall_hint"), "warn": true})
+	if SeaLife.tide_low(db, state.clock_min):
+		out.append({"label": tr("ui.tide_low"), "text": tr("ui.tide_left") % ceili(SeaLife.tide_turns_in(db, state.clock_min))})
+	if my_boat != null and SeaLife.shoal_active(db, state.world_seed, state.clock_min, map.fish_spot(Vector2(f.x, f.z))):
+		out.append({"label": tr("ui.shoal"), "text": ""})
+	if SeaLife.vodyanoy_angry(db, state) and (db.regions[rid]["creatures"] as Array).has("vodyanoy"):
+		out.append({"label": tr("ui.vodyanoy_angry"), "text": tr("ui.vodyanoy_hint"), "warn": true})
 	return out
 
 
@@ -1220,6 +1298,11 @@ func _goal() -> Dictionary:
 	if my_boat != null:
 		if my_boat.capsized:
 			return {"text": tr("goal.capsized")}
+		if my_boat.held:
+			return {"text": tr("goal.held")}
+		if my_boat.aground:
+			var low := SeaLife.tide_low(db, state.clock_min)
+			return {"text": tr("goal.aground") % ceili(SeaLife.tide_turns_in(db, state.clock_min)) if low else tr("goal.aground_rocks")}
 		if my_boat.wall != "":
 			var g := beacon_goal.duplicate()
 			var bp := Vector2(my_boat.global_position.x, my_boat.global_position.z)
@@ -1420,8 +1503,23 @@ func _on_world_event(e: Dictionary) -> void:
 			if mine:
 				hud.toast(tr("toast.explored"), ItemInfo.bag_text(db, e["items"]))
 		"boat_capsized":
-			hud.toast(tr("toast.capsized"), "!")
+			hud.toast(tr("toast.capsized_by" if String(e.get("by", "")) != "" else "toast.capsized"), "!")
 			audio.sfx("thud")
+		"boat_held":
+			hud.toast(tr("toast.boat_held"), "!")
+			audio.sfx("growl")
+		"boat_released":
+			hud.toast(tr("toast.boat_released"), "✓")
+		"boat_fitted":
+			if boats.has(String(e["boat"])):
+				(boats[e["boat"]] as Boat).refit(state.boats[e["boat"]]["parts"])
+			if mine:
+				hud.toast(tr("toast.boat_fitted") % tr("part." + String(e["part"])), "⛵")
+		"flotsam_picked":
+			if mine:
+				var items: Dictionary = e["items"]
+				hud.toast(tr("toast.bottle") if items.is_empty() else tr("toast.flotsam") % ItemInfo.bag_text(db, items), "≈")
+				audio.sfx("pickup")
 		"boat_righted":
 			audio.sfx("board")
 		"fight_started":
@@ -1576,6 +1674,15 @@ func _debug_setup() -> void:
 				b.rotation.y = deg_to_rad(float(v[2]))
 			var bp := b.global_position
 			Game.submit({"type": "move", "pos": [bp.x, 0.0, bp.z], "boat_pos": [bp.x, 0.0, bp.z], "boat_yaw": b.rotation.y})
+	var own := boats.get(state.players[_pid]["aboard"]) as Boat  # the boat under the player (my_boat is set later)
+	if _args.has("flotsam") and own != null:  # --flotsam: a log, a barrel and a bottle beside the boat
+		var bp := own.global_position
+		var i := 0
+		for kind in ["log", "barrel", "bottle"]:
+			i += 1
+			Game.submit({"type": "flotsam", "kind": kind, "pos": [bp.x + 5.0 * i, 0.0, bp.z - 6.0 + 3.0 * i]})
+	if _args.has("fit") and own != null:  # --fit=lantern: a fitting on the player's boat (debug)
+		Game.submit({"type": "debug", "fit": String(_args["fit"])})
 	if _args.has("torch"):
 		Game.submit({"type": "debug", "give": {"torch": 1}})
 		Game.submit({"type": "light", "item": "torch"})

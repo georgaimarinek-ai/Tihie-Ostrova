@@ -85,6 +85,17 @@ static func build(id: String) -> Node3D:
 			_sph(parts, 0.3, Vector3(0, 1.45, -0.25), Color("2e4a24"), Vector3(1.4, 0.6, 1.2))
 			_eyes(root, Vector3(0, 1.32, -0.6), 0.07, Color("c8ff70"))
 			height = 1.6
+		"puchinnik":
+			_sph(parts, 1.6, Vector3(0, 0.0, 0), Color("1e2a2e"), Vector3(1.0, 0.45, 2.2))  # the hump, 7 m nose to tail
+			_sph(parts, 0.7, Vector3(0, 0.3, -2.6), Color("243338"), Vector3(1.0, 0.6, 1.3))  # the head
+			for i in 5:
+				_b(parts, Vector3(0.08, 0.5 + 0.18 * (2 - absf(i - 2.0)), 0.5), Vector3(0, 0.65, -1.2 + i * 0.7), Color("31444a"), Vector3(0.2, 0, 0))
+			_eyes(root, Vector3(0, 0.55, -3.1), 0.14, Color("b8e8d0"))
+			var sheen := Placeholders.glow(Color("5fa898"), 5.0, 0.35)  # a cold sheen along the crest: it is seen at night
+			sheen.position = Vector3(0, 0.9, -0.4)
+			root.add_child(sheen)
+			height = 1.2
+			radius = 3.5
 		"morok":
 			_c(parts, 0.55, 0.18, 1.8, Vector3(0, 0.9, 0), Color("b8bec4"))
 			_sph(parts, 0.26, Vector3(0, 1.9, 0), Color("c8ced4"))

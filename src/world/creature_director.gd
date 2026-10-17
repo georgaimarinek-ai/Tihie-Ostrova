@@ -29,6 +29,7 @@ var _wave := 0
 var _asked: Dictionary = {}  # ids this session already asked about (meet)
 var _leshy_island := ""
 var _warned: Dictionary = {}  # uid -> true (toast once)
+var _sea_cool := 0.0  # seconds before the next creature of the deep may come (creatures.json cooldown_min)
 
 
 func setup(p_world) -> void:
@@ -80,6 +81,7 @@ func _on_event(e: Dictionary) -> void:
 			var v: CreatureView = views.get(String(e["uid"]))
 			if v != null:
 				v.flash()
+				v.hit_t = 0.0
 				if v.mood == "sleep":
 					v.mood = "chase"  # Likho wakes when struck
 		"guardian_phase":
@@ -127,6 +129,7 @@ func _process(delta: float) -> void:
 	if _meet_t <= 0.0:
 		_meet_t = 1.0
 		_meet_around()
+	_sea_cool = maxf(0.0, _sea_cool - delta)
 	_spawn_t -= delta
 	if _spawn_t <= 0.0:
 		_spawn_t = 2.0
@@ -225,9 +228,11 @@ func _ambient(f: Vector3, rid: String) -> void:
 			"karachun":
 				w = 0.5 if _count(id) < 1 else 0.0
 			_:
-				if g == "fog":
+				if String(db.creatures[id]["behaviour"]) == "sea":
+					w = 2.0 if aboard and _count(id) < 1 and _sea_cool <= 0.0 else 0.0
+				elif g == "fog":
 					w = 3.0 if _count(id) < (3 if id == "fog_wolf" else 2) else 0.0
-		if aboard and not id in ["seal", "gull", "morok"]:
+		if aboard and not id in ["seal", "gull", "morok"] and String(db.creatures[id]["behaviour"]) != "sea":
 			w = 0.0
 		if w > 0.0:
 			pool.append([id, w])
@@ -254,6 +259,15 @@ func _ambient(f: Vector3, rid: String) -> void:
 ## seals, the air for gulls; for Morok a shore seen from the boat.
 func _spot_for(id: String, f: Vector3) -> Vector3:
 	var isl := map.island_at(f.x, f.z) if world.on_foot() else map.nearest_island(Vector2(f.x, f.z), 140.0)
+	if String(db.creatures[id]["behaviour"]) == "sea":
+		# deep water 30–45 m from the boat (the host's "spawn" checks the depth, the fog, the night, the beacons)
+		for k in 10:
+			var a := randf() * TAU
+			var p2 := Vector2(f.x, f.z) + Vector2.from_angle(a) * randf_range(30.0, 45.0)
+			if map.ground_at(p2.x, p2.y) < -float(db.creatures[id].get("depth_m", 8.0)):
+				_sea_cool = float(db.creatures[id].get("cooldown_min", 4.0)) * 60.0
+				return Vector3(p2.x, 0.0, p2.y)
+		return Vector3.INF
 	if id == "gull":
 		var a := randf() * TAU
 		return f + Vector3(cos(a), 0, sin(a)) * 30.0
@@ -468,6 +482,54 @@ func player_light_radius() -> float:
 	if id == "" or not world.on_foot():
 		return 0.0
 	return float(db.items[id]["light"]["fog_radius"])
+
+
+# ---------------------------------------------------------------- the deep (docs/08_NEXT.md 13.3)
+
+## The boat a sea creature works on: the helmsman's within 60 m (null when the player is ashore).
+func boat_of(v: CreatureView) -> Boat:
+	var b: Boat = world.my_boat
+	if b == null or Vector2(b.global_position.x - v.position.x, b.global_position.z - v.position.z).length() > 60.0:
+		return null
+	return b
+
+
+func grapple(v: CreatureView, b: Boat) -> void:
+	Game.submit({"type": "creatures", "pos": {v.uid: WorldState._v3(v.position)}})
+	world._send_move()
+	Game.submit({"type": "grapple", "boat": b.uid, "source": v.uid})
+
+
+func release(_v: CreatureView, b: Boat) -> void:
+	Game.submit({"type": "release", "boat": b.uid})
+
+
+## The grip rolls the boat over: "capsize" (the host allows it for a held boat whatever the weather).
+func sink(v: CreatureView, b: Boat) -> void:
+	Game.submit({"type": "creatures", "pos": {v.uid: WorldState._v3(v.position)}})
+	Game.submit({"type": "capsize", "boat": b.uid})
+
+
+## Its pass rocks the hull: a shove across the beam (the helmsman simulates the boat).
+func rock(v: CreatureView, b: Boat) -> void:
+	var to := b.global_position - v.position
+	to.y = 0.0
+	b.apply_central_impulse(to.normalized() * b.mass * 0.9 + Vector3(0, b.mass * 0.5, 0))
+	world.audio.sfx("thud")
+
+
+## A blow at the hull reaches everyone aboard this boat.
+func bite_all(v: CreatureView, b: Boat, k: float) -> void:
+	Game.submit({"type": "creatures", "pos": {v.uid: WorldState._v3(v.position)}})
+	world._send_move()
+	for pid: String in state.players:
+		if String(state.players[pid]["aboard"]) == b.uid:
+			Game.submit({"type": "hurt", "player": pid, "source": v.uid, "k": k})
+
+
+## It goes back into the deep.
+func leave(v: CreatureView) -> void:
+	Game.submit({"type": "despawn", "uid": v.uid})
 
 
 ## A creature's hit: its position first (the host checks reach), then "hurt".

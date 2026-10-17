@@ -44,7 +44,10 @@ static func allowed(db: ContentDB, mode: String, rules: Dictionary, id: String) 
 ## `night` 0..1, `dark_island` = on the island of a beacon that is still dark (the Mga clings to the land).
 ## Fog creatures come only where the fog is thicker than their fog_min, at night or on a dark island;
 ## guardians come only with their fight (begin_fight), never by themselves.
-static func spawn_block(db: ContentDB, mode: String, rules: Dictionary, id: String, rid: String, fog: float, night: float, dark_island: bool) -> String:
+## A creature of the deep (behaviour "sea") also wants water deeper than its depth_m (`depth` = the sea floor's
+## height there, negative) and no lit beacon within beacon_m (`beacon_m` = distance to the nearest lit one).
+static func spawn_block(db: ContentDB, mode: String, rules: Dictionary, id: String, rid: String, fog: float, night: float, dark_island: bool,
+		depth: float = -INF, beacon_m: float = INF) -> String:
 	if not allowed(db, mode, rules, id):
 		return "not_in_this_mode"
 	var c := info(db, id)
@@ -52,11 +55,17 @@ static func spawn_block(db: ContentDB, mode: String, rules: Dictionary, id: Stri
 		return "fight_only"
 	if rid != "" and not (db.regions[rid]["creatures"] as Array).has(id):
 		return "not_in_this_region"
-	if String(c["behaviour"]) == "fog":
+	var behaviour := String(c["behaviour"])
+	if behaviour == "fog" or behaviour == "sea":
 		if fog <= float(c.get("fog_min", 0.0)):
 			return "clear"
 		if night < 0.5 and not dark_island:
 			return "daylight"
+	if behaviour == "sea":
+		if depth > -float(c.get("depth_m", 8.0)):
+			return "shallow"
+		if beacon_m < float(c.get("beacon_m", 120.0)):
+			return "near_beacon"
 	return ""
 
 

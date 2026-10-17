@@ -37,6 +37,13 @@ var wall := ""  # "" | "locked" | "boat": what the sea says here
 var wall_time := 0.0  # seconds spent inside the wall
 var pushed := false  # the current has taken over the helm
 var capsized := false  # WorldState boats[uid].capsized: keel up, no sail, no helm until righted
+var held := false  # WorldState boats[uid].held: a creature of the deep grips the hull — no way on her
+var tailwind := 1.0  # SeaLife.tailwind after a beacon: sail speed factor
+var seabed := -50.0  # the sea floor under the hull (the world samples WorldMap.ground_at)
+var aground := false  # sitting on the bottom: the ebb or the rocks (no way; pole off or wait)
+var parts: Array = []  # fittings from the boatyard (boats.json → parts): "lantern"…
+var _grace := 0.0  # seconds after poling off during which "aground" is ignored
+var _lantern: Node3D
 
 var _points: Array[Vector3] = []
 var _turn := 0.0
@@ -94,7 +101,7 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 	submerged = 0
 	for lp in _points:
 		var wp := xf * lp
-		var depth := Waves.height(wp.x, wp.z, t, storm) * wave_gain - wp.y
+		var depth := Waves.height(wp.x, wp.z, t, storm) * wave_gain + Sea.level - wp.y
 		if depth <= 0.0:
 			continue
 		submerged += 1
@@ -109,8 +116,16 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 	var v_fwd := vel.dot(fwd)
 	var v_side := vel.dot(right)
 	speed = v_fwd
-	var helm := 0.0 if capsized else steer
-	var sail := 0.0 if capsized else throttle
+	_grace = maxf(0.0, _grace - st.step)
+	aground = _grace <= 0.0 and not capsized and seabed > Sea.level - draft()
+	var stuck := capsized or held or aground
+	var helm := 0.0 if stuck else steer
+	var sail := 0.0 if stuck else throttle
+	if held:
+		st.apply_torque(Vector3(sin(t * 7.0) * 0.4, 0.0, cos(t * 5.3) * 0.6) * mass)  # the hull shudders in the grip
+		st.apply_central_force(-Vector3(vel.x, 0.0, vel.z) * mass * 2.0)
+	elif aground:
+		st.apply_central_force(-Vector3(vel.x, 0.0, vel.z) * mass * 3.0)  # the keel bites the sand
 	_update_wall(st.step, Vector2(xf.origin.x, xf.origin.z))
 	if pushed:
 		# the current turns the bow home and carries the boat out of the Mga, gently
@@ -122,7 +137,7 @@ func _integrate_forces(st: PhysicsDirectBodyState3D) -> void:
 	var target := 0.0
 	if not anchored:
 		if sail > 0.0:
-			target = sail * float(data["speed"]) * Weather.sail_factor(db, Vector2(fwd.x, fwd.z), wind)
+			target = sail * float(data["speed"]) * Weather.sail_factor(db, Vector2(fwd.x, fwd.z), wind) * tailwind
 		elif sail < 0.0:
 			target = sail * 2.0 * float(data["row_speed"])
 	var wet := float(submerged) / 4.0
@@ -196,6 +211,60 @@ func heading() -> Vector2:
 	return Vector2(f.x, f.z).normalized()
 
 
-## The lantern clears the fog around the boat (sketch: 16 m, 0.55 aboard; 10 m, 0.4 when moored).
+## The lantern clears the fog around the boat (sketch: 16 m, 0.55 aboard; 10 m, 0.4 when moored); a boat
+## lantern from the boatyard (boats.json → parts.lantern.fog_radius) adds its own reach and burns when moored.
 func fog_light(aboard: bool) -> Vector4:
-	return Vector4(global_position.x, global_position.z, 16.0 if aboard else 10.0, 0.55 if aboard else 0.4)
+	var r := 16.0 if aboard else 10.0
+	var k := 0.55 if aboard else 0.4
+	if has_part("lantern"):
+		r += float(db.raw["boats"]["parts"]["lantern"]["fog_radius"])
+		k = maxf(k, 0.6)
+	return Vector4(global_position.x, global_position.z, r, k)
+
+
+## How deep the hull reaches at rest: the keel touches a sea floor higher than the water minus this.
+func draft() -> float:
+	var hull: Dictionary = Placeholders.HULLS.get(type, Placeholders.HULLS["karbas"])
+	return float(hull["depth"]) * 0.45
+
+
+func has_part(part: String) -> bool:
+	return parts.has(part)
+
+
+## The boat's fittings from the world (WorldState boats[uid].parts): a lantern at the bow glows and lights.
+func refit(p_parts: Array) -> void:
+	parts = p_parts.duplicate()
+	if _lantern != null:
+		_lantern.queue_free()
+		_lantern = null
+	if has_part("lantern"):
+		_lantern = Node3D.new()
+		_lantern.name = "BoatLantern"
+		var hull: Dictionary = Placeholders.HULLS.get(type, Placeholders.HULLS["karbas"])
+		_lantern.position = Vector3(0, 1.4, -float(hull["length"]) * 0.42)
+		var post := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.04
+		cyl.bottom_radius = 0.05
+		cyl.height = 1.2
+		post.mesh = cyl
+		post.position = Vector3(0, -0.6, 0)
+		post.material_override = Placeholders.mat(Color("4a3a2a"))
+		_lantern.add_child(post)
+		_lantern.add_child(Placeholders.glow(Color("ffc070"), 1.2, 0.9))
+		var light := OmniLight3D.new()
+		light.light_color = Color("ffb860")
+		light.light_energy = 1.6
+		light.omni_range = 9.0
+		light.shadow_enabled = false
+		light.add_to_group("budget_light")
+		_lantern.add_child(light)
+		add_child(_lantern)
+
+
+## Pole off the bottom towards deeper water: a shove, and a few seconds in which the keel is free.
+func pole_off(dir: Vector3) -> void:
+	_grace = 4.0
+	aground = false
+	apply_central_impulse(dir.normalized() * mass * 2.2 + Vector3(0, mass * 0.6, 0))

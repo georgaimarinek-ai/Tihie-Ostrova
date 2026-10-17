@@ -64,7 +64,7 @@
     { "id": "arrows", "name": { "ru": "Стрелы", "en": "Arrows" }, "kind": "ammo", "tier": 1, "stack": 100 },
     { "id": "shield", "name": { "ru": "Щит", "en": "Shield" }, "kind": "armor", "tier": 1, "stack": 1, "armor": { "block": 10 } },
     { "id": "iron_spear", "name": { "ru": "Железная рогатина", "en": "Iron boar spear" }, "kind": "weapon", "tier": 2, "stack": 1, "weapon": { "damage": 26, "stamina": 9, "reach": 2.6 } },
-    { "id": "harpoon", "name": { "ru": "Гарпун", "en": "Harpoon" }, "kind": "weapon", "tier": 3, "stack": 1, "weapon": { "damage": 38, "stamina": 10, "reach": 2.8, "throw": true } },
+    { "id": "harpoon", "name": { "ru": "Гарпун", "en": "Harpoon" }, "kind": "weapon", "tier": 3, "stack": 1, "weapon": { "damage": 38, "stamina": 10, "reach": 2.8, "throw": true, "throw_m": 12 } },
     { "id": "spolokh_spear", "name": { "ru": "Сполоховая рогатина", "en": "Aurora spear" }, "kind": "weapon", "tier": 4, "stack": 1, "weapon": { "damage": 55, "stamina": 10, "reach": 2.8, "vs_fog": 1.5 } },
     { "id": "wool_coat", "name": { "ru": "Тёплый зипун", "en": "Wool coat" }, "kind": "armor", "tier": 3, "stack": 1, "armor": { "cold": 1 } },
     { "id": "pearl_necklace", "name": { "ru": "Жемчужное ожерелье", "en": "Pearl necklace" }, "kind": "trinket", "tier": 3, "stack": 1, "trinket": { "rested_minutes": 10 } }

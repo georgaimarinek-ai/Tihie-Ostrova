@@ -5,6 +5,7 @@ render_mode cull_disabled, specular_schlick_ggx;
 
 global uniform float sea_storm;
 global uniform float sea_time;  // the wave clock shared with boats (Sea.time), not TIME: they must agree
+global uniform float sea_level;  // the tide (SeaLife.tide_offset, Sea.level): 0 at high water, below at the ebb
 global uniform vec3 sun_dir;  // towards the sun, world space (FogDirector)
 global uniform vec4 sun_glint;  // rgb = sun colour × strength (FogDirector)
 uniform vec3 deep_color : source_color = vec3(0.145, 0.235, 0.267);
@@ -25,7 +26,7 @@ float wave_h(vec2 p, float t) {
 
 void vertex() {
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	float h = wave_h(w.xz, sea_time) * (1.0 + 0.6 * sea_storm);
+	float h = wave_h(w.xz, sea_time) * (1.0 + 0.6 * sea_storm) + sea_level;
 	VERTEX.y += h;
 	world_pos = w + vec3(0.0, h, 0.0);
 }

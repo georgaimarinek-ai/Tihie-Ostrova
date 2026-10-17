@@ -18,7 +18,8 @@ const WORLD_LIMIT_M := 5000.0
 ## Commands only the host itself may issue; Game drops them when they arrive from a remote peer.
 const HIT_REACH_M := 4.5  # a creature's bite or swipe (guardians reach further)
 ## Only the host sends these: world time, debug, and what the host simulates (creatures, their hits, storms).
-const HOST_ONLY: Array[String] = ["tick", "debug", "spawn", "despawn", "creatures", "hurt", "capsize", "douse", "steal", "join"]
+const HOST_ONLY: Array[String] = ["tick", "debug", "spawn", "despawn", "creatures", "hurt", "capsize", "douse", "steal", "join", "flotsam", "grapple", "release"]
+const FIT_REACH_M := 40.0  # a boat lying this close to the boatyard can be fitted out
 const ARENA_LANTERNS := 4
 const STEAL_REACH_M := 16.0  # a gull circles a drying rack 11 m out before it swoops  # around the Lodestar: the Mga is weak while all of them burn
 
@@ -136,6 +137,16 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _steal(pid, cmd)
 		"arena_lantern":
 			return _arena_lantern(pid, cmd)
+		"flotsam":
+			return _flotsam(pid, cmd)
+		"pick_flotsam":
+			return _pick_flotsam(pid, cmd)
+		"grapple":
+			return _grapple(pid, cmd)
+		"release":
+			return _release(pid, cmd)
+		"fit_boat":
+			return _fit_boat(pid, cmd)
 		"tick":
 			return _tick(pid, cmd)
 		"debug":
@@ -167,6 +178,8 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 			return _fail("bad_node")
 		if not item in (n["items"] as Array):
 			return _fail("not_here")
+		if SeaLife.tide_only(db, String(n["kind"])) and not SeaLife.tide_low(db, state.clock_min):
+			return _fail("tide")
 		var p: Vector3 = state.players[pid]["pos"]
 		var np: Vector3 = n["pos"]
 		if Vector2(p.x, p.z).distance_to(Vector2(np.x, np.z)) > float(n.get("reach", WorldMap.REACH_M + float(n["solid"]))):
@@ -381,6 +394,8 @@ func _attack(pid: String, cmd: Dictionary) -> Dictionary:
 		var w: Dictionary = db.items[weapon]["weapon"]
 		damage = float(w["damage"])
 		reach = float(w.get("reach", 30.0))
+		if bool(cmd.get("thrown", false)) and w.get("throw", false):
+			reach = float(w.get("throw_m", 12.0))  # thrown on its line, hauled back after
 		if w.has("ammo") and not inv.remove(String(w["ammo"]), 1):
 			return _fail("no_ammo")
 		if Creatures.group(db, id) in ["fog", "elite"]:
@@ -410,6 +425,7 @@ func _attack(pid: String, cmd: Dictionary) -> Dictionary:
 			events.append({"type": "guardian_phase", "uid": uid, "id": id, "phase": mini(now, phases)})
 	if float(c["hp"]) <= 0.0:
 		state.creatures.erase(uid)
+		events.append_array(_let_go(uid))
 		var drops := ContentDB.bag(info.get("drops", {}))
 		for k: String in drops:
 			inv.add(k, drops[k])
@@ -506,6 +522,7 @@ func _tick_fight() -> Array[Dictionary]:
 	events.append_array(_end_fight(true))
 	if state.players.has(pid) and state.inv(pid).remove_bag(ContentDB.bag(db.beacons[bid]["fuel"])):
 		state.lit[bid] = state.day
+		state.tailwind_until = state.clock_min + float(db.balance["sea_events"]["tailwind"]["minutes"])
 		events.append({"type": "beacon_lit", "beacon": bid, "player": pid, "unlocks": db.unlocks_of(bid)})
 		if db.beacons[bid].get("opens") != null:
 			events.append({"type": "region_opened", "region": db.beacons[bid]["opens"]})
@@ -573,6 +590,7 @@ func _light_beacon(pid: String, cmd: Dictionary) -> Dictionary:
 	if not (p["inv"] as Inventory).remove_bag(ContentDB.bag(b["fuel"])):
 		return _fail("missing")
 	state.lit[bid] = state.day
+	state.tailwind_until = state.clock_min + float(db.balance["sea_events"]["tailwind"]["minutes"])
 	var events: Array[Dictionary] = [{"type": "beacon_lit", "beacon": bid, "player": pid, "unlocks": db.unlocks_of(bid)}]
 	if b.get("opens") != null:
 		events.append({"type": "region_opened", "region": b["opens"]})
@@ -601,6 +619,7 @@ func _despawn_disallowed() -> Array[Dictionary]:
 		if not Creatures.allowed(db, state.mode, r, String(state.creatures[uid]["id"])):
 			state.creatures.erase(uid)
 			events.append({"type": "creature_gone", "uid": uid})
+			events.append_array(_let_go(uid))
 	return events
 
 
@@ -976,6 +995,10 @@ func _tick(_pid: String, cmd: Dictionary) -> Dictionary:
 		events.append_array(_tick_body(pid, dt))
 	events.append_array(_tick_fight())
 	events.append_array(_tick_stations(dt * 60.0))
+	for uid: String in state.flotsam.keys():
+		if float(state.flotsam[uid]["until"]) <= state.clock_min:
+			state.flotsam.erase(uid)
+			events.append({"type": "flotsam_gone", "uid": uid})
 	return _ok(events)
 
 
@@ -1061,6 +1084,11 @@ func _debug(pid: String, cmd: Dictionary) -> Dictionary:
 		state.clock_min = float(cmd["clock_min"])
 	if cmd.has("journal"):
 		state.journal[String(cmd["journal"])] = state.day
+	if cmd.has("fit") and p["aboard"] != "" and state.boats.has(p["aboard"]):
+		var parts: Array = state.boats[p["aboard"]]["parts"]
+		if not parts.has(String(cmd["fit"])) and db.raw["boats"].get("parts", {}).has(String(cmd["fit"])):
+			parts.append(String(cmd["fit"]))
+			events.append({"type": "boat_fitted", "boat": p["aboard"], "part": String(cmd["fit"]), "player": pid})
 	if cmd.has("hp"):
 		p["hp"] = clampf(float(cmd["hp"]), 1.0, Vitals.max_hp(db, state, pid))
 		p["hurt_at"] = state.clock_min
@@ -1272,10 +1300,15 @@ func _capsize(_pid: String, cmd: Dictionary) -> Dictionary:
 	var b: Dictionary = state.boats[uid]
 	var bp: Vector3 = b["pos"]
 	var level := Weather.storm(db, state.world_seed, state.clock_min, db.region_at(Vector2(bp.x, bp.z)))
-	if bool(b["capsized"]) or not Weather.capsizes(db, rules(), String(b["type"]), level):
+	var gripped: bool = String(b["held"]) != "" and state.creatures.has(b["held"])
+	if bool(b["capsized"]) or not (gripped or Weather.capsizes(db, rules(), String(b["type"]), level)):
 		return _fail("no_storm")
 	b["capsized"] = true
-	return _ok([{"type": "boat_capsized", "boat": uid, "level": level}])
+	var events: Array[Dictionary] = [{"type": "boat_capsized", "boat": uid, "level": level, "by": b["held"]}]
+	if gripped:
+		b["held"] = ""
+		events.append({"type": "boat_released", "boat": uid})
+	return _ok(events)
 
 
 func _right_boat(pid: String, cmd: Dictionary) -> Dictionary:
@@ -1309,7 +1342,11 @@ func _spawn(_pid: String, cmd: Dictionary) -> Dictionary:
 		if map != null:
 			var isl := map.island_at(pos.x, pos.z)
 			dark = isl != null and map.kind_of[isl.id] == "beacon" and not state.lit.has(isl.id)
-		var why := Creatures.spawn_block(db, state.mode, r, id, rid, FogField.factor(db, state, p2), Weather.night(db, rid, state.clock_min), dark)
+		var depth := map.ground_at(pos.x, pos.z) if map != null else -INF
+		var beacon_m := INF
+		for bid: String in state.lit:
+			beacon_m = minf(beacon_m, db.beacon_pos(bid).distance_to(p2))
+		var why := Creatures.spawn_block(db, state.mode, r, id, rid, FogField.factor(db, state, p2), Weather.night(db, rid, state.clock_min), dark, depth, beacon_m)
 		if why != "":
 			return _fail(why)
 	var uid := state.new_uid("c")
@@ -1322,7 +1359,9 @@ func _despawn(_pid: String, cmd: Dictionary) -> Dictionary:
 	if not state.creatures.has(uid):
 		return _fail("unknown_uid")
 	state.creatures.erase(uid)
-	return _ok([{"type": "creature_gone", "uid": uid}])
+	var events: Array[Dictionary] = [{"type": "creature_gone", "uid": uid}]
+	events.append_array(_let_go(uid))
+	return _ok(events)
 
 
 ## Host-only: where the host's creatures are now ({"pos": {uid: [x, y, z]}}); no events, the synchroniser
@@ -1412,6 +1451,115 @@ func _tick_domovoy() -> Array[Dictionary]:
 				inv.add(k, bag[k])
 			return [{"type": "domovoy_tidied", "uid": uid}]
 	return []
+
+
+# ---------------------------------------------------------------- the living sea (docs/08_NEXT.md stage 13)
+
+## Host-only: something afloat after a storm (balance.sea_events.flotsam.kinds) on open water.
+func _flotsam(_pid: String, cmd: Dictionary) -> Dictionary:
+	var kind := String(cmd.get("kind", ""))
+	if not SeaLife.flotsam_kinds(db).has(kind):
+		return _fail("bad_value")
+	var pos := WorldState._to_v3(cmd.get("pos", []))
+	if not _sane(pos) or (map != null and map.ground_at(pos.x, pos.z) > -0.5):
+		return _fail("bad_pos")
+	var uid := state.new_uid("f")
+	state.flotsam[uid] = {"kind": kind, "pos": pos, "until": state.clock_min + float(db.balance["sea_events"]["flotsam"]["lasts_min"])}
+	return _ok([{"type": "flotsam_added", "uid": uid, "kind": kind, "pos": WorldState._v3(pos)}])
+
+
+## Haul it aboard (from the boat within reach_m, or wading within 4 m): its things into the bag, or its
+## story into the journal (a bottle). Takes it all or nothing.
+func _pick_flotsam(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var f: Dictionary = state.flotsam.get(uid, {})
+	if f.is_empty():
+		return _fail("unknown_uid")
+	var p: Dictionary = state.players[pid]
+	var reach := float(db.balance["sea_events"]["flotsam"]["reach_m"]) if p["aboard"] != "" else 4.0
+	if (p["pos"] as Vector3).distance_to(f["pos"]) > reach:
+		return _fail("too_far")
+	var kind: Dictionary = SeaLife.flotsam_kinds(db)[f["kind"]]
+	var items := ContentDB.bag(kind.get("items", {}))
+	var inv: Inventory = p["inv"]
+	if not items.is_empty() and not inv.can_fit(items):
+		return _fail("no_space")
+	for k: String in items:
+		inv.add(k, items[k])
+	state.flotsam.erase(uid)
+	var events: Array[Dictionary] = [{"type": "flotsam_picked", "uid": uid, "kind": f["kind"], "player": pid, "items": items}]
+	if kind.has("journal"):
+		events.append_array(_journal(pid, String(kind["journal"])))
+	return _ok(events)
+
+
+## Host-only: a sea creature (behaviour "sea") grips a boat beside it: no way on her until it lets go.
+func _grapple(_pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("boat", ""))
+	var src := String(cmd.get("source", ""))
+	var b: Dictionary = state.boats.get(uid, {})
+	var c: Dictionary = state.creatures.get(src, {})
+	if b.is_empty() or c.is_empty():
+		return _fail("unknown_uid")
+	if String(Creatures.info(db, String(c["id"])).get("behaviour", "")) != "sea" or bool(b["capsized"]):
+		return _fail("no_fight")
+	if String(b["held"]) != "":
+		return _fail("busy")
+	if (c["pos"] as Vector3).distance_to(b["pos"]) > 8.0:
+		return _fail("too_far")
+	b["held"] = src
+	return _ok([{"type": "boat_held", "boat": uid, "by": src}])
+
+
+## Host-only: the grip lets go (fire shown, the creature driven off or gone).
+func _release(_pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("boat", ""))
+	var b: Dictionary = state.boats.get(uid, {})
+	if b.is_empty():
+		return _fail("unknown_uid")
+	if String(b["held"]) == "":
+		return _fail("nothing")
+	b["held"] = ""
+	return _ok([{"type": "boat_released", "boat": uid}])
+
+
+## Every boat a vanished creature was holding is free again.
+func _let_go(creature_uid: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for uid: String in state.boats:
+		if String(state.boats[uid]["held"]) == creature_uid:
+			state.boats[uid]["held"] = ""
+			out.append({"type": "boat_released", "boat": uid})
+	return out
+
+
+## A fitting from the boatyard (boats.json → parts): the player at the yard, the boat within FIT_REACH_M of it.
+func _fit_boat(pid: String, cmd: Dictionary) -> Dictionary:
+	var part := String(cmd.get("part", ""))
+	var parts: Dictionary = db.raw["boats"].get("parts", {})
+	if not parts.has(part) or part == "note":
+		return _fail("unknown_part")
+	var info: Dictionary = parts[part]
+	if not db.is_unlocked(String(info["unlock"]), state.lit):
+		return _fail("locked")
+	var yard: Dictionary = state.pieces.get(String(cmd.get("uid", "")), {})
+	if yard.is_empty() or String(yard["id"]) != "boatyard":
+		return _fail("no_station")
+	if not _near(pid, yard["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var buid := String(cmd.get("boat", ""))
+	var b: Dictionary = state.boats.get(buid, {})
+	if b.is_empty():
+		return _fail("unknown_boat")
+	if (b["pos"] as Vector3).distance_to(yard["pos"]) > FIT_REACH_M:
+		return _fail("too_far")
+	if (b["parts"] as Array).has(part):
+		return _fail("already_done")
+	var cost := ContentDB.bag(info["cost"])
+	if not state.inv(pid).remove_bag(cost):
+		return _fail("missing")
+	(b["parts"] as Array).append(part)
+	return _ok([{"type": "boat_fitted", "boat": buid, "part": part, "player": pid}])
 
 
 # ---------------------------------------------------------------- helpers

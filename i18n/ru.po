@@ -1494,3 +1494,111 @@ msgstr "Хватает на %d использований, потом тупит
 
 msgid "evening.tools"
 msgstr "Пора починить"
+
+msgid "cmd.tide"
+msgstr "Эту отмель откроет отлив."
+
+msgid "cmd.unknown_part"
+msgstr "Такой снасти нет."
+
+msgid "cmd.shallow"
+msgstr "Здесь мелко."
+
+msgid "cmd.near_beacon"
+msgstr "Слишком близко к маяку."
+
+msgid "act.pick_flotsam"
+msgstr "Подобрать: %s"
+
+msgid "act.pick_bottle"
+msgstr "Выловить бутылку"
+
+msgid "act.fit_boat"
+msgstr "Поставить на лодку: %s"
+
+msgid "act.fit_needs"
+msgstr "%s: не хватает %s"
+
+msgid "act.pole_off"
+msgstr "Оттолкнуться шестом (%d с)"
+
+msgid "flotsam.log"
+msgstr "Бревно"
+
+msgid "flotsam.barrel"
+msgstr "Бочонок"
+
+msgid "flotsam.bottle"
+msgstr "Бутылка"
+
+msgid "toast.flotsam"
+msgstr "Выловил: %s"
+
+msgid "toast.bottle"
+msgstr "В бутылке записка. Страница в журнале (J)."
+
+msgid "toast.boat_held"
+msgstr "Пучинник держит лодку! Бей его или покажи огонь."
+
+msgid "toast.boat_released"
+msgstr "Лодка свободна."
+
+msgid "toast.boat_fitted"
+msgstr "На лодке теперь: %s."
+
+msgid "toast.capsized_by"
+msgstr "Лодку опрокинули. Переверни её (E)."
+
+msgid "toast.tide_low"
+msgstr "Отлив: отмели открыты, у берегов мелко."
+
+msgid "toast.tide_high"
+msgstr "Прилив: вода вернулась."
+
+msgid "ui.tailwind"
+msgstr "Попутный ветер"
+
+msgid "ui.squall"
+msgstr "Шквал близко"
+
+msgid "ui.squall_hint"
+msgstr "к берегу или готовься"
+
+msgid "ui.tide_low"
+msgstr "Отлив"
+
+msgid "ui.tide_left"
+msgstr "ещё %d мин"
+
+msgid "ui.shoal"
+msgstr "Косяк"
+
+msgid "ui.held"
+msgstr "Лодку держат!"
+
+msgid "ui.vodyanoy_angry"
+msgstr "Водяной обижен"
+
+msgid "ui.vodyanoy_hint"
+msgstr "клёв хуже: дай ему первую рыбу"
+
+msgid "goal.aground"
+msgstr "Лодка на мели: вода ушла. Оттолкнись шестом (E) или дождись прилива (%d мин)."
+
+msgid "goal.aground_rocks"
+msgstr "Лодка села на камни. Оттолкнись шестом (E) — и не верь каждому огоньку."
+
+msgid "goal.held"
+msgstr "Пучинник держит лодку. Рогатина или гарпун с борта, огонь в руке отгоняет его."
+
+msgid "journal.sea_bottle"
+msgstr "Записка в бутылке"
+
+msgid "tale.sea_bottle"
+msgstr "Бутылка из тёмного стекла, в ней берестяной лоскут: «Кто найдёт — пусть зажжёт огонь на Чаячьей. Мы не успели». Без подписи. (TODO: быличка автора)"
+
+msgid "tale.puchinnik"
+msgstr "Старики говорят: в густую мглу под лодкой ходит тот, кого не зовут по имени. Он не злой, он голодный, и свет ему не по нраву. Держи фонарь на носу и гарпун под рукой. (TODO: быличка автора)"
+
+msgid "part.lantern"
+msgstr "Лодочный фонарь"

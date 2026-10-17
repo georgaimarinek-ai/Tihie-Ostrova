@@ -11,6 +11,8 @@ const CELLS := 225  # 900 / 225 = 4 m grid
 
 ## The wave clock. Advanced in physics frames so boats and the shader agree.
 static var time := 0.0
+## The tide (SeaLife.tide_offset): the world sets it, every floating thing and the shader read it.
+static var level := 0.0
 
 var director: FogDirector
 var storm := 0.0  # 0..3, from the weather (Waves.STORM_GAIN)
@@ -38,6 +40,7 @@ func _physics_process(delta: float) -> void:
 func _process(_delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("sea_time", time)
 	RenderingServer.global_shader_parameter_set("sea_storm", storm)
+	RenderingServer.global_shader_parameter_set("sea_level", level)
 	var cam := get_viewport().get_camera_3d()
 	if cam != null:
 		var cell := SIZE / CELLS
@@ -50,4 +53,4 @@ func _process(_delta: float) -> void:
 
 ## Water height under a point right now (for floating things other than boats: flotsam, the camera).
 static func height(x: float, z: float, storm_level: float = 0.0) -> float:
-	return Waves.height(x, z, time, storm_level)
+	return Waves.height(x, z, time, storm_level) + level

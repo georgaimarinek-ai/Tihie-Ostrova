@@ -147,6 +147,8 @@ func _chapter(rid: String) -> Dictionary:
 	}
 	# day and night (docs/01_GDD.md §4.3): the region's share of night darkens what its chapter doesn't already
 	var cycle := Weather.night(db, rid, state.clock_min) if state != null else 0.0
+	if state != null:
+		out["aurora"] = float(out["aurora"]) * SeaLife.aurora_boost(db, rid, cycle, Weather.storm(db, state.world_seed, state.clock_min, rid))
 	var extra := maxf(0.0, cycle - float(c["night"]))
 	if extra > 0.0:
 		out["fog"] = (out["fog"] as Color).lerp(NIGHT_FOG, extra * 0.8)

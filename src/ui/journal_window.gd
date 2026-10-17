@@ -131,6 +131,8 @@ func _build() -> void:
 func page(id: String) -> Dictionary:
 	if db.creatures.has(id):
 		return {"title": Loc.name_of(db.creatures[id]["name"]), "text": tr("tale." + id), "group": Creatures.group(db, id)}
+	if id == "sea_bottle":
+		return {"title": tr("journal.sea_bottle"), "text": tr("tale.sea_bottle"), "group": "legend"}
 	if id.begins_with("chud_"):
 		var n := 1 + posmod(id.hash(), 6)
 		var kind := "mine" if WorldMap.shared(db).chud_sites().any(func(s: Dictionary) -> bool: return s["id"] == id and s["kind"] == "mine") else "circle"
@@ -154,14 +156,17 @@ func refresh() -> void:
 				ids.append(id)
 		if sec[0] == "journal.spirits":
 			ids.append("chud")
+			if state.journal.has("sea_bottle"):
+				ids.append("sea_bottle")
 			for s: Dictionary in WorldMap.shared(db).chud_sites():
 				if state.journal.has(s["id"]):
 					ids.append(s["id"])
 		for id: String in ids:
-			if not String(id).begins_with("chud_"):
+			var extra: bool = String(id).begins_with("chud_") or id == "sea_bottle"  # finds, not part of the count
+			if not extra:
 				total += 1
 			var has := state.journal.has(id) or (id == "chud" and _any_ruin())
-			if has and not String(id).begins_with("chud_"):
+			if has and not extra:
 				found += 1
 			var b := Button.new()
 			b.flat = true
