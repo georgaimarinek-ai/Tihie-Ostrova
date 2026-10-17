@@ -16,6 +16,13 @@
     "note": "The Weary debuff after a death (modes.json death_debuff_min): stamina comes back slower.",
     "stamina_regen_factor": 0.5
   },
+  "wear": {
+    "note": "Tool wear (docs/08_NEXT.md stage 14, modes.json durability): a tool spends one of items.json tool.uses per unit gathered; from dull_at of them it is dull (speed x dull_speed), at the end broken (no longer a tool, never lost). Repair at the recipe's station: broken = repair_broken of every input, dull = repair_dull of the largest input, rounded up.",
+    "dull_at": 0.7,
+    "dull_speed": 0.5,
+    "repair_broken": 0.5,
+    "repair_dull": 0.25
+  },
   "cold": {
     "note": "Cold regions (regions.json cold): Tale (mild) - no stamina regen without warmth; Saga (full) - health drains. Warmth: a wool coat in the bag, fire in hand, bath steam, or a fire piece (fog_radius) within fire_m.",
     "fire_m": 6,
@@ -42,7 +49,10 @@
     "leshy_guide_s": 60,
     "vodyanoy_bite_bonus": 0.3,
     "whale_rested_min": 10,
-    "chud_finds": { "mica": 2, "iron": 1 }
+    "chud_finds": {
+      "mica": 2,
+      "iron": 1
+    }
   },
   "day": {
     "length_min": 30,
@@ -115,7 +125,8 @@
       "hearth": 1
     },
     "background_craft_min_s": 30,
-    "background_active_share": 0.25
+    "background_active_share": 0.25,
+    "repair_min": 1.0
   },
   "targets": {
     "beacon_minutes_by_region": {

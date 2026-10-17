@@ -60,6 +60,8 @@ func apply(pid: String, cmd: Dictionary) -> Dictionary:
 			return _gather(pid, cmd)
 		"craft":
 			return _craft(pid, cmd)
+		"repair":
+			return _repair(pid, cmd)
 		"place":
 			return _place(pid, cmd)
 		"remove":
@@ -173,14 +175,47 @@ func _gather(pid: String, cmd: Dictionary) -> Dictionary:
 	if not db.region_open(g["region"], state.lit):
 		return _fail("region_locked")
 	var inv := state.inv(pid)
-	if g["tool"] != "hand" and inv.best_tool_tier(g["tool"]) < int(g.get("tool_tier", 1)):
-		return _fail("need_tool")
+	var wear_on := bool(rules()["durability"])
+	if g["tool"] != "hand" and inv.best_tool_tier(g["tool"], wear_on) < int(g.get("tool_tier", 1)):
+		return _fail("tool_broken" if inv.best_tool_tier(g["tool"]) >= int(g.get("tool_tier", 1)) else "need_tool")
 	var left := inv.add(item, qty)
 	if left == qty:
 		return _fail("no_space")
 	var days := int(db.balance["respawn"]["berries_days"] if it["kind"] == "food" else db.balance["respawn"]["resource_nodes_days"])
 	state.depleted[node] = state.day + days
-	return _ok([{"type": "gathered", "player": pid, "node": node, "item": item, "n": qty - left}])
+	var events: Array[Dictionary] = [{"type": "gathered", "player": pid, "node": node, "item": item, "n": qty - left}]
+	if wear_on and g["tool"] != "hand":
+		var w := Tools.use(db, inv, String(g["tool"]), qty - left)  # one use per unit (docs/08_NEXT.md, stage 14)
+		if not w.is_empty() and w["from"] != w["to"]:
+			events.append({"type": "tool_worn", "player": pid, "item": w["item"], "slot": w["slot"], "condition": w["to"]})
+	return _ok(events)
+
+
+## Mend a tool at its station (Tools.repair_station) for a share of its recipe (Tools.repair_cost).
+func _repair(pid: String, cmd: Dictionary) -> Dictionary:
+	var uid := String(cmd.get("uid", ""))
+	var slot := int(cmd.get("slot", -1))
+	var pc: Dictionary = state.pieces.get(uid, {})
+	if pc.is_empty():
+		return _fail("unknown_uid")
+	var inv := state.inv(pid)
+	if slot < 0 or slot >= inv.size or inv.slots[slot].is_empty():
+		return _fail("empty")
+	var s: Dictionary = inv.slots[slot]
+	var cond := Tools.condition(db, s)
+	if cond == "":
+		return _fail("not_a_tool")
+	if cond == Tools.OK:
+		return _fail("not_worn")
+	if String(pc["id"]) != Tools.repair_station(db, String(s["id"])):
+		return _fail("wrong_station")
+	if not _near(pid, pc["pos"], Crafting.REACH_M):
+		return _fail("too_far")
+	var cost := Tools.repair_cost(db, String(s["id"]), cond)
+	if not inv.remove_bag(cost):
+		return _fail("missing")
+	s.erase("wear")
+	return _ok([{"type": "repaired", "player": pid, "item": String(s["id"]), "slot": slot, "cost": cost, "was": cond}])
 
 
 func _craft(pid: String, cmd: Dictionary) -> Dictionary:
@@ -863,6 +898,11 @@ static func _move_stack(from: Inventory, slot: int, to: Inventory) -> int:
 	var n := int(s["n"])
 	var left := to.add(String(s["id"]), n)
 	var moved := n - left
+	if moved > 0 and int(s.get("wear", 0)) > 0:  # a used tool (stack 1) keeps its wear in the new place
+		for t: Dictionary in to.slots:
+			if t.get("id", "") == s["id"] and not t.has("wear"):
+				t["wear"] = int(s["wear"])
+				break
 	if left == 0:
 		from.slots[slot] = {}
 	else:
@@ -993,7 +1033,7 @@ func _tick_light(pid: String) -> Array[Dictionary]:
 	return [{"type": "light_changed", "player": pid, "item": "", "burnt_out": true}]
 
 
-## Debug-only (allow_debug): {"give": {item: n}, "trial": beacon, "pos": [x, y, z], "clock_min": t, "journal": page,
+## Debug-only (allow_debug): {"give": {item: n}, "wear": {tool: uses spent}, "trial": beacon, "pos": [x, y, z], "clock_min": t, "journal": page,
 ## "hp": value, "spawn": creature id + "pos" (still only what the mode allows)}.
 func _debug(pid: String, cmd: Dictionary) -> Dictionary:
 	if not allow_debug:
@@ -1005,6 +1045,11 @@ func _debug(pid: String, cmd: Dictionary) -> Dictionary:
 		if db.items.has(k):
 			(p["inv"] as Inventory).add(k, int(give[k]))
 			events.append({"type": "gathered", "player": pid, "node": "", "item": k, "n": int(give[k])})
+	var wear: Dictionary = cmd.get("wear", {})
+	for k: String in wear:
+		var i := Tools.best_slot(db, p["inv"], String(db.items.get(k, {}).get("tool", {}).get("type", "")), false)
+		if i >= 0:
+			(p["inv"] as Inventory).slots[i]["wear"] = clampi(int(wear[k]), 0, Tools.uses(db, k))
 	if cmd.has("trial") and db.beacons.has(String(cmd["trial"])):
 		var bid := String(cmd["trial"])
 		var kind := "trial" if rules()["beacon"] == "trial" else String(db.beacons[bid]["saga"]["type"])

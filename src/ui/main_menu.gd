@@ -194,11 +194,9 @@ func _build() -> void:
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 24)
 	for rule: String in ["storms", "cold", "durability", "night_raids"]:
-		var c := MainMenu.check_box(tr("tuning." + rule) + (" " + tr("tuning.soon") if rule == "durability" else ""))
+		var c := MainMenu.check_box(tr("tuning." + rule))
 		grid.add_child(c)
 		_checks[rule] = c
-		if rule == "durability":
-			c.disabled = true  # the wear mechanic isn't in the game yet (docs/06_ROADMAP.md): an honest box
 	v.add_child(grid)
 	var foot := HBoxContainer.new()
 	var note := UiTheme.label(tr("menu.note"), 13, UiTheme.MUTED)

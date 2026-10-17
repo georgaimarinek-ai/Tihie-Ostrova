@@ -90,6 +90,11 @@ func _ready() -> void:
 		var num := UiTheme.label(str(i + 1), 12, UiTheme.MUTED)
 		num.position = Vector2(5, 1)
 		cell.add_child(num)
+		var wear := ColorRect.new()  # a tool's remaining uses (Tools); hidden for everything else
+		wear.name = "Wear"
+		wear.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wear.visible = false
+		icon.add_child(wear)  # under the icon, not the container: the container would stretch it over the cell
 		hotbar.add_child(cell)
 	add_child(hotbar)
 	# the light in hand: a ring that burns down
@@ -319,7 +324,7 @@ func set_bars(hp: float, hp_max: float, hp_bonus: float, st: float, st_max: floa
 
 
 ## Hotbar: the first eight bag slots ({} = empty) and the chosen one.
-func set_hotbar(slots: Array, chosen: int, show: bool) -> void:
+func set_hotbar(slots: Array, chosen: int, show: bool, wear_on: bool = false) -> void:
 	hotbar.visible = show
 	if not show:
 		return
@@ -334,6 +339,15 @@ func set_hotbar(slots: Array, chosen: int, show: bool) -> void:
 		if icon.item != id or icon.count != n or icon.color != (UiTheme.FIRE if active else UiTheme.TEXT):
 			icon.color = UiTheme.FIRE if active else UiTheme.TEXT
 			icon.set_item(id, n)
+		var wear := icon.get_node("Wear") as ColorRect
+		var total := Tools.uses(Content.db, id) if id != "" else 0
+		wear.visible = total > 0 and wear_on
+		if wear.visible:
+			var left := 1.0 - float(s.get("wear", 0)) / float(total)
+			var cond := Tools.condition(Content.db, s)
+			wear.color = UiTheme.RED if cond == Tools.BROKEN else (UiTheme.BIRCH if cond == Tools.DULL else Color(0.55, 0.75, 0.5))
+			wear.position = Vector2(4, icon.size.y - 3)
+			wear.size = Vector2(maxf(2.0, (icon.size.x - 8.0) * left), 3)
 
 
 ## Food and states in the top-right corner: food [{"id", "left_min"}]; states [{"label", "text", "warn": bool}]

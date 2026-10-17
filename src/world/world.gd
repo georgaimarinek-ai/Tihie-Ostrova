@@ -11,7 +11,7 @@ extends Node3D
 ##   --ashore             land at the nearest shore right away
 ##   --walk=x,z,yaw       put the player on foot there
 ##   --look=yaw,pitch     camera offset (degrees; boat: from the stern) and pitch (0..90)
-##   --give=item:n,...    items in the bag (debug), --torch lights a torch, --eat=a,b eats dishes
+##   --give=item:n,...    items in the bag (debug), --wear=tool:n wears a tool, --torch lights a torch, --eat=a,b eats dishes
 ##   --place=piece,...    set up pieces in front of the player, --craft[=recipe] opens the crafting window
 ##   --house              build a small cabin in front of the player (snapped "place" commands)
 ##   --build=piece        enter the build mode with that piece, its ghost 5 m ahead
@@ -94,7 +94,7 @@ func _ready() -> void:
 	if not _args.is_empty() and not _args.has("menu"):
 		Game.show_menu = false  # debug and automation runs start straight in the world
 	if Game.state == null:
-		for k in ["debug-cheats", "lit", "light-at", "give", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon"]:
+		for k in ["debug-cheats", "lit", "light-at", "give", "wear", "torch", "walk", "place", "eat", "craft", "house", "build", "at-beacon"]:
 			if _args.has(k):
 				Game.debug_cheats = true
 		Game.new_world(int(_args.get("seed", 4127)), String(_args.get("mode", "")))
@@ -451,8 +451,10 @@ func _action() -> Dictionary:
 		var item: String = items[_choice % items.size()]
 		var tool := String(db.items[item]["gather"]["tool"])
 		var label := ""
-		if Gathering.tool_ok(db, inv, item):
+		if Gathering.tool_ok(db, inv, item, _wear()):
 			label = tr(TOOL_VERB.get(tool, "act.take")) % Loc.item(db, item)
+		elif Gathering.tool_ok(db, inv, item):
+			label = tr("act.tool_broken") % [Loc.item(db, item), Loc.item(db, inv.slots[Tools.best_slot(db, inv, tool, false)]["id"])]
 		else:
 			label = tr("act.need_tool_for") % [Loc.item(db, item), tr("tool." + tool)]
 		if items.size() > 1:
@@ -499,9 +501,14 @@ func _action() -> Dictionary:
 
 ## What Q switches to at a resource node: "Живица", or "Живица (инструмент: нож)" without the tool.
 func _other_item(item: String, inv: Inventory) -> String:
-	if Gathering.tool_ok(db, inv, item):
+	if Gathering.tool_ok(db, inv, item, _wear()):
 		return Loc.item(db, item)
 	return tr("act.other_tool") % [Loc.item(db, item), tr("tool." + String(db.items[item]["gather"]["tool"]))]
+
+
+## The world's durability rule (Tools): broken tools stop counting, dull ones work slower.
+func _wear() -> bool:
+	return bool(state.rules()["durability"])
 
 
 func _do_action() -> void:
@@ -757,11 +764,11 @@ func _make_torch() -> void:
 ## Gathering works a node unit by unit (Gathering.unit_seconds); the haul goes to the host as one command.
 func _start_channel(n: Dictionary, item: String) -> void:
 	var inv := state.inv(_pid)
-	if not Gathering.tool_ok(db, inv, item):
-		hud.toast(tr("act.need_tool") % tr("tool." + String(db.items[item]["gather"]["tool"])))
+	if not Gathering.tool_ok(db, inv, item, _wear()):
+		hud.toast(tr("cmd.tool_broken") if Gathering.tool_ok(db, inv, item) else tr("act.need_tool") % tr("tool." + String(db.items[item]["gather"]["tool"])))
 		audio.sfx("deny")
 		return
-	_channel = {"node": n["id"], "item": item, "per": Gathering.unit_seconds(db, inv, item), "t": 0.0, "done": 0, "want": WorldCommands.GATHER_MAX}
+	_channel = {"node": n["id"], "item": item, "per": Gathering.unit_seconds(db, inv, item, _wear()), "t": 0.0, "done": 0, "want": WorldCommands.GATHER_MAX}
 	player.busy = true
 
 
@@ -798,7 +805,7 @@ func _finish_channel() -> void:
 ## A rod in the bag and open water in front: from a boat that has stopped or from the shore.
 func _can_fish() -> bool:
 	var inv := state.inv(_pid)
-	if inv.best_tool_tier("rod") < 1:
+	if inv.best_tool_tier("rod", _wear()) < 1:
 		return false
 	if my_boat != null:
 		return absf(my_boat.speed) < 0.8
@@ -820,7 +827,7 @@ func _cast_point() -> Vector3:
 ## and the catch of this spot goes to the host as one "gather" of the sea cell.
 func _start_fishing() -> void:
 	var cp := _cast_point()
-	var per := Gathering.unit_seconds(db, state.inv(_pid), "raw_fish")
+	var per := Gathering.unit_seconds(db, state.inv(_pid), "raw_fish", _wear())
 	if Creatures.vodyanoy_boon(state):
 		per /= 1.0 + float(db.balance["spirits"]["vodyanoy_bite_bonus"])  # the first fish went to the vodyanoy
 	_fishing = {"spot": map.fish_spot(Vector2(cp.x, cp.z)), "pos": cp, "t": 0.0, "next": per * randf_range(0.6, 1.3), "bite": 0.0, "caught": 0, "want": WorldCommands.GATHER_MAX, "per": per}
@@ -1107,7 +1114,7 @@ func _update_hud() -> void:
 		food.append({"id": f["id"], "left_min": float(f["until"]) - state.clock_min})
 	hud.set_buffs(food, _states())
 	_update_fight_bar()
-	hud.set_hotbar(state.inv(_pid).slots.slice(0, 8), _hot, on_foot() and not craft.visible)
+	hud.set_hotbar(state.inv(_pid).slots.slice(0, 8), _hot, on_foot() and not craft.visible, _wear())
 	var light: Dictionary = state.players[_pid].get("light", {})
 	if on_foot() and not light.is_empty():
 		var lt: Dictionary = db.items[light["id"]]["light"]
@@ -1449,6 +1456,13 @@ func _on_world_event(e: Dictionary) -> void:
 			streamer.refresh_node(String(e["node"]))
 			if mine:
 				hud.toast(Loc.item(db, e["item"]), "+%d" % int(e["n"]))
+		"tool_worn":
+			if mine:
+				hud.toast(tr("toast.tool_" + String(e["condition"])) % [Loc.item(db, e["item"]), Loc.name_of(db.pieces[Tools.repair_station(db, e["item"])]["name"]).to_lower()], "!")
+				audio.sfx("deny")
+		"repaired":
+			if mine:
+				hud.toast(tr("toast.repaired") % Loc.item(db, e["item"]), "✓")
 		"crafted":
 			if mine:
 				var r: Dictionary = db.recipes[e["recipe"]]
@@ -1547,6 +1561,12 @@ func _debug_setup() -> void:
 			var kv := pair.split(":")
 			give[kv[0]] = int(kv[1]) if kv.size() > 1 else 1
 		Game.submit({"type": "debug", "give": give})
+	if _args.has("wear"):  # --wear=knife:80 — used-up tools for screenshots of the repair card
+		var wear := {}
+		for pair: String in String(_args["wear"]).split(","):
+			var kv := pair.split(":")
+			wear[kv[0]] = int(kv[1]) if kv.size() > 1 else 1
+		Game.submit({"type": "debug", "wear": wear})
 	if _args.has("teleport"):
 		var v := String(_args["teleport"]).split(",")
 		var b := boats.get(state.players[_pid]["aboard"]) as Boat
@@ -1666,7 +1686,10 @@ func _debug_place() -> void:
 	if _args.has("craft") and on_foot():
 		_open_craft()
 		if String(_args["craft"]) != "true":
-			craft.selected = String(_args["craft"])
+			if String(_args["craft"]).begins_with("item:"):
+				craft.selected_item = String(_args["craft"]).trim_prefix("item:")  # --craft=item:knife: the item's card
+			else:
+				craft.selected = String(_args["craft"])
 			craft.refresh()
 
 

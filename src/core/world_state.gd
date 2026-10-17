@@ -3,7 +3,7 @@ extends RefCounted
 ## The whole shared world as plain data. Nodes are views of it; WorldCommands is the only writer.
 ## Serialised by SaveCodec; the host sends it to joining clients (docs/04_TECH_SPEC.md §7).
 
-const VERSION := 4
+const VERSION := 5
 
 var world_seed: int = 0
 var name: String = ""  # the world's name (the menu's "Rodnaya guba")
@@ -262,5 +262,8 @@ static func migrate(src: Dictionary) -> Dictionary:
 		if not d.has("name"):
 			d["name"] = ""
 		v = 4
+	if v < 5:
+		# v5: bag slots may carry "wear" (tool wear, docs/08_NEXT.md stage 14). Old slots have none = whole tools.
+		v = 5
 	d["version"] = v
 	return d

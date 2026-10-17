@@ -1126,9 +1126,6 @@ msgstr "The cold of the Frozen Sea"
 msgid "tuning.durability"
 msgstr "Tool wear"
 
-msgid "tuning.soon"
-msgstr "(coming later)"
-
 msgid "tuning.night_raids"
 msgstr "Night raids (Saga only)"
 
@@ -1449,3 +1446,51 @@ msgstr "Achievement: %s"
 
 msgid "goal.wall_demo"
 msgstr "The demo ends here: the Summer Shore and the whole Pomor North are in the full game."
+
+msgid "cmd.tool_broken"
+msgstr "The tool is broken: mend it at the workbench or the forge."
+
+msgid "cmd.not_a_tool"
+msgstr "That is not a tool."
+
+msgid "cmd.not_worn"
+msgstr "The tool is whole."
+
+msgid "act.tool_broken"
+msgstr "%s: the tool is broken (%s)"
+
+msgid "toast.tool_dull"
+msgstr "Your %s is dull: work goes half as fast. Mend it at the %s."
+
+msgid "toast.tool_broken"
+msgstr "Your %s broke. It stays in the bag; mend it at the %s."
+
+msgid "toast.repaired"
+msgstr "%s is as good as new."
+
+msgid "ui.durability"
+msgstr "Durability %d/%d"
+
+msgid "ui.tool_dull"
+msgstr "Dull"
+
+msgid "ui.tool_broken"
+msgstr "Broken"
+
+msgid "ui.wear_off"
+msgstr "no wear in this world"
+
+msgid "ui.repair"
+msgstr "Repair: %s"
+
+msgid "ui.repair_free"
+msgstr "Repair"
+
+msgid "ui.repair_at"
+msgstr "Mended at the %s."
+
+msgid "info.tool_uses"
+msgstr "Lasts %d uses, then dulls and breaks; mended at the %s."
+
+msgid "evening.tools"
+msgstr "Time to mend"

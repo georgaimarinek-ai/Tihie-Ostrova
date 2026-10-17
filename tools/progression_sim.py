@@ -178,6 +178,8 @@ class Model:
                 acc["trial"] = s["saga_fight_min"][b["saga"]["id"]] + s["saga_defense_prep_min"]
             else:
                 acc["trial"] = b["saga"]["seconds"] / 60 + s["saga_defense_prep_min"]
+        if mode != "quiet":
+            acc["craft"] += s.get("repair_min", 0.0)  # tool wear (balance.wear): a mend now and then
         acc["total"] = acc["gather"] + acc["craft"] + acc["travel"] + acc["trial"] + acc["upkeep"]
         # unlock
         self.unlocked.add(b["id"])

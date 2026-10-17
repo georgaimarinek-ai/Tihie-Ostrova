@@ -81,13 +81,11 @@ func _build() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 2
 	for rule: String in ["storms", "cold", "durability", "night_raids"]:
-		var c := MainMenu.check_box(tr("tuning." + rule) + (" " + tr("tuning.soon") if rule == "durability" else ""))
+		var c := MainMenu.check_box(tr("tuning." + rule))
 		var r := rule
 		c.toggled.connect(func(on: bool) -> void: _set_rule(r, on))
 		grid.add_child(c)
 		_checks[rule] = c
-		if rule == "durability":
-			c.disabled = true  # the wear mechanic isn't in the game yet (docs/06_ROADMAP.md): an honest box
 	v.add_child(grid)
 	var sep := HSeparator.new()
 	v.add_child(sep)

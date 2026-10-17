@@ -3,7 +3,7 @@ extends RefCounted
 ## Slot inventory with stack sizes from content. Removal of a bag is all-or-nothing.
 
 var size: int
-var slots: Array[Dictionary] = []  # {} = empty, or {"id": String, "n": int}
+var slots: Array[Dictionary] = []  # {} = empty, or {"id": String, "n": int} (+ "wear": int on a used tool)
 var _db: ContentDB
 
 
@@ -94,15 +94,10 @@ func remove_bag(bag: Dictionary) -> bool:
 	return true
 
 
-func best_tool_tier(tool_type: String) -> int:
-	var best := 0
-	for s: Dictionary in slots:
-		if s.is_empty():
-			continue
-		var it: Dictionary = _db.items.get(s["id"], {})
-		if it.has("tool") and it["tool"]["type"] == tool_type:
-			best = maxi(best, int(it["tool"]["tier"]))
-	return best
+## The best tier of a tool type in the bag (0 = none). With `wear_on` a broken tool doesn't count (Tools).
+func best_tool_tier(tool_type: String, wear_on: bool = false) -> int:
+	var i := Tools.best_slot(_db, self, tool_type, wear_on)
+	return int(_db.items[slots[i]["id"]]["tool"]["tier"]) if i >= 0 else 0
 
 
 func is_empty() -> bool:
@@ -115,7 +110,10 @@ func is_empty() -> bool:
 func to_dict() -> Dictionary:
 	var out: Array = []
 	for s: Dictionary in slots:
-		out.append(s.duplicate())
+		var d := s.duplicate()
+		if int(d.get("wear", 0)) <= 0:
+			d.erase("wear")
+		out.append(d)
 	return {"size": size, "slots": out}
 
 
@@ -126,3 +124,5 @@ func from_dict(d: Dictionary) -> void:
 	for i in size:
 		var s: Dictionary = src[i] if i < src.size() else {}
 		slots[i] = {} if s.is_empty() else {"id": String(s["id"]), "n": int(s["n"])}
+		if not s.is_empty() and int(s.get("wear", 0)) > 0:
+			slots[i]["wear"] = int(s["wear"])

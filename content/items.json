@@ -27,12 +27,12 @@
     { "id": "larch", "name": { "ru": "Лиственница", "en": "Larch wood" }, "kind": "raw", "tier": 3, "stack": 50, "gather": { "rate": 6, "tool": "axe", "tool_tier": 2, "region": "r3" } },
     { "id": "spolokh", "name": { "ru": "Сполох", "en": "Aurora shard" }, "kind": "raw", "tier": 4, "stack": 20, "gather": { "rate": 1.5, "tool": "hand", "region": "r4", "note": "only at night under the aurora" } },
 
-    { "id": "stone_axe", "name": { "ru": "Каменный топор", "en": "Stone axe" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "axe", "tier": 1 } },
-    { "id": "knife", "name": { "ru": "Кремнёвый нож", "en": "Flint knife" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "knife", "tier": 1 } },
-    { "id": "wooden_shovel", "name": { "ru": "Деревянная лопата", "en": "Wooden shovel" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "shovel", "tier": 1 } },
-    { "id": "fishing_rod", "name": { "ru": "Удочка", "en": "Fishing rod" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "rod", "tier": 1 } },
-    { "id": "iron_axe", "name": { "ru": "Железный топор", "en": "Iron axe" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "axe", "tier": 2 } },
-    { "id": "iron_pick", "name": { "ru": "Кайло", "en": "Iron pick" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "pick", "tier": 2 } },
+    { "id": "stone_axe", "name": { "ru": "Каменный топор", "en": "Stone axe" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "axe", "tier": 1, "uses": 120 } },
+    { "id": "knife", "name": { "ru": "Кремнёвый нож", "en": "Flint knife" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "knife", "tier": 1, "uses": 80 } },
+    { "id": "wooden_shovel", "name": { "ru": "Деревянная лопата", "en": "Wooden shovel" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "shovel", "tier": 1, "uses": 120 } },
+    { "id": "fishing_rod", "name": { "ru": "Удочка", "en": "Fishing rod" }, "kind": "tool", "tier": 1, "stack": 1, "tool": { "type": "rod", "tier": 1, "uses": 100 } },
+    { "id": "iron_axe", "name": { "ru": "Железный топор", "en": "Iron axe" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "axe", "tier": 2, "uses": 360 } },
+    { "id": "iron_pick", "name": { "ru": "Кайло", "en": "Iron pick" }, "kind": "tool", "tier": 2, "stack": 1, "tool": { "type": "pick", "tier": 2, "uses": 360 } },
 
     { "id": "torch", "name": { "ru": "Факел", "en": "Torch" }, "kind": "light", "tier": 1, "stack": 10, "light": { "fog_radius": 8, "minutes": 5 } },
     { "id": "iron_lantern", "name": { "ru": "Фонарь", "en": "Lantern" }, "kind": "light", "tier": 2, "stack": 1, "light": { "fog_radius": 14, "fuel": "fish_oil", "minutes_per_fuel": 20 } },

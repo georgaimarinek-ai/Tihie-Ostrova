@@ -25,6 +25,8 @@ static func describe(db: ContentDB, id: String) -> String:
 			if other.has("gather") and other["gather"]["tool"] == it["tool"]["type"] and int(other["gather"].get("tool_tier", 1)) <= int(it["tool"]["tier"]):
 				gathers.append(Loc.name_of(other["name"]).to_lower())
 		lines.append(Loc.t("info.tool") % [int(it["tool"]["tier"]), ", ".join(gathers)])
+		if Tools.uses(db, id) > 0:
+			lines.append(Loc.t("info.tool_uses") % [Tools.uses(db, id), Loc.name_of(db.pieces[Tools.repair_station(db, id)]["name"]).to_lower()])
 	if it.has("food"):
 		var f: Dictionary = it["food"]
 		lines.append(Loc.t("info.food") % [int(f["hp"]), int(f["stamina"]), int(f["minutes"])])

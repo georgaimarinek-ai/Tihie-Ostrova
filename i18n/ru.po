@@ -1126,9 +1126,6 @@ msgstr "Холод Студёного моря"
 msgid "tuning.durability"
 msgstr "Износ инструментов"
 
-msgid "tuning.soon"
-msgstr "(будет позже)"
-
 msgid "tuning.night_raids"
 msgstr "Ночные набеги (только Сага)"
 
@@ -1449,3 +1446,51 @@ msgstr "Достижение: %s"
 
 msgid "goal.wall_demo"
 msgstr "Здесь кончается демо: дальше Летний берег и весь Поморский Север — в полной игре."
+
+msgid "cmd.tool_broken"
+msgstr "Инструмент сломан: почини его на верстаке или в кузне."
+
+msgid "cmd.not_a_tool"
+msgstr "Это не инструмент."
+
+msgid "cmd.not_worn"
+msgstr "Инструмент цел."
+
+msgid "act.tool_broken"
+msgstr "%s: инструмент сломан (%s)"
+
+msgid "toast.tool_dull"
+msgstr "%s затупился: работа вдвое медленнее. Правка — %s."
+
+msgid "toast.tool_broken"
+msgstr "%s сломался. Он останется в сумке; почини — %s."
+
+msgid "toast.repaired"
+msgstr "%s как новый."
+
+msgid "ui.durability"
+msgstr "Прочность %d/%d"
+
+msgid "ui.tool_dull"
+msgstr "Тупой"
+
+msgid "ui.tool_broken"
+msgstr "Сломан"
+
+msgid "ui.wear_off"
+msgstr "в этом мире износа нет"
+
+msgid "ui.repair"
+msgstr "Починить: %s"
+
+msgid "ui.repair_free"
+msgstr "Починить"
+
+msgid "ui.repair_at"
+msgstr "Чинят у станции «%s»."
+
+msgid "info.tool_uses"
+msgstr "Хватает на %d использований, потом тупится и ломается; правка — %s."
+
+msgid "evening.tools"
+msgstr "Пора починить"

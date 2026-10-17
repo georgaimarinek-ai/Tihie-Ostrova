@@ -88,6 +88,13 @@ func rows() -> Array:
 		for p: String in pages.slice(0, 3):
 			names.append(Loc.name_of(db.creatures[p]["name"]) if db.creatures.has(p) else tr("journal.chud_circle"))
 		out.append([tr("evening.journal"), ", ".join(names)])
+	var pid := Net.local_player_id()
+	if state != null and state.players.has(pid) and bool(state.rules()["durability"]):
+		var names: PackedStringArray = []
+		for t: Dictionary in Tools.worn(db, state.inv(pid)):
+			names.append(Loc.item(db, t["item"]).to_lower() + (" (" + tr("ui.tool_broken").to_lower() + ")" if t["condition"] == Tools.BROKEN else ""))
+		if not names.is_empty():
+			out.append([tr("evening.tools"), ", ".join(names)])
 	if out.is_empty():
 		out.append([tr("evening.quiet"), tr("evening.quiet_value")])
 	return out

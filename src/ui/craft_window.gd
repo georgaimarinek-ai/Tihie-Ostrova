@@ -582,6 +582,8 @@ func _recipe_card(rid: String) -> void:
 func _item_card(id: String) -> void:
 	_card_head(id, ItemInfo.kind(db, id))
 	var it: Dictionary = db.items[id]
+	if Tools.uses(db, id) > 0:
+		_tool_card(id)
 	if it.has("food") or it.has("light"):
 		var use := Button.new()
 		use.theme_type_variation = "FireButton"
@@ -589,6 +591,43 @@ func _item_card(id: String) -> void:
 		use.text = tr("ui.eat") if it.has("food") else tr("act.light_torch") if id == "torch" else tr("ui.light")
 		use.pressed.connect(use_item.bind(id))
 		_card.add_child(use)
+
+
+## A tool's wear: its remaining uses, and "Repair" when standing at its station with the cost in the bag.
+func _tool_card(id: String) -> void:
+	var inv := Game.state.inv(Net.local_player_id())
+	var slot := -1
+	for i in inv.size:
+		if inv.slots[i].get("id", "") == id and (slot < 0 or int(inv.slots[i].get("wear", 0)) > int(inv.slots[slot].get("wear", 0))):
+			slot = i
+	if slot < 0:
+		return
+	var s: Dictionary = inv.slots[slot]
+	var total := Tools.uses(db, id)
+	var cond := Tools.condition(db, s)
+	var wear_on := bool(Game.state.rules()["durability"])
+	var line := tr("ui.durability") % [total - int(s.get("wear", 0)), total]
+	if cond != Tools.OK:
+		line += " · " + tr("ui.tool_" + cond)
+	if not wear_on:
+		line += " · " + tr("ui.wear_off")
+	_card.add_child(UiTheme.label(line, 15, UiTheme.RED if cond == Tools.BROKEN else UiTheme.TEXT2))
+	if cond == Tools.OK:
+		return
+	var station := Tools.repair_station(db, id)
+	var cost := Tools.repair_cost(db, id, cond)
+	var b := Button.new()
+	b.theme_type_variation = "FireButton"
+	b.custom_minimum_size = Vector2(0, 50)
+	b.text = tr("ui.repair") % ItemInfo.bag_text(db, cost) if not cost.is_empty() else tr("ui.repair_free")
+	var here: bool = tab == station
+	b.disabled = not here or not inv.has_bag(cost)
+	b.pressed.connect(func() -> void:
+		Game.submit({"type": "repair", "uid": tab_uid, "slot": slot})
+		refresh_card())
+	_card.add_child(b)
+	if not here:
+		_card.add_child(UiTheme.label(tr("ui.repair_at") % Loc.name_of(db.pieces[station]["name"]).to_lower(), 14, UiTheme.MUTED))
 
 
 func _make(rid: String, times: int) -> void:

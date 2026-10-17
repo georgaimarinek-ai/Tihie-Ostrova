@@ -373,7 +373,6 @@ menu.unnamed	без имени	unnamed
 tuning.storms	Шторма переворачивают лодку	Storms capsize boats
 tuning.cold	Холод Студёного моря	The cold of the Frozen Sea
 tuning.durability	Износ инструментов	Tool wear
-tuning.soon	(будет позже)	(coming later)
 tuning.night_raids	Ночные набеги (только Сага)	Night raids (Saga only)
 tale.hare	Заяц на Поморье — зверь пугливый: след путает, петляет, а в туман сидит под кочкой и не дышит. Говорят, кто первого зайца весной увидит — тому лёгкая дорога. (TODO: быличка автора)	The Pomor hare is a shy beast: it tangles its tracks and sits breathless under a tussock in the fog. They say whoever sees the first hare in spring has an easy road. (TODO: author's tale)
 tale.fox	Лиса ходит краем тумана и слушает, где стучит топор. Старики говорили: лиса у избы — к гостям. (TODO: быличка автора)	The fox walks the edge of the fog and listens for the axe. The old folk said a fox by the house means guests are coming. (TODO: author's tale)
@@ -481,3 +480,19 @@ act.boat_needs	%s: не хватает %s	%s: still need %s
 toast.boat_built	На воде новая лодка: %s	A new boat is afloat: %s
 toast.achievement	Достижение: %s	Achievement: %s
 goal.wall_demo	Здесь кончается демо: дальше Летний берег и весь Поморский Север — в полной игре.	The demo ends here: the Summer Shore and the whole Pomor North are in the full game.
+cmd.tool_broken	Инструмент сломан: почини его на верстаке или в кузне.	The tool is broken: mend it at the workbench or the forge.
+cmd.not_a_tool	Это не инструмент.	That is not a tool.
+cmd.not_worn	Инструмент цел.	The tool is whole.
+act.tool_broken	%s: инструмент сломан (%s)	%s: the tool is broken (%s)
+toast.tool_dull	%s затупился: работа вдвое медленнее. Правка — %s.	Your %s is dull: work goes half as fast. Mend it at the %s.
+toast.tool_broken	%s сломался. Он останется в сумке; почини — %s.	Your %s broke. It stays in the bag; mend it at the %s.
+toast.repaired	%s как новый.	%s is as good as new.
+ui.durability	Прочность %d/%d	Durability %d/%d
+ui.tool_dull	Тупой	Dull
+ui.tool_broken	Сломан	Broken
+ui.wear_off	в этом мире износа нет	no wear in this world
+ui.repair	Починить: %s	Repair: %s
+ui.repair_free	Починить	Repair
+ui.repair_at	Чинят у станции «%s».	Mended at the %s.
+info.tool_uses	Хватает на %d использований, потом тупится и ломается; правка — %s.	Lasts %d uses, then dulls and breaks; mended at the %s.
+evening.tools	Пора починить	Time to mend
