@@ -22,7 +22,7 @@
 | `src/autoload/` | `Content`, `Net` (API коопа), `Game` (точка входа команд) |
 | `src/world/`, `src/shaders/`, `src/scenes/` | Директор тумана, шейдеры (туман с просветами, вода, рельеф, объекты), сцена этапа 0 |
 | `tests/` | 39 тестов на своём раннере, без аддонов |
-| `tools/` | `verify.sh`, валидатор контента, модель прогресса, генератор документа контента |
+| `tools/` | `verify.sh`, `export.sh`, валидатор контента, модель прогресса, генератор документа контента |
 | `art/` | Сюда художник кладёт `.glb` (правила в `docs/05_ART_AUDIO.md` §4) |
 | `reference/sketch/` | Браузерный набросок: исходники, сборка, автопрогон |
 
@@ -30,6 +30,7 @@
 ```
 godot --headless --path . --import      # один раз на свежем клоне
 GODOT=godot tools/verify.sh              # контент, баланс, документ, тесты, сцена
+GODOT=godot tools/export.sh              # сборки Windows, Linux и демо в build/ (нужны шаблоны экспорта 4.7.2)
 ```
 Последний прогон: `content OK`, `targets OK`, `tests: 39, failed: 0`, `SMOKE OK`, `verify: OK` (Godot 4.7.2).
 

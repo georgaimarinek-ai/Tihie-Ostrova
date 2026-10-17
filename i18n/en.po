@@ -1130,100 +1130,100 @@ msgid "tuning.night_raids"
 msgstr "Night raids (Saga only)"
 
 msgid "tale.hare"
-msgstr "The Pomor hare is a shy beast: it tangles its tracks and sits breathless under a tussock in the fog. They say whoever sees the first hare in spring has an easy road. (TODO: author's tale)"
+msgstr "The Pomor hare is a shy and clever beast. It tangles its tracks, runs in circles, and when the Mga settles it sits under a tussock and does not breathe. Old Yevstigney used to say: whoever sees the hare first on an island will have a good day, dry firewood and knots that tie themselves. Do not chase it: you will not catch it and you will lose your legs. Walk past, nod, and it will step out of your way."
 
 msgid "tale.fox"
-msgstr "The fox walks the edge of the fog and listens for the axe. The old folk said a fox by the house means guests are coming. (TODO: author's tale)"
+msgstr "The fox walks the edge of the fog and listens for the axe. Where the axe is, there are people; where people are, there are racks of fish. The old folk said: a fox by the house means guests, a fox on the path means a find. Nobody here hunted it: no one wore its fur, and the beast is sly and handsome, a joy just to watch. See a red tail in the fog and the shore is near and the fog will soon thin."
 
 msgid "tale.seal"
-msgstr "The seal hauls out on the rocks and watches the boat for a long, long time. Pomors never touched seals on their own skerries — bad luck. Here you can only watch her. (TODO: author's tale)"
+msgstr "The seal hauls out on the rocks and watches the boat for a long, long time, as if remembering. The Pomors never hunted seals by their own islands: they said a seal holds the soul of a drowned helmsman, looking at his sea. Come closer and it slides into the water without a splash and comes up farther off. And when seals swim beside the boat and dive under the bow, they are seeing you off: the sea is calm, the wind is fair, go boldly."
 
 msgid "tale.gull"
-msgstr "The gull is a thief: where there's a fish rack, there's a gull. But gulls over the water mean land is near. (TODO: author's tale)"
+msgstr "The gull is a thief: where there is a rack of cod, there it is. Turn away and it will pull a fish straight off the pole and shriek at you from above as if you owed it something. But a gull over the water means land: it does not fly far from the shore. And where gulls wheel in one column and cry over each other, a shoal has come in. Cast your line; the bites will tire your arms."
 
 msgid "tale.reindeer"
-msgstr "The wild reindeer comes down to the water at sunset and leaves if you speak loudly. (TODO: author's tale)"
+msgstr "The wild reindeer comes down to the water at sunset, drinks and listens. Speak loudly and it leaves, and the moss under it does not crunch. The Pomors neither herded reindeer like the Sami nor hunted them: there are few on the islands and each one counts. They said: a reindeer at the house means a mild winter; a reindeer swimming the strait means a storm within a day. Watch from afar and it will show you the driest timber on the island."
 
 msgid "tale.wolf"
-msgstr "At night the wolf circles the fire but never steps inside. Walk with a torch and he won't touch you. (TODO: author's tale)"
+msgstr "At night the wolf circles the fire but never steps inside the ring. It has always been so: where there is a torch there is a person, and a person with fire is no prey. By day it sleeps in the windfall; at night it takes the paths where it is dark and quiet. Old Marfa taught: walking a strange island at night, light a torch, sing loud and do not run. Run and it decides you are a hare. Walk with fire and it will follow you with its eyes and fall behind."
 
 msgid "tale.bear"
-msgstr "The master of the woods first rears up and roars — that's his warning. Walk away and he won't follow. (TODO: author's tale)"
+msgstr "The master of the woods first rears up and roars: that is a warning, not a fright. He is saying: my place, go away. Go and he watches you off and lies back down in the raspberries. Stay and he comes, and then it is late to wave a spear. The Pomors did not quarrel with the bear; they called him the Master and never spoke his name aloud, so as not to call him. Each bear has his own corner of an island: remember where the roar was and go around."
 
 msgid "tale.polar_bear"
-msgstr "The oshkuy, the white bear, walks the ice of the Frozen Sea and remembers everyone who entered his grounds. (TODO: author's tale)"
+msgstr "The oshkuy, the white bear, walks the ice of the Frozen Sea and remembers everyone who entered his grounds. He does not roar like the brown bear; he walks. He walks slowly, as if not towards you, and then he is beside you. The helmsmen said: you cannot fool the oshkuy with silence or with scent, so go round his floe by sea. And if he rears up, you are already on his land, and the best thing to do is back away to the boat facing him, never turning your back."
 
 msgid "tale.mglyak"
-msgstr "The mistling is a tuft of fog with eyes. Its touch puts out fire, and it backs away from fire. (TODO: author's tale)"
+msgstr "The mistling is a rag of fog with eyes. At night, when the Mga is thick, it tears itself loose and goes for the light. Touch a torch and the torch dies as if doused. Yet it backs away from fire: it dislikes it but is drawn to it, like a moth. The old folk said a mistling is the breath of someone who drowned in the fog and never found the way. Strike it with a spear, fire in the other hand, and it melts faster. It leaves resin on the ground: the fog weeps pitch."
 
 msgid "tale.kikimora"
-msgstr "The bog kikimora sits in the sedge and throws mud at travellers to trip them. (TODO: author's tale)"
+msgstr "The bog kikimora sits in the sedge up to her eyes and waits. Walk past and she flings mud at your feet; you stumble, you stick, and she cackles from the reeds. Her household is the swamp: clay, snags, frogs. The Pomors did not fear the kikimora, they shamed her: 'Behave yourself, you sit in the mire.' Like all the Mga she hates fire and flees a torch into the deepest bog. She leaves clay behind, good stove clay; she did not sit in it for nothing."
 
 msgid "tale.morok"
-msgstr "The glamour lights a false fire in the fog that looks like a beacon and leads boats onto rocks. Trust the compass, not the light. (TODO: author's tale)"
+msgstr "The glamour lights a false fire in the fog, like a beacon, and leads the boat onto the rocks. The fire is warm and kind and flickers like a true hint, only the compass does not know it; that is the whole difference. Helmsman Foma taught: trust no fire that is not on the chart. Bring a torch near and the glamour's fire turns green and trembles, while a true beacon does not change for fire. Run onto the rocks and do not panic: pole off and steer for the fire the needle shows."
 
 msgid "tale.fog_wolf"
-msgstr "Fog wolves hunt in a pack and in silence. You only hear the moss crunch. (TODO: author's tale)"
+msgstr "The fog wolves run in a pack and in silence. A common wolf howls; these do not. You hear only the moss crunch and the fog stir. There were none while the beacons burned. The beacons went out, and out of the Mga they came, grey, without scent, without shadow. They fear fire like everything of the fog, but a pack is bolder than a loner: one torch will not hold three. At night in thick fog on a strange island keep to the path, hold the fire high and go no farther from the shore than you can see the boat."
 
 msgid "tale.ice_mglyak"
-msgstr "The frost mistling breathes cold: after its breath your hands can't hold the spear. (TODO: author's tale)"
+msgstr "The frost mistling breathes cold. It comes near and your hands cannot hold the spear, your breath tears, and it seems you are already in the ice hole. It lives in the Frozen Sea, cold enough without it. The old folk said it is a winter wind that stood too long over the water and grew eyes. Warm yourself by fire and in the bathhouse, and fight it only with a torch: it backs away from fire, and with each blow it sheds glimmers, the ones that shine forever."
 
 msgid "tale.domovoy"
-msgstr "The domovoy lives behind the stove when the house is warm and at peace. Leave him kalitki and your chests stay tidy and the house cosy. (TODO: author's tale)"
+msgstr "The house spirit lives behind the stove when the house is warm and in order. He will not come to an empty cabin: he needs a stove to warm himself and a sleeping bench to have someone to watch over. Leave kalitki pies on the bench by the stove and by morning he will have taken them, and the house will feel cosier, and you will find the chest tidied, everything in order, stack by stack. Forget him for three days and he will not sulk, but he will stop helping. He is hard to see: small, in a red shirt, he slips behind the stove and is gone."
 
 msgid "tale.bannik"
-msgstr "The bannik lives in the bathhouse. The third steam is his: don't steam after midnight, don't anger the master. (TODO: author's tale)"
+msgstr "The bathhouse spirit lives in the bathhouse, under the bench. The folk rule is simple: the third steam is his. Nobody goes to the bathhouse after midnight: the master is steaming, and one does not disturb him. Break the rule and the steam will be cold, the birch whisk stiff, and no warmth for you till morning. Keep it and the steam holds longer, your bones unknot, and your strength comes back faster. Leaving the bathhouse, set out a ladle of water and say: 'Thank you, master.' It pleases him and costs you nothing."
 
 msgid "tale.leshy"
-msgstr "The leshy leads you round the woods in the fog. Leave cloudberries on a stump and his green wisp leads you to the path. (TODO: author's tale)"
+msgstr "The forest spirit lives on the big wooded islands and comes out when the Mga settles so thick the pines vanish. He leads you astray without malice: the forest is his and you are a guest. Lost? Do not shout. Put a handful of cloudberries on a stump and step back. A green wisp will light and float ahead; follow it, it leads to the beacon path or to the shore. In a Saga world at night without a gift he will walk you in circles until he tires of it; no harm, only time."
 
 msgid "tale.vodyanoy"
-msgstr "The vodyanoy sits by the water, his beard in weed. Give him the first fish of the day and the bites last till evening. (TODO: author's tale)"
+msgstr "The water master sits by the water, beard full of weed, watching who fishes how. He lives in the rivers and lakes of the Summer Shore and the Ter Coast. Give him the first fish of the day: throw it back by the bank and say 'Yours.' Then until evening the bites come faster than you can strike. Forget him for three days and he takes offence and leads the fish away from your line; you will sit over empty water until you remember. He is not wicked, he is the master, and a master is respected."
 
 msgid "tale.sirin"
-msgstr "At dawn Sirin, the bird-maiden, sings on the rocks. Whoever hears her song never forgets it — and the sea takes up her tune. (TODO: author's tale)"
+msgstr "At dawn on the high rocks of the Ter Coast and the Frozen Sea sings Sirin, the bird-maiden. Whoever hears her song never forgets it: afterwards it sounds in the noise of the sea, in the creak of the rigging, in the wind over the sail. You cannot approach her, she flies away; you can only listen from afar until the sun rises. The Pomors said Sirin sings to those far from home, so that home is remembered. Hear her and board your boat with a light heart; the way will be smooth."
 
 msgid "tale.ryba_kit"
-msgstr "The Miracle Whale surfaces on calm nights with a tiny chapel on its back. Whoever moors there rests until dawn. (TODO: author's tale)"
+msgstr "The Miracle Whale surfaces in the Frozen Sea on a quiet night when there is neither wind nor wave. Its back is a whole island, moss and stones, and on the back stands a tiny chapel that nobody built. Moor to it and you will rest by the chapel as you cannot rest at home: deep sleep, a quiet heart. At dawn the whale sighs and goes under, and you find yourself in your boat as if you had never left it. The helmsmen argued whether it is one whale or many; they agreed it is kind."
 
 msgid "tale.chud"
-msgstr "The White-Eyed Chud went under the earth when strangers came. Only their mines and stone circles remain. (TODO: author's tale)"
+msgstr "The white-eyed Chud lived here before the Pomors. They say their eyes were pale as ice and they saw in the dark. When strangers came, the Chud did not fight: they went under the earth, into their mines, and blocked the entrances. Stone circles on the islands remain, and shafts where iron does not rust. The Pomors never disturbed the Chud's signs and took no stones from their circles: these are not enemies, they are the former masters who gave up their place. Find their circle, bow, and take only what lies on top."
 
 msgid "tale.likho"
-msgstr "One-Eyed Likho sleeps in a cave on the Summer Shore. It has one eye — you can slip past on the side without one. (TODO: author's tale)"
+msgstr "One-eyed Likho sleeps in a cave on the Summer Shore. Huge, shaggy, with one eye, the left. On its right side it is blind and hears poorly, so the brave approach from there, and the wise go round the cave by sea. There is no reason to wake it: it has no gold, only old iron in a corner. Wake it and it hits hard and does not let go for a long time. The Pomors said: do not go looking for trouble while trouble is quiet. That saying is about Likho."
 
 msgid "tale.karachun"
-msgstr "Karachun, the frost spirit, walks the Frozen Sea by night and puts out lanterns. He fears fire. (TODO: author's tale)"
+msgstr "Karachun, the spirit of frost, walks the Frozen Sea by night. Where he passes the ice cracks, lanterns dim, torches hiss and die. He is no creature of the Mga; he is older: people feared him before the fog came. He fears one thing, a fire that does not go out: a hearth, a stove, an aurora lantern. The helmsmen had a rule: on Karachun's nights do not put to sea, and if you did, keep a store of oil and burn it without stinting. When he goes he leaves glimmers on the water; gather them."
 
 msgid "tale.siverko"
-msgstr "Siverko is the north wind. He blows you off the ledges and lashes you with ice needles. (TODO: author's tale)"
+msgstr "Siverko is the north wind, and at the beacon on Gull Skerry he lives as master. He blows so hard he sweeps you off the ledges and lashes with needles of ice. Angered, he raises a squall and the sea stands on end. To fight him is to stand: feet wide, back to the rock, striking when he swoops close. The Pomors said Siverko is not wicked; he simply dislikes anyone lighting a fire in his house uninvited. Beat him and he falls quiet and leaves pitch kindling on the summit, as if he had brought it himself."
 
 msgid "tale.bolotnitsa"
-msgstr "The Bog Maiden drags you into the mire and calls the kikimoras. Fire burns her. (TODO: author's tale)"
+msgstr "The bog maiden is mistress of the Summer Shore mires, and the beacon on Bog Island stands on her land. She is beautiful until you come close: then you see her hair is sedge and her arms are snags. She pulls you into the mire quietly, by the feet, and calls kikimoras to help. She fears one thing, fire: a torch hardens the bog and she retreats. The Pomors went to her only with fire in hand and a sounding pole. Beat her and bog ore remains, the ore from which the first iron is forged."
 
 msgid "tale.hozyain_guby"
-msgstr "The Master of the Bay rises from the sea by the shore rocks and drives waves onto the land. (TODO: author's tale)"
+msgstr "The Master of the Bay rises from the sea by the shore rocks when someone lights a fire on Salt-Works Cape. He is water and stone, and he drives the wave onto the shore so that boats are thrown on the rocks. You can fight him from the koch if you hold the helm, or from the rocks if you are not washed off. He is not wicked, he is old: the bay is his home and he tests whether you are worthy of fire in it. Stand through three of his waves and do not retreat, and he lies down, and pearls remain on the rocks, his gift."
 
 msgid "tale.mga"
-msgstr "The Mga is the heart of the fog. It swallows lights and breaks into mistlings. It weakens while every lantern around burns. (TODO: author's tale)"
+msgstr "The Mga is the fog itself, its heart. It came when the last beacon went out and has lain on the sea ever since, swallowing fires. At the Lodestar it waits for whoever reaches the end. Fight it and it scatters into mistlings and gathers again. It weakens only when all four lanterns around the arena burn: light from every side, and it has nowhere to put it. Light the lanterns, hold your torch and strike the middle. When the Mga goes, the whole sea opens, to its very edge."
 
 msgid "tale.chud.1"
-msgstr "A sign is cut into the stone: a circle and three lines. Under it, a handful of mica. (TODO: author's tale)"
+msgstr "A sign is cut into the stone: a circle and three lines. The Pomors read it so: the circle is the sun, the lines are three days' journey home. Under the stone lies a handful of mica, clear as a window. The Chud left such signs on their roads so their own would not get lost under the earth, and set a gift beside them for whoever found the sign and left it be. Take the mica; do not touch the stone. This is not a grave and not a hoard, it is a waymark."
 
 msgid "tale.chud.2"
-msgstr "They say the Chud went into these mines singing, and the song can be heard on a quiet night. (TODO: author's tale)"
+msgstr "They say the Chud went down into these mines with a song, and the song can be heard on a quiet night if you lay your ear to the ground at the entrance. The words cannot be made out, only the tune, low and drawn out like a gudok fiddle. The helmsmen argued whether the Chud still sing or whether it is the wind in the galleries. Old Pelageya said: what does it matter if the song is good. Lie down and listen, and when you go, leave bread at the entrance. That is the custom here."
 
 msgid "tale.chud.3"
-msgstr "Old iron in the earth never rusts — the Chud way. (TODO: author's tale)"
+msgstr "Old iron in this earth does not rust: that is the Chud way. The smiths said the Chud knew a word spoken over the forge, and from that word the iron remembered fire and feared no water. The word is forgotten; the iron lies on. Find a bloom in the mines and take it, it is better than bog iron: forge an axe or a spear from it and they will serve three times longer. Only take no more than you can carry at once: the Chud did not like the greedy."
 
 msgid "tale.chud.4"
-msgstr "Whoever takes a stone from the circle loses the way home. The stones stay put. (TODO: author's tale)"
+msgstr "Whoever carries a stone away from the circle loses the way home. It happened once: helmsman Savva took a flat stone for an anchor and sailed around his own island for three days without seeing the shore. He put the stone back and was home by evening. Since then the circles are left alone. The stones stand as they stood; the moss on them is older than the Pomor cabins. Sit in the middle of the circle if you are tired: it is quiet there, and the fog does not come in."
 
 msgid "tale.chud.5"
-msgstr "The air in the mines is warm, as if someone breathes under the earth. (TODO: author's tale)"
+msgstr "The air in the mines is warm, as if someone were breathing under the earth. In winter the snow melts at the entrance, and in summer the gallery breathes out like a heated cabin. The Pomors built their winter huts by such mines: no firewood needed for the night. They said the Chud burn their fires below and warm those who live above, bearing no grudge. True or not, it is warm to sleep by the mines. Do not go inside: it is their home, and you are a guest on the threshold."
 
 msgid "tale.chud.6"
-msgstr "The Chud were never enemies: they left rather than fight. They left us their signs. (TODO: author's tale)"
+msgstr "The Chud are not enemies. They went away so as not to fight, and everyone who finds their signs should remember it. The Pomors never dug their mines deeper than the iron lying on top and never built cabins on their circles. For that, they say, the Chud never troubled the Pomor boats that came into their bays. Find a sign and bow. Find iron, take it and say thank you. Find an entrance and leave it open: perhaps they will come back."
 
 msgid "hint.combat"
 msgstr "LMB — strike (hold for heavy) · C — block · Ctrl — dodge · E — action"
@@ -1595,10 +1595,10 @@ msgid "journal.sea_bottle"
 msgstr "A note in a bottle"
 
 msgid "tale.sea_bottle"
-msgstr "A bottle of dark glass with a strip of birch bark inside: \"Whoever finds this, light the fire on Gull Skerry. We did not make it in time.\" Unsigned. (TODO: author's tale)"
+msgstr "A bottle of dark glass, its neck sealed with pitch. Inside, a strip of birch bark with letters burnt in with a needle: 'Whoever finds this, light the fire on Gull Skerry. We steered for it three days and never arrived; the fog ate the way. The boat is whole, the people are whole, the fish are few. If the fire is lit we will see it and come.' No signature. The Pomors said such letters are written not to be rescued but so that people remember what the beacons are for."
 
 msgid "tale.puchinnik"
-msgstr "The old folk say that in thick fog something walks beneath the boat that no one names. It is not evil, only hungry, and it does not like the light. Keep a lantern at the bow and a harpoon to hand. (TODO: author's tale)"
+msgstr "The Deep One lives in the deep water of the Ter Coast and the Frozen Sea and comes out at night when the Mga lies on the water. Nobody calls it by name: say it and it swims up. First it circles, and the boat rocks without a wave. Then it grips the hull and the boat stands as if tied while it beats at the side. Strike it three times in a row and it lets go and draws off. It cannot bear fire: a torch in hand or a lantern at the bow keeps it at a distance. A harpoon reaches it from the deck and comes back on its line. It does not sink boats and does not touch the hold; it wants not cargo but fear."
 
 msgid "part.lantern"
 msgstr "Boat lantern"

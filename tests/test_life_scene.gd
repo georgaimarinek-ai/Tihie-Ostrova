@@ -155,7 +155,7 @@ func test_menu_tuning_and_journal(tree: SceneTree) -> void:
 	await frames(tree, 2)
 	check(world.journal.visible, "J opens the journal")
 	eq(world.journal._title.text, Loc.name_of(db.creatures["domovoy"]["name"]))
-	check(world.journal._text.text.find("TODO") >= 0, "the tales are drafts marked TODO for the author")
+	check(world.journal._text.text.length() > 200 and world.journal._text.text.find("TODO") < 0, "a written tale, no TODO marks left (0.12.1)")
 	check(world.ui_open(), "the journal takes the keys")
 	world.journal.close_window()
 	# the pause menu changes the mode

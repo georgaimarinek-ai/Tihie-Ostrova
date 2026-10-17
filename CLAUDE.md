@@ -16,6 +16,7 @@
 - `godot --headless --path . --import` — один раз на свежем клоне (регистрирует `class_name`)
 - `godot --headless --path . -s res://tests/run_tests.gd --fixed-fps 60 -- --filter=commands` — часть тестов (`--fixed-fps 60`: сценовые тесты не ждут реальных секунд)
 - `python3 tools/gen_i18n.py` — после правки `i18n/strings.tsv` (ключ, ru, en)
+- `GODOT=godot tools/export.sh` — сборки всех пресетов в `build/` (шаблоны экспорта один раз в `~/.local/share/godot/export_templates/4.7.2.stable/`)
 - `python3 tools/validate_content.py`, `python3 tools/progression_sim.py [--check|--detail b07]`
 - Скриншот игры: `xvfb-run -a godot --path . --rendering-driver opengl3 -- --screenshot=/tmp/shot.png --frames=150 --locale=ru` (+ `--teleport=x,z,yaw`, `--look=yaw,pitch`, `--lit=b01`, `--light-at=N`; список в `src/world/world.gd`)
 - Скриншот среза этапа 0: `xvfb-run -a godot --path . --rendering-driver opengl3 res://src/scenes/main.tscn -- --screenshot=/tmp/shot.png --light-at=10 --frames=160`
